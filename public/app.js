@@ -2828,7 +2828,33 @@ function setupEventListeners() {
     if (notionConfigForm) notionConfigForm.hidden = true;
   });
 
+  const sidebarSettingsWrap = document.getElementById('sidebar-settings-wrap');
+  const sidebarSettingsMenu = document.getElementById('sidebar-settings-menu');
+  const sidebarSettingsToggle = document.getElementById('btn-sidebar-settings-toggle');
+
+  function closeSidebarSettingsMenu() {
+    if (sidebarSettingsMenu) sidebarSettingsMenu.hidden = true;
+    sidebarSettingsWrap?.classList.remove('open');
+    sidebarSettingsToggle?.setAttribute('aria-expanded', 'false');
+  }
+
+  sidebarSettingsToggle?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!sidebarSettingsMenu) return;
+    const willOpen = sidebarSettingsMenu.hidden;
+    sidebarSettingsMenu.hidden = !willOpen;
+    sidebarSettingsWrap?.classList.toggle('open', willOpen);
+    sidebarSettingsToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (sidebarSettingsMenu && !sidebarSettingsMenu.hidden && !e.target.closest('#sidebar-settings-wrap')) {
+      closeSidebarSettingsMenu();
+    }
+  });
+
   document.getElementById('btn-password-settings')?.addEventListener('click', () => {
+    closeSidebarSettingsMenu();
     if (passwordModal) {
       updatePasswordUiState();
       passwordModal.hidden = false;
@@ -2843,6 +2869,7 @@ function setupEventListeners() {
   });
 
   function lockAndLogout() {
+    closeSidebarSettingsMenu();
     setStoredAuthToken('');
     document.cookie = 'studioflow_auth=; Path=/; Max-Age=0';
     if (state.unlockedGaChannels) state.unlockedGaChannels.clear();
@@ -3143,7 +3170,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=19', { updateViaCache: 'none' })
+      .register('/sw.js?v=20', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
@@ -3153,15 +3180,18 @@ let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  const installBtn = document.getElementById('btn-install-pwa');
-  if (installBtn) {
-    installBtn.hidden = false;
-    installBtn.onclick = async () => {
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      installBtn.hidden = true;
-    };
+});
+
+document.getElementById('btn-install-pwa')?.addEventListener('click', async () => {
+  const menuEl = document.getElementById('sidebar-settings-menu');
+  if (menuEl) menuEl.hidden = true;
+  document.getElementById('sidebar-settings-wrap')?.classList.remove('open');
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  } else {
+    showBanner('Ứng dụng đã được cài đặt hoặc anh có thể chọn "Cài đặt ứng dụng / Thêm vào màn hình chính" trên trình duyệt!');
   }
 });
 

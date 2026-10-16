@@ -9,7 +9,7 @@
   <title>StudioFlow — Quản Lý Kênh YouTube &amp; Kho Nội Dung (Mệnh Kim)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=19" />
+  <link rel="stylesheet" href="/styles.css?v=20" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -32,20 +32,24 @@
 
           <nav class="left-nav" id="side-nav" aria-label="Điều hướng chính">
             <button type="button" class="nav-btn active" data-tab="insights">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-              <span class="nav-btn-label">Trang chủ (Phân tích &amp; Nhóm)</span>
+              <span class="nav-btn-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span class="nav-btn-label">Trang chủ (Phân tích &amp; Nhóm)</span>
+              </span>
               <span class="nav-count" id="nav-count-insights">0</span>
             </button>
 
             <div class="nav-folder-group">
               <button type="button" class="nav-btn" data-tab="youtube">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                </svg>
-                <span class="nav-btn-label">Thư mục Kênh YouTube</span>
+                <span class="nav-btn-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  </svg>
+                  <span class="nav-btn-label">Thư mục Kênh YouTube</span>
+                </span>
                 <span class="nav-count" id="nav-count-youtube">0</span>
               </button>
               <!-- Cây thư mục con các Nhóm & Kênh riêng lẻ bên trái -->
@@ -53,17 +57,19 @@
             </div>
 
             <button type="button" class="nav-btn" data-tab="contents">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
-              <span class="nav-btn-label">Nơi lưu nội dung</span>
+              <span class="nav-btn-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                <span class="nav-btn-label">Nơi lưu nội dung</span>
+              </span>
               <span class="nav-count" id="nav-count-contents">0</span>
             </button>
           </nav>
         </div>
 
-        <!-- CÔNG CỤ CUỐI CỘT TRÁI -->
+        <!-- CÔNG CỤ & NÚT CÀI ĐẶT CUỐI CỘT TRÁI -->
         <div class="sidebar-footer">
           <button
             type="button"
@@ -75,27 +81,52 @@
             <span id="hourly-sync-text">🔄 Auto 1h: 60p</span>
           </button>
 
-          <div class="sidebar-auth-actions">
+          <div class="sidebar-settings-wrap" id="sidebar-settings-wrap">
             <button
               type="button"
-              class="btn btn-secondary btn-sm"
-              id="btn-password-settings"
-              title="Đổi mật khẩu đăng nhập hệ thống"
+              class="sidebar-settings-btn"
+              id="btn-sidebar-settings-toggle"
+              aria-expanded="false"
             >
-              🔒 Đổi mật khẩu
+              <span class="nav-btn-left">
+                <span>⚙️</span>
+                <span>Cài đặt</span>
+              </span>
+              <span class="settings-chevron" id="sidebar-settings-chevron">▴</span>
             </button>
 
-            <button
-              type="button"
-              class="btn btn-danger-outline btn-sm"
-              id="btn-logout-header"
-              title="Đăng xuất và quay về màn hình đăng nhập"
-            >
-              Đăng xuất
-            </button>
+            <div class="sidebar-settings-menu" id="sidebar-settings-menu" hidden>
+              <button
+                type="button"
+                class="settings-menu-item"
+                id="btn-password-settings"
+                title="Đổi mật khẩu đăng nhập hệ thống"
+              >
+                <span>🔒</span>
+                <span>Đổi mật khẩu</span>
+              </button>
+
+              <button
+                type="button"
+                class="settings-menu-item"
+                id="btn-install-pwa"
+                title="Cài đặt ứng dụng StudioFlow ra màn hình chính"
+              >
+                <span>📲</span>
+                <span>Cài App</span>
+              </button>
+
+              <button
+                type="button"
+                class="settings-menu-item settings-menu-danger"
+                id="btn-logout-header"
+                title="Đăng xuất và quay về màn hình đăng nhập"
+              >
+                <span>🚪</span>
+                <span>Đăng xuất</span>
+              </button>
+            </div>
           </div>
-
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-install-pwa" hidden>Cài App</button>
         </div>
       </aside>
 
@@ -440,7 +471,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=19"></script>
+  <script type="module" src="/app.js?v=20"></script>
 </body>
 </html>
 
