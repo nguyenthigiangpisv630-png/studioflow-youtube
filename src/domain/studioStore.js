@@ -1863,10 +1863,16 @@ export class StudioStore {
       .sort((a, b) => b.views - a.views)
       .slice(0, 25);
 
+    const lastSyncIso = this.state.meta.lastDailySyncAt || new Date().toISOString();
+    const lastSyncMs = new Date(lastSyncIso).getTime() || Date.now();
+    const nextHourlySyncAt = new Date(lastSyncMs + 60 * 60 * 1000).toISOString();
+
     return {
       meta: {
         lastDailySyncDate: this.state.meta.lastDailySyncDate || targetDate,
-        lastDailySyncAt: this.state.meta.lastDailySyncAt,
+        lastDailySyncAt: lastSyncIso,
+        nextHourlySyncAt,
+        autoSyncIntervalMinutes: 60,
         notion: this.getNotionConfig(),
       },
       crm: {

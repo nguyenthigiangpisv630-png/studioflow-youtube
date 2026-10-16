@@ -9,7 +9,7 @@
   <title>StudioFlow — Quản Lý Kênh YouTube &amp; Kho Nội Dung (Mệnh Kim)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=16" />
+  <link rel="stylesheet" href="/styles.css?v=17" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -86,6 +86,16 @@
             <button type="button" class="switch-btn active" id="btn-view-web" title="Giao diện Web">Web</button>
             <button type="button" class="switch-btn" id="btn-view-app" title="Giao diện Mobile App">App</button>
           </div>
+
+          <button
+            type="button"
+            class="hourly-sync-pill num"
+            id="btn-hourly-auto-sync"
+            title="Hệ thống tự động reset & cập nhật chỉ số toàn bộ kênh 1 tiếng 1 lần — Bấm để cập nhật ngay lập tức"
+          >
+            <span class="hourly-sync-dot"></span>
+            <span id="hourly-sync-text">🔄 Auto 1h: 60p</span>
+          </button>
 
           <button
             type="button"
@@ -451,7 +461,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=16"></script>
+  <script type="module" src="/app.js?v=17"></script>
 </body>
 </html>
 

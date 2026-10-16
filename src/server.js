@@ -61,21 +61,35 @@ export function createAppServer({
   let dailyTimer = null;
 
   if (enableAutoSyncTimer) {
-    // Kiểm tra định kỳ mỗi 6 giờ để tự động đồng bộ chỉ số lượt xem hằng ngày khi bước sang ngày mới
-    dailyTimer = setInterval(async () => {
+    const HOURLY_INTERVAL_MS = 60 * 60 * 1000; // 1 tiếng (60 phút) 1 lần
+    let isSyncing = false;
+
+    const checkAndRunHourlySync = async () => {
+      if (isSyncing) return;
       try {
-        const now = new Date();
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
-          now.getDate()
-        ).padStart(2, '0')}`;
         const summary = store.getDashboardSummary();
-        if (summary.meta.lastDailySyncDate !== today) {
+        const lastSyncAt = summary.meta?.lastDailySyncAt
+          ? new Date(summary.meta.lastDailySyncAt).getTime()
+          : 0;
+        const elapsedMs = Date.now() - (Number.isFinite(lastSyncAt) ? lastSyncAt : 0);
+
+        if (elapsedMs >= HOURLY_INTERVAL_MS) {
+          isSyncing = true;
+          const now = new Date();
+          const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+            now.getDate()
+          ).padStart(2, '0')}`;
           await store.syncAllVideosDailyMetrics({ date: today });
         }
       } catch {
         // Bỏ qua lỗi mạng tạm thời trong tiến trình nền
+      } finally {
+        isSyncing = false;
       }
-    }, 6 * 60 * 60 * 1000);
+    };
+
+    // Kiểm tra mỗi 1 phút để tự động reset & cập nhật chỉ số kênh/video đúng chu kỳ 1 tiếng 1 lần
+    dailyTimer = setInterval(checkAndRunHourlySync, 60 * 1000);
     dailyTimer.unref?.();
   }
 

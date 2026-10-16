@@ -248,6 +248,30 @@ function renderTopMetrics() {
 
   setText('stat-yt-views', formatNumber(s.youtube.totalViews));
   setText('stat-yt-delta', `+${formatNumber(s.youtube.todayViewsDelta)}/ngày`);
+  updateHourlySyncBadge();
+}
+
+function updateHourlySyncBadge() {
+  const badgeBtn = document.getElementById('btn-hourly-auto-sync');
+  const textEl = document.getElementById('hourly-sync-text');
+  if (!badgeBtn || !textEl) return;
+
+  const lastSyncIso = state.summary?.meta?.lastDailySyncAt;
+  const lastSyncMs = lastSyncIso ? new Date(lastSyncIso).getTime() : Date.now();
+  const nextSyncMs = (Number.isFinite(lastSyncMs) ? lastSyncMs : Date.now()) + 60 * 60 * 1000;
+  const diffMs = Math.max(0, nextSyncMs - Date.now());
+  const remainMins = Math.max(1, Math.ceil(diffMs / 60000));
+
+  const lastTimeStr = lastSyncIso
+    ? new Date(lastSyncIso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+    : '--:--';
+  const nextTimeStr = new Date(nextSyncMs).toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  textEl.textContent = `🔄 Auto 1h: ${remainMins}p`;
+  badgeBtn.title = `Tự động reset & cập nhật chỉ số toàn bộ kênh 1 tiếng/lần.\n• Cập nhật gần nhất: ${lastTimeStr}\n• Tự động cập nhật kế tiếp: ${nextTimeStr} (còn ~${remainMins} phút)\n👉 Bấm vào đây để cập nhật ngay lập tức!`;
 }
 
 function renderSelectOptions() {
@@ -2755,24 +2779,52 @@ function setupEventListeners() {
     btnWeb.classList.remove('active');
   });
 
-  // Đồng bộ chỉ số lượt xem hằng ngày
-  async function triggerDailySync(customDate) {
+  // Đồng bộ & Auto Reset chỉ số lượt xem (Tự động 1 tiếng / lần hoặc bấm thủ công)
+  let isHourlySyncRunning = false;
+  async function triggerDailySync(customDate, { isAutoHourly = false } = {}) {
+    if (isHourlySyncRunning) return;
+    isHourlySyncRunning = true;
+    const textEl = document.getElementById('hourly-sync-text');
+    if (textEl) textEl.textContent = '🔄 Đang cập nhật...';
     try {
       const date = customDate || getTodayStr();
+      if (isAutoHourly && state.unlockedGaChannels) {
+        // Tự động khóa ẩn lại thông tin Gà kết nối sau mỗi chu kỳ 1 tiếng
+        state.unlockedGaChannels.clear();
+      }
       const res = await apiRequest('/api/youtube/sync-daily', {
         method: 'POST',
         body: JSON.stringify({ date }),
       });
       await loadOverview();
       showBanner(
-        `Đã đồng bộ lượt xem ngày ${res.date} (+${formatNumber(res.totalDailyViewsGained)} views mới)!`
+        isAutoHourly
+          ? `⏱️ Đã tự động reset & cập nhật chỉ số định kỳ 1 tiếng/lần (${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })})!`
+          : `Đã đồng bộ & cập nhật chỉ số mới nhất cho toàn bộ dàn kênh!`
       );
     } catch (err) {
       showBanner(err.message, true);
+      updateHourlySyncBadge();
+    } finally {
+      isHourlySyncRunning = false;
     }
   }
 
   document.getElementById('btn-yt-sync-all')?.addEventListener('click', () => triggerDailySync(getTodayStr()));
+  document.getElementById('btn-hourly-auto-sync')?.addEventListener('click', () => triggerDailySync(getTodayStr()));
+
+  // Bộ đếm tự động reset & cập nhật 1 tiếng 1 lần (60 phút)
+  setInterval(() => {
+    if (!state.summary) return;
+    const lastSyncIso = state.summary?.meta?.lastDailySyncAt;
+    const lastSyncMs = lastSyncIso ? new Date(lastSyncIso).getTime() : Date.now();
+    const elapsedMs = Date.now() - (Number.isFinite(lastSyncMs) ? lastSyncMs : Date.now());
+    if (elapsedMs >= 60 * 60 * 1000) {
+      triggerDailySync(getTodayStr(), { isAutoHourly: true });
+    } else {
+      updateHourlySyncBadge();
+    }
+  }, 20 * 1000);
 
   // Mở/đóng Form Nội dung, Form Cấu hình Notion, Hộp thoại Mật khẩu Web & Hộp thoại Studio sâu
   const contentForm = document.getElementById('form-create-content');
@@ -3142,7 +3194,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=16', { updateViaCache: 'none' })
+      .register('/sw.js?v=17', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
