@@ -1,7 +1,8 @@
 {
   "meta": {
     "lastDailySyncDate": "2026-10-16",
-    "lastDailySyncAt": "2026-10-16T16:42:39.209Z"
+    "lastDailySyncAt": "2026-10-16T16:42:39.209Z",
+    "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b"
   },
   "channels": [
     {

@@ -36,9 +36,7 @@ function extractAuthToken(req) {
   if (headerToken && typeof headerToken === 'string') {
     return headerToken.trim();
   }
-  const cookieHeader = String(req.headers.cookie || '');
-  const match = cookieHeader.match(/(?:^|;\s*)studioflow_auth=([^;]+)/);
-  return match ? decodeURIComponent(match[1]).trim() : '';
+  return '';
 }
 
 async function readJsonBody(req) {
@@ -109,19 +107,13 @@ export function createAppServer({
       if (pathname === '/api/auth/login' && method === 'POST') {
         const body = await readJsonBody(req);
         const result = store.verifyPassword(body.password || '');
-        const cookieStr = `studioflow_auth=${encodeURIComponent(
-          result.token || ''
-        )}; Path=/; Max-Age=2592000; SameSite=Lax`;
-        return sendJson(res, 200, result, { 'Set-Cookie': cookieStr });
+        return sendJson(res, 200, result);
       }
 
       if (pathname === '/api/auth/password' && method === 'POST') {
         const body = await readJsonBody(req);
         const result = store.updatePassword(body, clientToken);
-        const cookieStr = `studioflow_auth=${encodeURIComponent(
-          result.token || ''
-        )}; Path=/; Max-Age=2592000; SameSite=Lax`;
-        return sendJson(res, 200, result, { 'Set-Cookie': cookieStr });
+        return sendJson(res, 200, result);
       }
 
       if (pathname.startsWith('/api/') && pathname !== '/api/health') {

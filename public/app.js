@@ -97,11 +97,12 @@ function showBanner(message, isError = false) {
   }, 4200);
 }
 
-const AUTH_TOKEN_KEY = 'studioflow_auth_token';
+const AUTH_TOKEN_KEY = 'studioflow_session_token';
 
 function getStoredAuthToken() {
   try {
-    return localStorage.getItem(AUTH_TOKEN_KEY) || '';
+    localStorage.removeItem('studioflow_auth_token');
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
   } catch {
     return '';
   }
@@ -109,18 +110,23 @@ function getStoredAuthToken() {
 
 function setStoredAuthToken(token = '') {
   try {
+    localStorage.removeItem('studioflow_auth_token');
     if (token) {
-      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, token);
     } else {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
+      sessionStorage.removeItem(AUTH_TOKEN_KEY);
     }
   } catch {
-    // Bỏ qua nếu trình duyệt chặn localStorage
+    // Bỏ qua nếu trình duyệt chặn sessionStorage
   }
 }
 
 function showAuthLockOverlay(visible) {
   const overlay = document.getElementById('auth-lock-overlay');
+  const wrapper = document.getElementById('platform-wrapper');
+  if (wrapper) {
+    wrapper.hidden = Boolean(visible);
+  }
   if (!overlay) return;
   overlay.hidden = !visible;
   if (visible) {
@@ -132,17 +138,17 @@ function showAuthLockOverlay(visible) {
 
 function updatePasswordUiState() {
   const btn = document.getElementById('btn-password-settings');
+  const logoutBtn = document.getElementById('btn-logout-header');
   const currentField = document.getElementById('field-current-password');
   const lockNowBtn = document.getElementById('btn-lock-now');
-  const disableBtn = document.getElementById('btn-disable-password');
 
   const enabled = Boolean(state.passwordEnabled);
   if (btn) {
-    btn.textContent = enabled ? '🔒 Đã khóa mật khẩu' : '🔓 Đặt mật khẩu Web';
+    btn.textContent = enabled ? '🔒 Đổi mật khẩu' : '🔓 Đặt mật khẩu Web';
   }
+  if (logoutBtn) logoutBtn.hidden = !enabled;
   if (currentField) currentField.hidden = !enabled;
   if (lockNowBtn) lockNowBtn.hidden = !enabled;
-  if (disableBtn) disableBtn.hidden = !enabled;
 }
 
 async function apiRequest(url, options = {}) {
@@ -1596,13 +1602,15 @@ function setupEventListeners() {
     if (passwordModal) passwordModal.hidden = true;
   });
 
-  document.getElementById('btn-lock-now')?.addEventListener('click', () => {
+  function lockAndLogout() {
     setStoredAuthToken('');
     document.cookie = 'studioflow_auth=; Path=/; Max-Age=0';
     if (passwordModal) passwordModal.hidden = true;
     showAuthLockOverlay(true);
-    showBanner('Đã khóa màn hình bảo mật Web!');
-  });
+  }
+
+  document.getElementById('btn-lock-now')?.addEventListener('click', lockAndLogout);
+  document.getElementById('btn-logout-header')?.addEventListener('click', lockAndLogout);
 
   document.getElementById('btn-disable-password')?.addEventListener('click', async () => {
     try {
@@ -1829,14 +1837,14 @@ function setupEventListeners() {
 if ('caches' in window) {
   caches.keys().then((keys) => {
     keys.forEach((k) => {
-      if (k !== 'studioflow-pwa-v3') caches.delete(k);
+      if (k !== 'studioflow-pwa-v5') caches.delete(k);
     });
   }).catch(() => {});
 }
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=3', { updateViaCache: 'none' })
+      .register('/sw.js?v=5', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

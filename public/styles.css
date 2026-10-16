@@ -1380,6 +1380,10 @@ select:focus-visible {
 /* ============================================================================
    MÀN HÌNH KHÓA MẬT KHẨU BẢO MẬT & MODAL CÀI ĐẶT (MỆNH KIM)
    ============================================================================ */
+.platform-wrapper[hidden] {
+  display: none !important;
+}
+
 .auth-overlay {
   position: fixed;
   inset: 0;
@@ -1390,6 +1394,11 @@ select:focus-visible {
   align-items: center;
   justify-content: center;
   padding: 16px;
+}
+
+.auth-login-page {
+  background: radial-gradient(circle at 50% 24%, #FDF8E7 0%, #F3F5F8 65%, #E6E9EF 100%);
+  backdrop-filter: none;
 }
 
 .auth-overlay[hidden] {

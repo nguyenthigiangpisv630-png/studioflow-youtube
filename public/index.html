@@ -9,10 +9,10 @@
   <title>StudioFlow — Quản Lý Kênh YouTube &amp; Kho Nội Dung (Mệnh Kim)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=4" />
+  <link rel="stylesheet" href="/styles.css?v=5" />
 </head>
 <body>
-  <div id="platform-wrapper" class="platform-wrapper mode-web">
+  <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
     <div class="app-shell">
       <!-- THANH ĐIỀU HƯỚNG TỐI GIẢN HỢP NHẤT (SINGLE MINIMALIST HEADER — MỆNH KIM) -->
       <header class="topbar">
@@ -82,9 +82,18 @@
             type="button"
             class="btn btn-secondary btn-sm"
             id="btn-password-settings"
-            title="Cài đặt mật khẩu khóa bảo mật Web riêng cho anh"
+            title="Đổi mật khẩu đăng nhập hệ thống"
           >
-            🔒 Mật khẩu Web
+            🔒 Đổi mật khẩu
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-danger-outline btn-sm"
+            id="btn-logout-header"
+            title="Đăng xuất và quay về màn hình đăng nhập"
+          >
+            Đăng xuất
           </button>
 
           <button type="button" class="btn btn-secondary btn-sm" id="btn-install-pwa" hidden>Cài App</button>
@@ -282,32 +291,44 @@
     </div>
   </div>
 
-  <!-- MÀN HÌNH KHÓA MẬT KHẨU BẢO MẬT TOÀN TRANG (CHỈ MÌNH ANH TRUY CẬP) -->
-  <div id="auth-lock-overlay" class="auth-overlay" hidden>
+  <!-- MÀN HÌNH ĐĂNG NHẬP HỆ THỐNG (HIỂN THỊ MẶC ĐỊNH KHI MỞ WEB — BẮT BUỘC ĐĂNG NHẬP MỚI VÀO ĐƯỢC) -->
+  <div id="auth-lock-overlay" class="auth-overlay auth-login-page">
     <div class="auth-card panel-box">
       <div class="auth-brand-row">
         <span class="brand-mark">SF</span>
         <div>
-          <h2 class="auth-title">StudioFlow Private</h2>
-          <p class="panel-desc">Hệ thống quản lý kênh YouTube &amp; Kho kịch bản nội bộ</p>
+          <h2 class="auth-title">Đăng Nhập StudioFlow</h2>
+          <p class="panel-desc">Hệ thống Quản lý Kênh YouTube &amp; Kho Nội Dung Riêng Tư</p>
         </div>
       </div>
 
       <form id="form-auth-login" class="auth-form">
         <label class="field">
-          <span>Nhập mật khẩu quản trị của anh</span>
+          <span>Tài khoản quản trị</span>
+          <input
+            type="text"
+            name="username"
+            id="input-auth-username"
+            value="admin"
+            placeholder="Nhập tài khoản quản trị..."
+            autocomplete="username"
+            required
+          />
+        </label>
+        <label class="field">
+          <span>Mật khẩu đăng nhập *</span>
           <input
             type="password"
             name="password"
             id="input-auth-login-pass"
-            placeholder="Nhập mật khẩu để mở khóa..."
+            placeholder="Nhập mật khẩu để vào hệ thống..."
             autocomplete="current-password"
             required
           />
         </label>
         <p id="auth-login-error" class="auth-error-msg" hidden></p>
-        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:10px 16px;">
-          🔓 Mở khóa truy cập
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px 16px;font-size:0.95rem;">
+          🔓 Đăng nhập vào Hệ thống
         </button>
       </form>
     </div>
@@ -318,9 +339,9 @@
     <div class="auth-card panel-box">
       <div class="drawer-header" style="margin-bottom:12px;">
         <div>
-          <h3 style="font-size:1.05rem;font-weight:700;">🔒 Cài đặt Mật khẩu khóa Web</h3>
+          <h3 style="font-size:1.05rem;font-weight:700;">🔒 Đổi Mật khẩu Đăng nhập</h3>
           <p class="panel-desc" id="password-modal-desc">
-            Khi bật mật khẩu, chỉ riêng mình anh có mật khẩu mới xem được dữ liệu trên Web &amp; Điện thoại.
+            Đổi mật khẩu mới để chỉ riêng mình anh đăng nhập được trên Web &amp; Điện thoại.
           </p>
         </div>
         <button type="button" class="btn btn-ghost btn-sm" id="btn-close-password-modal">Đóng</button>
@@ -342,7 +363,7 @@
             type="password"
             name="newPassword"
             id="input-new-password"
-            placeholder="VD: 888999 hoặc mật khẩu riêng của anh..."
+            placeholder="Nhập mật khẩu mới của anh..."
             autocomplete="new-password"
             required
           />
@@ -354,18 +375,9 @@
               class="btn btn-secondary btn-sm"
               id="btn-lock-now"
               hidden
-              title="Khóa màn hình ngay lập tức trên thiết bị này"
+              title="Đăng xuất và khóa màn hình ngay"
             >
-              Khóa màn hình ngay
-            </button>
-            <button
-              type="button"
-              class="btn btn-danger-outline btn-sm"
-              id="btn-disable-password"
-              hidden
-              title="Tắt khóa mật khẩu"
-            >
-              Tắt mật khẩu
+              Đăng xuất ngay
             </button>
           </div>
           <button type="submit" class="btn btn-primary">Lưu mật khẩu mới</button>
@@ -374,6 +386,6 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=4"></script>
+  <script type="module" src="/app.js?v=5"></script>
 </body>
 </html>
