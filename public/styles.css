@@ -576,15 +576,49 @@ select:focus-visible {
 .channel-inline-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 2px;
+  gap: 8px;
+  margin-left: 4px;
 }
 
 .btn-xs {
-  padding: 3px 10px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border-radius: 7px;
+}
+
+.channel-inline-actions [data-sync-channel-id] {
+  background: linear-gradient(180deg, #FFFDF5 0%, #FDF3D0 100%);
+  border: 1.5px solid #D4AF37;
+  color: #5C4002;
+  font-weight: 800;
+  box-shadow: 0 2px 5px rgba(180, 138, 30, 0.22);
+  transition: all 0.15s ease;
+}
+
+.channel-inline-actions [data-sync-channel-id]:hover {
+  background: linear-gradient(180deg, #FDF3D0 0%, #F7E39C 100%);
+  border-color: #9A7409;
+  color: #3D2A00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(180, 138, 30, 0.28);
+}
+
+.channel-inline-actions [data-delete-channel-id] {
+  background: linear-gradient(180deg, #FFF5F5 0%, #FEE2E2 100%);
+  border: 1.5px solid #EF4444;
+  color: #B91C1C;
+  font-weight: 800;
+  box-shadow: 0 2px 5px rgba(220, 38, 38, 0.16);
+  transition: all 0.15s ease;
+}
+
+.channel-inline-actions [data-delete-channel-id]:hover {
+  background: linear-gradient(180deg, #FEE2E2 0%, #FECACA 100%);
+  border-color: #DC2626;
+  color: #7F1D1D;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.24);
 }
 
 .inline-group-pill {

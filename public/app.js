@@ -2002,14 +2002,14 @@ function setupEventListeners() {
 if ('caches' in window) {
   caches.keys().then((keys) => {
     keys.forEach((k) => {
-      if (k !== 'studioflow-pwa-v8') caches.delete(k);
+      if (k !== 'studioflow-pwa-v9') caches.delete(k);
     });
   }).catch(() => {});
 }
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=8', { updateViaCache: 'none' })
+      .register('/sw.js?v=9', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
