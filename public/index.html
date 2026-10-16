@@ -9,14 +9,14 @@
   <title>StudioFlow — Quản Lý Kênh YouTube &amp; Kho Nội Dung (Mệnh Kim)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=18" />
+  <link rel="stylesheet" href="/styles.css?v=19" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
     <div class="app-shell">
-      <!-- THANH ĐIỀU HƯỚNG TỐI GIẢN HỢP NHẤT (SINGLE MINIMALIST HEADER — MỆNH KIM) -->
-      <header class="topbar">
-        <div class="topbar-brand-nav">
+      <!-- THANH ĐIỀU HƯỚNG DỌC BÊN TRÁI (LEFT SIDEBAR — MỆNH KIM) -->
+      <aside class="left-sidebar">
+        <div class="sidebar-top">
           <div class="brand-block">
             <div class="brand-logo" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -30,37 +30,41 @@
             </div>
           </div>
 
-          <nav class="top-nav" id="side-nav" aria-label="Điều hướng chính">
+          <nav class="left-nav" id="side-nav" aria-label="Điều hướng chính">
             <button type="button" class="nav-btn active" data-tab="insights">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
-              <span>Trang chủ (Phân tích &amp; Nhóm)</span>
+              <span class="nav-btn-label">Trang chủ (Phân tích &amp; Nhóm)</span>
               <span class="nav-count" id="nav-count-insights">0</span>
             </button>
 
-            <button type="button" class="nav-btn" data-tab="youtube">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-              </svg>
-              <span>Thư mục Kênh YouTube</span>
-              <span class="nav-count" id="nav-count-youtube">0</span>
-            </button>
+            <div class="nav-folder-group">
+              <button type="button" class="nav-btn" data-tab="youtube">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                </svg>
+                <span class="nav-btn-label">Thư mục Kênh YouTube</span>
+                <span class="nav-count" id="nav-count-youtube">0</span>
+              </button>
+              <!-- Cây thư mục con các Nhóm & Kênh riêng lẻ bên trái -->
+              <div id="sidebar-folder-tree" class="sidebar-folder-tree"></div>
+            </div>
 
             <button type="button" class="nav-btn" data-tab="contents">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
               </svg>
-              <span>Nơi lưu nội dung</span>
+              <span class="nav-btn-label">Nơi lưu nội dung</span>
               <span class="nav-count" id="nav-count-contents">0</span>
             </button>
           </nav>
         </div>
 
-        <!-- THANH CÔNG CỤ GÓC PHẢI GỌN GÀNG -->
-        <div class="topbar-right">
+        <!-- CÔNG CỤ CUỐI CỘT TRÁI -->
+        <div class="sidebar-footer">
           <button
             type="button"
             class="hourly-sync-pill num"
@@ -71,33 +75,36 @@
             <span id="hourly-sync-text">🔄 Auto 1h: 60p</span>
           </button>
 
-          <button
-            type="button"
-            class="btn btn-secondary btn-sm"
-            id="btn-password-settings"
-            title="Đổi mật khẩu đăng nhập hệ thống"
-          >
-            🔒 Đổi mật khẩu
-          </button>
+          <div class="sidebar-auth-actions">
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              id="btn-password-settings"
+              title="Đổi mật khẩu đăng nhập hệ thống"
+            >
+              🔒 Đổi mật khẩu
+            </button>
 
-          <button
-            type="button"
-            class="btn btn-danger-outline btn-sm"
-            id="btn-logout-header"
-            title="Đăng xuất và quay về màn hình đăng nhập"
-          >
-            Đăng xuất
-          </button>
+            <button
+              type="button"
+              class="btn btn-danger-outline btn-sm"
+              id="btn-logout-header"
+              title="Đăng xuất và quay về màn hình đăng nhập"
+            >
+              Đăng xuất
+            </button>
+          </div>
 
           <button type="button" class="btn btn-secondary btn-sm" id="btn-install-pwa" hidden>Cài App</button>
         </div>
-      </header>
+      </aside>
 
-      <!-- THÔNG BÁO TRẠNG THÁI NHANH -->
-      <div id="status-banner" class="status-banner" role="status" aria-live="polite" hidden></div>
+      <div class="workspace-col">
+        <!-- THÔNG BÁO TRẠNG THÁI NHANH -->
+        <div id="status-banner" class="status-banner" role="status" aria-live="polite" hidden></div>
 
-      <!-- KHÔNG GIAN LÀM VIỆC CHÍNH TỐI GIẢN, TOÀN MÀN HÌNH -->
-      <main class="main-content">
+        <!-- KHÔNG GIAN LÀM VIỆC CHÍNH BÊN PHẢI -->
+        <main class="main-content">
         <!-- =============================================================== -->
         <!-- TRANG CHỦ: TÓM TẮT PHÂN TÍCH & VIDEO NỔ VIEW -->
         <!-- =============================================================== -->
@@ -270,7 +277,8 @@
             <div class="vault-reader panel-box" id="vault-reader"></div>
           </div>
         </section>
-      </main>
+        </main>
+      </div>
 
       <!-- THANH ĐIỀU HƯỚNG ĐÁY CHO MOBILE APP -->
       <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Điều hướng ứng dụng di động">
@@ -432,7 +440,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=18"></script>
+  <script type="module" src="/app.js?v=19"></script>
 </body>
 </html>
 

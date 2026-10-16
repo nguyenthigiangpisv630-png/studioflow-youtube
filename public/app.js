@@ -1057,66 +1057,87 @@ function renderGroupDropdown() {
   `;
 }
 
-function renderFolderBreadcrumb() {
-  const bcEl = document.getElementById('yt-folder-breadcrumb');
-  if (!bcEl) return;
+function renderSidebarFolderTree() {
+  const treeEl = document.getElementById('sidebar-folder-tree');
+  if (!treeEl) return;
+
+  if (state.channels.length === 0) {
+    treeEl.innerHTML = '';
+    return;
+  }
 
   const groupMap = new Map();
-  let ungroupedCount = 0;
+  const ungroupedChannels = [];
   for (const ch of state.channels) {
     const g = String(ch.group || '').trim();
     if (g) {
-      groupMap.set(g, (groupMap.get(g) || 0) + 1);
+      if (!groupMap.has(g)) groupMap.set(g, []);
+      groupMap.get(g).push(ch);
     } else {
-      ungroupedCount += 1;
+      ungroupedChannels.push(ch);
     }
   }
 
   const currentGroup = state.filters.ytGroup || 'all';
-  const currentGroupLabel =
-    currentGroup === 'all'
-      ? 'Tất cả Kênh'
-      : currentGroup === '__none__'
-      ? 'Chưa gắn Group'
-      : `Nhóm: ${currentGroup}`;
+  const isYtTab = state.activeTab === 'youtube';
+  const activeDeepId = state.activeChannelDeepId;
 
-  const deepChannel = state.activeChannelDeepId
-    ? state.channels.find((c) => c.id === state.activeChannelDeepId)
-    : null;
+  const buildGroupBranch = (groupKey, groupLabel, channelsList) => {
+    const isGroupActive = isYtTab && !activeDeepId && currentGroup === groupKey;
+    const hasActiveChild = isYtTab && channelsList.some((c) => c.id === activeDeepId);
+    const channelsHtml = channelsList
+      .map((ch) => {
+        const isChActive = isYtTab && activeDeepId === ch.id;
+        return `
+          <button
+            type="button"
+            class="sidebar-tree-channel ${isChActive ? 'active' : ''}"
+            data-open-channel-deep="${escapeHtml(ch.id)}"
+            title="Quản lý sâu kênh ${escapeHtml(ch.name)}"
+          >
+            <span class="tree-ch-icon">📺</span>
+            <span class="tree-ch-name">${escapeHtml(ch.name)}</span>
+          </button>
+        `;
+      })
+      .join('');
 
-  const folderTabsHtml = [
-    `<button type="button" class="folder-pill-tab ${currentGroup === 'all' && !deepChannel ? 'active' : ''}" data-open-group-folder="all">📁 Tất cả (${state.channels.length})</button>`,
-    ...Array.from(groupMap.entries()).map(
-      ([grp, cnt]) =>
-        `<button type="button" class="folder-pill-tab ${currentGroup === grp && !deepChannel ? 'active' : ''}" data-open-group-folder="${escapeHtml(grp)}">📁 ${escapeHtml(grp)} (${cnt})</button>`
-    ),
-    ...(ungroupedCount > 0
-      ? [
-          `<button type="button" class="folder-pill-tab ${currentGroup === '__none__' && !deepChannel ? 'active' : ''}" data-open-group-folder="__none__">📁 Chưa gắn Group (${ungroupedCount})</button>`,
-        ]
+    return `
+      <div class="sidebar-tree-group ${isGroupActive || hasActiveChild ? 'expanded' : ''}">
+        <button
+          type="button"
+          class="sidebar-tree-folder ${isGroupActive ? 'active' : ''}"
+          data-open-group-folder="${escapeHtml(groupKey)}"
+          title="Mở thư mục nhóm ${escapeHtml(groupLabel)}"
+        >
+          <span class="tree-folder-icon">📁</span>
+          <span class="tree-folder-name">${escapeHtml(groupLabel)}</span>
+          <span class="tree-folder-count num">${channelsList.length}</span>
+        </button>
+        <div class="sidebar-tree-children">
+          ${channelsHtml}
+        </div>
+      </div>
+    `;
+  };
+
+  const branchesHtml = [
+    `<button
+      type="button"
+      class="sidebar-tree-folder sidebar-tree-all ${isYtTab && !activeDeepId && currentGroup === 'all' ? 'active' : ''}"
+      data-open-group-folder="all"
+    >
+      <span class="tree-folder-icon">📂</span>
+      <span class="tree-folder-name">Tất cả Kênh</span>
+      <span class="tree-folder-count num">${state.channels.length}</span>
+    </button>`,
+    ...Array.from(groupMap.entries()).map(([grp, list]) => buildGroupBranch(grp, grp, list)),
+    ...(ungroupedChannels.length > 0
+      ? [buildGroupBranch('__none__', 'Chưa gắn Group', ungroupedChannels)]
       : []),
   ].join('');
 
-  bcEl.innerHTML = `
-    <div class="breadcrumb-trail">
-      <button type="button" class="bc-link" data-goto-tab="insights">🏠 Trang chủ</button>
-      <span class="bc-sep">›</span>
-      <button type="button" class="bc-link ${!deepChannel ? 'bc-current' : ''}" data-close-channel-deep="true">
-        📁 Thư mục ${escapeHtml(currentGroupLabel)}
-      </button>
-      ${
-        deepChannel
-          ? `
-            <span class="bc-sep">›</span>
-            <span class="bc-link bc-current">📺 Kênh: ${escapeHtml(deepChannel.name)} (${escapeHtml(deepChannel.handle || '')})</span>
-          `
-          : ''
-      }
-    </div>
-    <div class="folder-pill-tabs" aria-label="Chuyển nhanh thư mục Nhóm kênh">
-      ${folderTabsHtml}
-    </div>
-  `;
+  treeEl.innerHTML = branchesHtml;
 }
 
 function renderSingleChannelDeepView(ch, boardEl) {
@@ -1408,6 +1429,8 @@ function renderYoutubeChannelsBoard() {
   const boardEl = document.getElementById('yt-channels-board');
   const cmdBarEl = document.getElementById('yt-command-bar');
   if (!boardEl) return;
+
+  renderSidebarFolderTree();
 
   // Nếu đang mở chế độ Quản lý sâu 1 kênh riêng lẻ
   if (state.activeChannelDeepId) {
@@ -2116,6 +2139,8 @@ function switchTab(tabName) {
   const subEl = document.getElementById('page-subtitle');
   if (titleEl) titleEl.textContent = TAB_TITLES[tabName].title;
   if (subEl) subEl.textContent = TAB_TITLES[tabName].subtitle;
+
+  renderSidebarFolderTree();
 }
 
 function setupEventListeners() {
@@ -3118,7 +3143,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=18', { updateViaCache: 'none' })
+      .register('/sw.js?v=19', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
