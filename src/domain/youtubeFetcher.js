@@ -53,7 +53,7 @@ export function normalizeChannelTargetUrl(query = '') {
 }
 
 function collectVideoRenderers(node, list = []) {
-  if (!node || typeof node !== 'object' || list.length >= 50) return list;
+  if (!node || typeof node !== 'object' || list.length >= 200) return list;
   if (node.videoRenderer && node.videoRenderer.videoId) {
     const vr = node.videoRenderer;
     const title =
@@ -76,10 +76,26 @@ function collectVideoRenderers(node, list = []) {
     }
     return list;
   }
+  if (node.reelItemRenderer && node.reelItemRenderer.videoId) {
+    const rr = node.reelItemRenderer;
+    const title = rr.headline?.simpleText || rr.headline?.runs?.[0]?.text || 'YouTube Short';
+    const viewText = rr.viewCountText?.simpleText || rr.viewCountText?.runs?.[0]?.text || '0';
+    const views = parseCompactNumber(viewText);
+    if (!list.some((x) => x.youtubeVideoId === rr.videoId)) {
+      list.push({
+        youtubeVideoId: rr.videoId,
+        title,
+        views,
+        likes: Math.max(10, Math.round(views * 0.042)),
+        comments: Math.max(2, Math.round(views * 0.004)),
+      });
+    }
+    return list;
+  }
   for (const val of Object.values(node)) {
     if (val && typeof val === 'object') {
       collectVideoRenderers(val, list);
-      if (list.length >= 50) break;
+      if (list.length >= 200) break;
     }
   }
   return list;
@@ -431,6 +447,9 @@ export async function fetchYouTubeChannelProfile(rawQuery) {
   const firstVideoDate = publishedDates[0] || '';
 
   const videos = allMerged;
+  const topVideos = [...videos]
+    .sort((a, b) => (Number(b.views) || 0) - (Number(a.views) || 0))
+    .slice(0, 3);
   const sumVideoViews = videos.reduce((sum, v) => sum + (Number(v.views) || 0), 0);
   const totalViews = Math.max(aboutMetrics.totalViews || 0, sumVideoViews);
   const finalSubscribers = Math.max(subscribers || 0, aboutMetrics.subscribers || 0);
@@ -457,6 +476,7 @@ export async function fetchYouTubeChannelProfile(rawQuery) {
     category,
     description,
     videos,
+    topVideos,
   };
 }
 

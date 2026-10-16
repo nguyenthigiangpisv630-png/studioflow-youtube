@@ -1070,6 +1070,17 @@ function renderYoutubeChannelsBoard() {
       const chAvd = (ch.avgViewDuration || '').trim();
       const chRevenue = (ch.estimatedRevenue || '').trim();
       const videoCount = Math.max(Number(ch.totalVideos) || 0, chVideos.length);
+      const top3Videos = (
+        chVideos.length > 0
+          ? [...chVideos].sort(
+              (a, b) => (Number(b.currentViews ?? b.views) || 0) - (Number(a.currentViews ?? a.views) || 0)
+            )
+          : Array.isArray(ch.topVideos)
+          ? [...ch.topVideos].sort(
+              (a, b) => (Number(b.views ?? b.currentViews) || 0) - (Number(a.views ?? a.currentViews) || 0)
+            )
+          : []
+      ).slice(0, 3);
       const earliestVideoDate =
         ch.firstVideoDate ||
         chVideos
@@ -1102,7 +1113,7 @@ function renderYoutubeChannelsBoard() {
                   type="button"
                   class="btn btn-secondary btn-xs"
                   data-sync-channel-id="${escapeHtml(ch.id)}"
-                  title="Tự động cập nhật lại số Sub và lượt xem mới nhất từ YouTube"
+                  title="Tự động quét loạt video của kênh, cập nhật số Sub/Views và liệt kê Top 3 video nhiều view nhất"
                 >Đồng bộ</button>
                 <button
                   type="button"
@@ -1255,6 +1266,39 @@ function renderYoutubeChannelsBoard() {
                   placeholder="Nhập tên hoặc Gmail quản lý kênh..."
                 />
               </label>
+            </div>
+
+            <!-- Hàng 4: Top 3 Video Có Lượng View Cao Nhất (Tự động quét khi Cập nhật / Đồng bộ kênh) -->
+            <div class="channel-top-videos-box">
+              <div class="channel-top-videos-header">
+                <span class="top-videos-badge">🏆 TOP 3 VIDEO NHIỀU VIEW NHẤT</span>
+                <span class="top-videos-sub">Đã quét ${formatNumber(chVideos.length || top3Videos.length)} video trên kênh</span>
+              </div>
+              ${
+                top3Videos.length > 0
+                  ? `<div class="channel-top-videos-list">
+                      ${top3Videos
+                        .map((v, idx) => {
+                          const vViews = Number(v.currentViews ?? v.views) || 0;
+                          const vUrl = v.youtubeVideoId
+                            ? `https://www.youtube.com/watch?v=${encodeURIComponent(v.youtubeVideoId)}`
+                            : ch.channelUrl || '#';
+                          const vDate = v.publishedAt ? `<span class="top-video-date num">${escapeHtml(v.publishedAt)}</span>` : '';
+                          return `
+                            <div class="top-video-item top-video-rank-${idx + 1}">
+                              <span class="top-video-rank num">#${idx + 1}</span>
+                              <a href="${escapeHtml(vUrl)}" target="_blank" rel="noopener" class="top-video-title" title="${escapeHtml(v.title)}">
+                                ${escapeHtml(v.title)} ↗
+                              </a>
+                              ${vDate}
+                              <span class="top-video-views num">${formatNumber(vViews)} views</span>
+                            </div>
+                          `;
+                        })
+                        .join('')}
+                    </div>`
+                  : `<div class="channel-top-videos-empty">Chưa có danh sách video — bấm nút <strong>Đồng bộ</strong> để quét loạt video của kênh và lấy Top 3 video cao view nhất.</div>`
+              }
             </div>
           </div>
         </article>
@@ -1481,10 +1525,10 @@ function setupEventListeners() {
           body: JSON.stringify({}),
         });
         await loadOverview();
+        const scannedCount = res.scannedVideosCount || (res.topVideos ? res.topVideos.length : 0);
+        const topCount = Array.isArray(res.topVideos) ? res.topVideos.length : 0;
         showBanner(
-          `Đã đồng bộ kênh "${res.channel.name}" (${formatNumber(res.channel.subscribers)} sub · ${formatNumber(
-            res.channel.totalViews || 0
-          )} views) từ YouTube!`
+          `Đã quét ${scannedCount} video của kênh "${res.channel.name}" & liệt kê Top ${topCount} video nhiều view nhất!`
         );
       } catch (err) {
         showBanner(err.message, true);
@@ -1982,11 +2026,10 @@ function setupEventListeners() {
         form.reset();
         state.filters.ytChannel = 'all';
         await loadOverview();
-        const importedCount = created.importedVideosCount || 0;
+        const scannedCount = created.scannedVideosCount || created.importedVideosCount || 0;
+        const topCount = Array.isArray(created.topVideos) ? created.topVideos.length : 0;
         showBanner(
-          `Đã tự động nạp kênh "${created.name}" (${created.handle} · ${formatNumber(
-            created.subscribers
-          )} sub · ${importedCount} video)!`
+          `Đã quét kênh "${created.name}" (${created.handle} · ${scannedCount} video) & liệt kê Top ${topCount} video nhiều view nhất!`
         );
       } catch (err) {
         showBanner(err.message, true);
@@ -2025,14 +2068,14 @@ function setupEventListeners() {
 if ('caches' in window) {
   caches.keys().then((keys) => {
     keys.forEach((k) => {
-      if (k !== 'studioflow-pwa-v5') caches.delete(k);
+      if (k !== 'studioflow-pwa-v7') caches.delete(k);
     });
   }).catch(() => {});
 }
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=5', { updateViaCache: 'none' })
+      .register('/sw.js?v=7', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

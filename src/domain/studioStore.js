@@ -145,6 +145,7 @@ function normalizeChannel(ch) {
   ch.ctrPercent = Number(ch.ctrPercent) || 0;
   ch.avgViewDuration = ch.avgViewDuration ?? '';
   ch.estimatedRevenue = ch.estimatedRevenue ?? '';
+  ch.topVideos = Array.isArray(ch.topVideos) ? ch.topVideos : [];
   ch.strikeCount = Number(ch.strikeCount) || 0;
   ch.statusNote = ch.statusNote || 'Kênh hoạt động ổn định, xanh sạch, lịch đăng video đều đặn.';
   if (!ch.category || ch.category === 'Sáng tạo nội dung') {
@@ -1070,7 +1071,33 @@ export class StudioStore {
   // ===========================================================================
 
   listChannels() {
-    return [...this.state.channels];
+    return this.state.channels.map((ch) => {
+      const topVideos = this.getChannelTopVideos(ch.id, 3);
+      if (topVideos.length > 0) {
+        ch.topVideos = topVideos;
+      }
+      return ch;
+    });
+  }
+
+  getChannelTopVideos(channelId, limit = 3) {
+    const chVideos = (this.state.videos || []).filter((v) => v.channelId === channelId);
+    if (chVideos.length === 0) {
+      const ch = (this.state.channels || []).find((c) => c.id === channelId);
+      return Array.isArray(ch?.topVideos) ? ch.topVideos.slice(0, limit) : [];
+    }
+    return [...chVideos]
+      .sort((a, b) => (Number(b.currentViews ?? b.views) || 0) - (Number(a.currentViews ?? a.views) || 0))
+      .slice(0, limit)
+      .map((v) => ({
+        id: v.id,
+        youtubeVideoId: v.youtubeVideoId,
+        title: v.title,
+        views: Number(v.currentViews ?? v.views) || 0,
+        likes: Number(v.currentLikes ?? v.likes) || 0,
+        comments: Number(v.currentComments ?? v.comments) || 0,
+        publishedAt: v.publishedAt || '',
+      }));
   }
 
   createChannel(input = {}) {
@@ -1251,6 +1278,9 @@ export class StudioStore {
       for (const v of [...remote.videos].reverse()) {
         const existing = this.state.videos.find((x) => x.youtubeVideoId === v.youtubeVideoId);
         if (existing) {
+          existing.channelId = channel.id;
+          if (v.title) existing.title = v.title;
+          if (v.publishedAt && !existing.publishedAt) existing.publishedAt = v.publishedAt;
           this.recordVideoDailyMetrics(existing.id, {
             date: today,
             views: v.views || existing.currentViews || 0,
@@ -1273,9 +1303,15 @@ export class StudioStore {
       }
     }
 
+    const topVideos = this.getChannelTopVideos(channel.id, 3);
+    channel.topVideos = topVideos;
+    this.#save();
+
     return {
       ...channel,
       channel,
+      topVideos,
+      scannedVideosCount: remote?.videos?.length || 0,
       importedVideosCount,
       autoSynced: Boolean(remote),
     };
@@ -1319,6 +1355,9 @@ export class StudioStore {
     for (const v of [...(remote.videos || [])].reverse()) {
       const existing = this.state.videos.find((x) => x.youtubeVideoId === v.youtubeVideoId);
       if (existing) {
+        existing.channelId = channel.id;
+        if (v.title) existing.title = v.title;
+        if (v.publishedAt && !existing.publishedAt) existing.publishedAt = v.publishedAt;
         this.recordVideoDailyMetrics(existing.id, {
           date: today,
           views: v.views || existing.currentViews || 0,
@@ -1340,8 +1379,14 @@ export class StudioStore {
       }
     }
 
+    const topVideos = this.getChannelTopVideos(channel.id, 3);
+    channel.topVideos = topVideos;
+    this.#save();
+
     return {
       channel,
+      topVideos,
+      scannedVideosCount: (remote.videos || []).length,
       importedVideosCount,
       autoSynced: true,
     };

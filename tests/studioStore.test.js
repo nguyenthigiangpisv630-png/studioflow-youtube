@@ -369,3 +369,48 @@ test('Deep YouTube Studio Ingest & Notion Auto-Sync Config: nhận chỉ số tr
     cleanup();
   }
 });
+
+test('Top 3 Highest-Viewed Videos on Sync/Update: quét hàng loạt video của kênh và liệt kê đúng 3 video có lượng view cao nhất theo thứ tự giảm dần', async () => {
+  const { store, cleanup } = createTempStore(false);
+  try {
+    const mockChannelFetcher = async () => ({
+      name: '1970s Show',
+      handle: '@1970sShow',
+      channelUrl: 'https://www.youtube.com/@1970sShow',
+      subscribers: 48,
+      totalVideos: 5,
+      totalViews: 32074,
+      videos: [
+        { youtubeVideoId: 'v1', title: 'Video A', views: 500, publishedAt: '2026-10-01' },
+        { youtubeVideoId: 'v2', title: 'How Tall Was John Wayne', views: 23524, publishedAt: '2026-09-29' },
+        { youtubeVideoId: 'v3', title: 'Video C', views: 253, publishedAt: '2026-10-02' },
+        { youtubeVideoId: 'v4', title: 'Stephen Fry & 13 British TV Stars', views: 4063, publishedAt: '2026-10-04' },
+        { youtubeVideoId: 'v5', title: '12 Old Hollywood Giants', views: 3237, publishedAt: '2026-09-30' },
+      ],
+    });
+
+    const created = await store.createChannelAndSync(
+      { handle: '@1970sShow' },
+      { channelFetcher: mockChannelFetcher }
+    );
+
+    assert.ok(Array.isArray(created.topVideos), 'Kết quả cập nhật kênh phải trả về mảng topVideos');
+    assert.equal(created.topVideos.length, 3, 'Phải liệt kê đúng 3 video nhiều view nhất');
+    assert.equal(created.topVideos[0].youtubeVideoId, 'v2');
+    assert.equal(created.topVideos[0].views, 23524);
+    assert.equal(created.topVideos[1].youtubeVideoId, 'v4');
+    assert.equal(created.topVideos[1].views, 4063);
+    assert.equal(created.topVideos[2].youtubeVideoId, 'v5');
+    assert.equal(created.topVideos[2].views, 3237);
+
+    const top3FromStore = store.getChannelTopVideos(created.channel.id, 3);
+    assert.equal(top3FromStore.length, 3);
+    assert.deepEqual(
+      top3FromStore.map((v) => v.youtubeVideoId),
+      ['v2', 'v4', 'v5']
+    );
+  } finally {
+    cleanup();
+  }
+});
+

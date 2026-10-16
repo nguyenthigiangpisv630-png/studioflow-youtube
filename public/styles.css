@@ -1464,3 +1464,147 @@ select:focus-visible {
   margin: 0;
 }
 
+/* ============================================================================
+   TOP 3 VIDEO NHIỀU VIEW NHẤT TRÊN MỖI KÊNH (MỆNH KIM)
+   ============================================================================ */
+.channel-top-videos-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #FCFDFE 0%, #F6F8FB 100%);
+  border: 1px solid #DCE1EA;
+  border-left: 3px solid #D4AF37;
+  border-radius: var(--radius-sm);
+}
+
+.channel-top-videos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.top-videos-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #6B4D04;
+  background: #FDF8E7;
+  border: 1px solid #E6C65B;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.top-videos-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.channel-top-videos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.top-video-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #FFFFFF;
+  border: 1px solid #E4E8F0;
+  border-radius: 6px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.top-video-item:hover {
+  border-color: #B48A1E;
+}
+
+.top-video-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  background: #F1F4F9;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+}
+
+.top-video-rank-1 .top-video-rank {
+  background: linear-gradient(135deg, #FDF8E7 0%, #F7E39C 100%);
+  color: #5C4002;
+  border-color: #D4AF37;
+}
+
+.top-video-rank-2 .top-video-rank {
+  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+  color: #1E293B;
+  border-color: #94A3B8;
+}
+
+.top-video-rank-3 .top-video-rank {
+  background: linear-gradient(135deg, #FFF7ED 0%, #FED7AA 100%);
+  color: #7C2D12;
+  border-color: #D97706;
+}
+
+.top-video-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-video-title:hover {
+  color: var(--accent-gold-strong);
+  text-decoration: underline;
+}
+
+.top-video-date {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  background: #F3F5F8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.top-video-views {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #1E293B;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  padding: 2px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.top-video-rank-1 .top-video-views {
+  background: #FDF8E7;
+  border-color: #E6C65B;
+  color: #6B4D04;
+}
+
+.channel-top-videos-empty {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  padding: 4px 2px;
+}
+
+
