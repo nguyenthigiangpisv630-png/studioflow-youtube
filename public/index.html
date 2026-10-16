@@ -9,7 +9,7 @@
   <title>StudioFlow — Quản Lý Kênh YouTube &amp; Kho Nội Dung (Mệnh Kim)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=14" />
+  <link rel="stylesheet" href="/styles.css?v=15" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -31,22 +31,21 @@
           </div>
 
           <nav class="top-nav" id="side-nav" aria-label="Điều hướng chính">
-            <button type="button" class="nav-btn active" data-tab="youtube">
+            <button type="button" class="nav-btn active" data-tab="insights">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
-              <span>Quản lý Kênh YouTube</span>
-              <span class="nav-count" id="nav-count-youtube">0</span>
+              <span>Trang chủ (Phân tích &amp; Nhóm)</span>
+              <span class="nav-count" id="nav-count-insights">0</span>
             </button>
 
-            <button type="button" class="nav-btn" data-tab="insights">
+            <button type="button" class="nav-btn" data-tab="youtube">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                <line x1="18" y1="20" x2="18" y2="10" />
-                <line x1="12" y1="20" x2="12" y2="4" />
-                <line x1="6" y1="20" x2="6" y2="14" />
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
               </svg>
-              <span>Thống kê &amp; Nổ View</span>
-              <span class="nav-count" id="nav-count-insights">0</span>
+              <span>Thư mục Kênh YouTube</span>
+              <span class="nav-count" id="nav-count-youtube">0</span>
             </button>
 
             <button type="button" class="nav-btn" data-tab="contents">
@@ -116,11 +115,21 @@
       <!-- KHÔNG GIAN LÀM VIỆC CHÍNH TỐI GIẢN, TOÀN MÀN HÌNH -->
       <main class="main-content">
         <!-- =============================================================== -->
-        <!-- PHÂN HỆ 1: QUẢN LÝ KÊNH YOUTUBE (HÀNG NGANG TỐI GIẢN & ĐẦY ĐỦ TÍNH NĂNG) -->
+        <!-- TRANG CHỦ: TÓM TẮT PHÂN TÍCH, THƯ MỤC CON CÁC NHÓM & VIDEO NỔ VIEW -->
         <!-- =============================================================== -->
-        <section class="tab-panel active" id="panel-youtube">
+        <section class="tab-panel active" id="panel-insights">
+          <div id="yt-insights-hub" class="yt-insights-hub"></div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- PHÂN HỆ 1: THƯ MỤC NHÓM KÊNH & QUẢN LÝ SÂU TỪNG KÊNH RIÊNG LẺ -->
+        <!-- =============================================================== -->
+        <section class="tab-panel" id="panel-youtube">
+          <!-- THANH ĐƯỜNG DẪN THƯ MỤC (BREADCRUMB: TRANG CHỦ > NHÓM > KÊNH RIÊNG LẺ) -->
+          <div id="yt-folder-breadcrumb" class="folder-breadcrumb-bar"></div>
+
           <!-- THANH NHẬP KÊNH TỰ ĐỘNG 1 DÒNG + TÌM KIẾM + ĐỒNG BỘ -->
-          <div class="minimal-command-bar">
+          <div class="minimal-command-bar" id="yt-command-bar">
             <form id="form-create-channel" class="quick-channel-form">
               <input
                 type="text"
@@ -156,15 +165,8 @@
             <datalist id="yt-groups-datalist"></datalist>
           </div>
 
-          <!-- BẢNG KÊNH HÀNG NGANG TỐI GIẢN -->
+          <!-- BẢNG KÊNH TRONG THƯ MỤC NHÓM HOẶC CHI TIẾT QUẢN LÝ SÂU 1 KÊNH -->
           <div id="yt-channels-board" class="channels-grid"></div>
-        </section>
-
-        <!-- =============================================================== -->
-        <!-- PHÂN HỆ MỚI: BẢNG THỐNG KÊ THEO NHÃN & VIDEO NỔ VIEW CẢ DÀN KÊNH -->
-        <!-- =============================================================== -->
-        <section class="tab-panel" id="panel-insights">
-          <div id="yt-insights-hub" class="yt-insights-hub"></div>
         </section>
 
         <!-- =============================================================== -->
@@ -291,19 +293,18 @@
 
       <!-- THANH ĐIỀU HƯỚNG ĐÁY CHO MOBILE APP -->
       <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Điều hướng ứng dụng di động">
-        <button type="button" class="m-nav-btn active" data-tab="youtube">
+        <button type="button" class="m-nav-btn active" data-tab="insights">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
-          <span>Quản lý YouTube</span>
+          <span>Trang chủ</span>
         </button>
-        <button type="button" class="m-nav-btn" data-tab="insights">
+        <button type="button" class="m-nav-btn" data-tab="youtube">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg>
-          <span>Thống kê &amp; Nổ View</span>
+          <span>Thư mục Kênh</span>
         </button>
         <button type="button" class="m-nav-btn" data-tab="contents">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -411,7 +412,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=14"></script>
+  <script type="module" src="/app.js?v=15"></script>
 </body>
 </html>
 

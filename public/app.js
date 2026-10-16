@@ -5,10 +5,12 @@ const state = {
   projects: [],
   contents: [],
   videos: [],
-  activeTab: 'youtube',
+  activeTab: 'insights',
   pmView: 'kanban',
   selectedContentId: null,
   selectedVideoId: null,
+  activeChannelDeepId: null,
+  deepChannelVideoSort: 'views', // 'views' | 'outlier' | 'date'
   filters: {
     crmSearch: '',
     crmStage: 'all',
@@ -1030,9 +1032,325 @@ function renderGroupDropdown() {
   `;
 }
 
+function renderFolderBreadcrumb() {
+  const bcEl = document.getElementById('yt-folder-breadcrumb');
+  if (!bcEl) return;
+
+  const groupMap = new Map();
+  let ungroupedCount = 0;
+  for (const ch of state.channels) {
+    const g = String(ch.group || '').trim();
+    if (g) {
+      groupMap.set(g, (groupMap.get(g) || 0) + 1);
+    } else {
+      ungroupedCount += 1;
+    }
+  }
+
+  const currentGroup = state.filters.ytGroup || 'all';
+  const currentGroupLabel =
+    currentGroup === 'all'
+      ? 'Tất cả Kênh'
+      : currentGroup === '__none__'
+      ? 'Chưa gắn Group'
+      : `Nhóm: ${currentGroup}`;
+
+  const deepChannel = state.activeChannelDeepId
+    ? state.channels.find((c) => c.id === state.activeChannelDeepId)
+    : null;
+
+  const folderTabsHtml = [
+    `<button type="button" class="folder-pill-tab ${currentGroup === 'all' && !deepChannel ? 'active' : ''}" data-open-group-folder="all">📁 Tất cả (${state.channels.length})</button>`,
+    ...Array.from(groupMap.entries()).map(
+      ([grp, cnt]) =>
+        `<button type="button" class="folder-pill-tab ${currentGroup === grp && !deepChannel ? 'active' : ''}" data-open-group-folder="${escapeHtml(grp)}">📁 ${escapeHtml(grp)} (${cnt})</button>`
+    ),
+    ...(ungroupedCount > 0
+      ? [
+          `<button type="button" class="folder-pill-tab ${currentGroup === '__none__' && !deepChannel ? 'active' : ''}" data-open-group-folder="__none__">📁 Chưa gắn Group (${ungroupedCount})</button>`,
+        ]
+      : []),
+  ].join('');
+
+  bcEl.innerHTML = `
+    <div class="breadcrumb-trail">
+      <button type="button" class="bc-link" data-goto-tab="insights">🏠 Trang chủ</button>
+      <span class="bc-sep">›</span>
+      <button type="button" class="bc-link ${!deepChannel ? 'bc-current' : ''}" data-close-channel-deep="true">
+        📁 Thư mục ${escapeHtml(currentGroupLabel)}
+      </button>
+      ${
+        deepChannel
+          ? `
+            <span class="bc-sep">›</span>
+            <span class="bc-link bc-current">📺 Kênh: ${escapeHtml(deepChannel.name)} (${escapeHtml(deepChannel.handle || '')})</span>
+          `
+          : ''
+      }
+    </div>
+    <div class="folder-pill-tabs" aria-label="Chuyển nhanh thư mục Nhóm kênh">
+      ${folderTabsHtml}
+    </div>
+  `;
+}
+
+function renderSingleChannelDeepView(ch, boardEl) {
+  const chVideos = state.videos.filter((v) => v.channelId === ch.id);
+  const fallbackTop = Array.isArray(ch.topVideos) ? ch.topVideos : [];
+  const seenKeys = new Set(chVideos.map((v) => v.youtubeVideoId || v.title));
+  const allChannelVideos = [
+    ...chVideos.map((v) => ({
+      ...v,
+      views: Number(v.currentViews ?? v.views) || 0,
+    })),
+    ...fallbackTop
+      .filter((tv) => !seenKeys.has(tv.youtubeVideoId || tv.title))
+      .map((tv) => ({
+        ...tv,
+        views: Number(tv.views ?? tv.currentViews) || 0,
+      })),
+  ];
+
+  const sumVideoViews = allChannelVideos.reduce((s, v) => s + v.views, 0);
+  const chTotalViews = Math.max(Number(ch.totalViews) || 0, sumVideoViews);
+  const videoCount = Math.max(Number(ch.totalVideos) || 0, allChannelVideos.length);
+  const avgViewsPerVideo =
+    allChannelVideos.length > 0
+      ? Math.max(Math.round(sumVideoViews / allChannelVideos.length), 1)
+      : Math.max(Math.round(chTotalViews / Math.max(videoCount, 1)), 1);
+
+  const earliestVideoDate =
+    ch.firstVideoDate ||
+    allChannelVideos
+      .map((v) => v.publishedAt)
+      .filter(Boolean)
+      .sort()[0] ||
+    '';
+  const managerMailValue = ch.managerEmail || ch.manager || '';
+  const chCategory = (ch.category || 'Giải trí & Nội dung số').trim();
+  const catColorClass = getCategoryColorClass(chCategory);
+  const chGroup = (ch.group || '').trim();
+  const groupColorClass = chGroup ? getCategoryColorClass(chGroup) : '';
+
+  const sortMode = state.deepChannelVideoSort || 'views';
+  const sortedVideos = [...allChannelVideos]
+    .map((v) => {
+      const outlierMultiplier = Number((v.views / Math.max(avgViewsPerVideo, 1)).toFixed(1));
+      return { ...v, outlierMultiplier };
+    })
+    .sort((a, b) => {
+      if (sortMode === 'date') {
+        return String(b.publishedAt || '').localeCompare(String(a.publishedAt || '')) || b.views - a.views;
+      }
+      if (sortMode === 'outlier') {
+        return b.outlierMultiplier - a.outlierMultiplier || b.views - a.views;
+      }
+      return b.views - a.views;
+    });
+
+  const videosListHtml =
+    sortedVideos.length > 0
+      ? sortedVideos
+          .map((v, idx) => {
+            const vUrl = v.youtubeVideoId
+              ? `https://www.youtube.com/watch?v=${encodeURIComponent(v.youtubeVideoId)}`
+              : ch.channelUrl || '#';
+            const isHot = v.outlierMultiplier >= 1.5;
+            const outlierBadge =
+              v.outlierMultiplier >= 1.2
+                ? `<span class="outlier-badge ${isHot ? 'outlier-hot' : ''} num">${isHot ? '🔥 ' : ''}x${v.outlierMultiplier} TB kênh</span>`
+                : '';
+            const vDate = v.publishedAt
+              ? `<span class="top-video-date num">${escapeHtml(v.publishedAt)}</span>`
+              : '';
+            return `
+              <div class="top-video-item burst-video-row top-video-rank-${idx < 3 ? idx + 1 : 'other'}">
+                <span class="top-video-rank num">#${idx + 1}</span>
+                <div class="burst-video-main">
+                  <a href="${escapeHtml(vUrl)}" target="_blank" rel="noopener" class="top-video-title" title="${escapeHtml(v.title)}">
+                    ${escapeHtml(v.title)} ↗
+                  </a>
+                </div>
+                ${vDate}
+                ${outlierBadge}
+                <span class="top-video-views num">${formatNumber(v.views)} views</span>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs btn-save-key"
+                  data-save-burst-title="${escapeHtml(v.title)}"
+                  data-save-burst-url="${escapeHtml(vUrl)}"
+                  data-save-burst-channel="${escapeHtml(ch.name)}"
+                  data-save-burst-views="${escapeHtml(String(v.views))}"
+                  data-save-burst-outlier="${escapeHtml(String(v.outlierMultiplier))}"
+                  title="Lưu chủ đề (Key) video này sang Nơi lưu nội dung"
+                >+ Lưu Key</button>
+              </div>
+            `;
+          })
+          .join('')
+      : `<div class="channel-top-videos-empty">Chưa có danh sách video — bấm nút <strong>Đồng bộ</strong> để quét toàn bộ video của kênh này.</div>`;
+
+  boardEl.innerHTML = `
+    <div class="deep-channel-workspace">
+      <div class="deep-channel-top-bar">
+        <button type="button" class="btn btn-secondary btn-sm" data-close-channel-deep="true">
+          ← Quay lại Thư mục Nhóm
+        </button>
+        <div class="deep-channel-title-cluster">
+          <span class="deep-folder-badge">📺 QUẢN LÝ SÂU KÊNH RIÊNG LẺ</span>
+          <h2 class="deep-channel-heading">${escapeHtml(ch.name)}</h2>
+          ${
+            ch.channelUrl
+              ? `<a href="${escapeHtml(ch.channelUrl)}" target="_blank" rel="noopener" class="channel-handle-link">${escapeHtml(ch.handle || 'Mở YouTube')} ↗</a>`
+              : `<span class="channel-handle-muted">${escapeHtml(ch.handle || '')}</span>`
+          }
+        </div>
+        <div class="channel-inline-actions">
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            data-sync-channel-id="${escapeHtml(ch.id)}"
+          >🔄 Đồng bộ quét lại kênh</button>
+          <button
+            type="button"
+            class="btn btn-danger-outline btn-sm"
+            data-delete-channel-id="${escapeHtml(ch.id)}"
+            data-delete-channel-name="${escapeHtml(ch.name)}"
+          >🗑 Xóa kênh</button>
+        </div>
+      </div>
+
+      <!-- 4 THẺ CHỈ SỐ CHUYÊN SÂU CỦA RIÊNG KÊNH NÀY -->
+      <div class="deep-kpi-grid num">
+        <div class="deep-kpi-card">
+          <span class="deep-kpi-label">SUBSCRIBERS</span>
+          <strong class="deep-kpi-val">${formatNumber(ch.subscribers || 0)}</strong>
+          <span class="deep-kpi-sub">Người đăng ký thực tế</span>
+        </div>
+        <div class="deep-kpi-card deep-kpi-gold">
+          <span class="deep-kpi-label">TỔNG LƯỢT XEM (VIEWS)</span>
+          <strong class="deep-kpi-val">${formatNumber(chTotalViews)}</strong>
+          <span class="deep-kpi-sub">Toàn kênh YouTube</span>
+        </div>
+        <div class="deep-kpi-card">
+          <span class="deep-kpi-label">TỔNG SỐ VIDEO</span>
+          <strong class="deep-kpi-val">${formatNumber(videoCount)}</strong>
+          <span class="deep-kpi-sub">Đã quét chi tiết ${formatNumber(allChannelVideos.length)} video</span>
+        </div>
+        <div class="deep-kpi-card">
+          <span class="deep-kpi-label">TRUNG BÌNH / VIDEO</span>
+          <strong class="deep-kpi-val">${formatNumber(avgViewsPerVideo)}</strong>
+          <span class="deep-kpi-sub">Views trung bình mỗi video</span>
+        </div>
+      </div>
+
+      <!-- HỒ SƠ CẤU HÌNH & GHI CHÚ QUẢN TRỊ SÂU CỦA KÊNH -->
+      <div class="deep-config-card">
+        <h3 class="insights-card-title" style="margin-bottom:10px;">⚙️ Hồ sơ phân nhóm, BKT, Nhân sự &amp; Ghi chú chiến lược kênh</h3>
+        <div class="channel-single-line num" style="flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <label class="inline-group-pill ${groupColorClass}">
+            <span class="inline-group-label">Thư mục Group:</span>
+            <input
+              type="text"
+              list="yt-groups-datalist"
+              class="inline-group-input"
+              data-channel-group="${escapeHtml(ch.id)}"
+              value="${escapeHtml(chGroup)}"
+              placeholder="Chọn / nhập Group..."
+            />
+          </label>
+
+          <select
+            class="bkt-pill-select bkt-status-${escapeHtml(ch.status || 'monetized')}"
+            data-channel-bkt-select="${escapeHtml(ch.id)}"
+          >
+            ${Object.entries(CHANNEL_STATUS_META)
+              .map(
+                ([k, info]) =>
+                  `<option value="${k}" ${ch.status === k ? 'selected' : ''}>● ${info.label}</option>`
+              )
+              .join('')}
+          </select>
+
+          <span class="niche-chip ${catColorClass}">
+            <span class="cat-dot"></span>
+            <span>Ngách: ${escapeHtml(chCategory)}</span>
+          </span>
+
+          <label class="inline-meta-field">
+            <span class="inline-meta-label">Ngày đầu đăng video:</span>
+            <input
+              type="date"
+              class="inline-meta-input num"
+              data-channel-first-date="${escapeHtml(ch.id)}"
+              value="${escapeHtml(earliestVideoDate)}"
+            />
+          </label>
+
+          <label class="inline-meta-field inline-meta-mail" style="flex:1;min-width:220px;">
+            <span class="inline-meta-label">Người / Mail quản lý:</span>
+            <input
+              type="text"
+              class="inline-meta-input"
+              style="width:100%;"
+              data-channel-manager-mail="${escapeHtml(ch.id)}"
+              value="${escapeHtml(managerMailValue)}"
+              placeholder="Nhập tên hoặc Gmail quản lý..."
+            />
+          </label>
+        </div>
+
+        <label class="deep-note-field">
+          <span class="deep-note-label">📝 Ghi chú sâu về Kênh (Định hướng Key, Lịch đăng, Lưu ý BKT / Gậy, Tài khoản...):</span>
+          <textarea
+            class="input-control deep-note-textarea"
+            rows="2"
+            data-channel-status-note="${escapeHtml(ch.id)}"
+            placeholder="Nhập ghi chú quản lý sâu cho kênh này (tự động lưu khi nhập xong)..."
+          >${escapeHtml(ch.statusNote || '')}</textarea>
+        </label>
+      </div>
+
+      <!-- DANH SÁCH TOÀN BỘ VIDEO ĐÃ QUÉT CỦA KÊNH -->
+      <div class="insights-card">
+        <div class="insights-card-header">
+          <div>
+            <h3 class="insights-card-title">🎬 Danh sách toàn bộ Video của kênh "${escapeHtml(ch.name)}" (${formatNumber(sortedVideos.length)} video)</h3>
+            <p class="insights-card-sub">So sánh hiệu suất từng video với mức trung bình kênh (${formatNumber(avgViewsPerVideo)} views/video)</p>
+          </div>
+          <div class="insights-mode-tabs">
+            <button type="button" class="insights-tab-btn ${sortMode === 'views' ? 'active' : ''}" data-set-deep-video-sort="views">Views cao nhất</button>
+            <button type="button" class="insights-tab-btn ${sortMode === 'outlier' ? 'active' : ''}" data-set-deep-video-sort="outlier">Độ nổ (xTB kênh)</button>
+            <button type="button" class="insights-tab-btn ${sortMode === 'date' ? 'active' : ''}" data-set-deep-video-sort="date">Mới đăng nhất</button>
+          </div>
+        </div>
+        <div class="channel-top-videos-list">
+          ${videosListHtml}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderYoutubeChannelsBoard() {
   const boardEl = document.getElementById('yt-channels-board');
+  const cmdBarEl = document.getElementById('yt-command-bar');
   if (!boardEl) return;
+
+  renderFolderBreadcrumb();
+
+  // Nếu đang mở chế độ Quản lý sâu 1 kênh riêng lẻ
+  if (state.activeChannelDeepId) {
+    const targetCh = state.channels.find((c) => c.id === state.activeChannelDeepId);
+    if (targetCh) {
+      if (cmdBarEl) cmdBarEl.hidden = true;
+      renderSingleChannelDeepView(targetCh, boardEl);
+      return;
+    }
+    state.activeChannelDeepId = null;
+  }
+
+  if (cmdBarEl) cmdBarEl.hidden = false;
 
   const q = (state.filters.ytSearch || '').toLowerCase().trim();
   const channelFilter = state.filters.ytChannel || 'all';
@@ -1063,13 +1381,20 @@ function renderYoutubeChannelsBoard() {
   });
 
   if (filteredChannels.length === 0) {
-    boardEl.innerHTML = `<p class="panel-desc" style="padding:18px;">Chưa có kênh YouTube nào khớp bộ lọc. Bấm nút "✕ Bỏ lọc" hoặc chọn "Tất cả Group" / "Tất cả danh mục" ở phía trên để xem toàn bộ kênh.</p>`;
+    boardEl.innerHTML = `<p class="panel-desc" style="padding:18px;">Chưa có kênh YouTube nào trong thư mục này. Bấm chọn "📁 Tất cả" trên thanh thư mục phía trên để xem toàn bộ kênh.</p>`;
     return;
   }
 
+  const folderTitle =
+    groupFilter === 'all'
+      ? `📁 Thư mục: Tất cả Kênh (${filteredChannels.length} kênh)`
+      : groupFilter === '__none__'
+      ? `📁 Thư mục: Chưa gắn Group (${filteredChannels.length} kênh)`
+      : `📁 Thư mục Nhóm: ${groupFilter} (${filteredChannels.length} kênh)`;
+
   const headerHtml = `
     <div class="channel-row-header">
-      <div>Kênh YouTube &amp; Chỉ số (Tên kênh · Group · Đồng bộ / Xóa · Subscribers · Tổng Views · Video · Quản lý)</div>
+      <div>${escapeHtml(folderTitle)} — Bấm nút <strong>"🔍 Quản lý sâu"</strong> hoặc bấm vào Tên Kênh để mở hồ sơ &amp; toàn bộ video của riêng kênh đó</div>
     </div>
   `;
 
@@ -1078,11 +1403,6 @@ function renderYoutubeChannelsBoard() {
       const chVideos = state.videos.filter((v) => v.channelId === ch.id);
       const sumVideoViews = chVideos.reduce((s, v) => s + (Number(v.currentViews) || 0), 0);
       const chTotalViews = Math.max(Number(ch.totalViews) || 0, sumVideoViews);
-      const chWatchHours = Number(ch.watchHours) || 0;
-      const chRealtime48h = Number(ch.realtimeViews48h) || 0;
-      const chCtr = Number(ch.ctrPercent) || 0;
-      const chAvd = (ch.avgViewDuration || '').trim();
-      const chRevenue = (ch.estimatedRevenue || '').trim();
       const videoCount = Math.max(Number(ch.totalVideos) || 0, chVideos.length);
       const top3Videos = (
         chVideos.length > 0
@@ -1111,9 +1431,16 @@ function renderYoutubeChannelsBoard() {
       return `
         <article class="channel-row" data-channel-row-id="${escapeHtml(ch.id)}">
           <div class="channel-col-identity">
-            <!-- Dòng 1 duy nhất: Tên Kênh + @Handle + Đồng bộ/Xóa + Group + BKT + Ngách + SUB + VIEWS + VIDEO + Ngày đầu + Quản lý -->
+            <!-- Dòng 1 duy nhất: Tên Kênh + @Handle + Quản lý sâu/Đồng bộ/Xóa + Group + BKT + Ngách + SUB + VIEWS + VIDEO + Ngày đầu + Quản lý -->
             <div class="channel-single-line num">
-              <strong class="channel-name-text" title="${escapeHtml(ch.name)}">${escapeHtml(ch.name)}</strong>
+              <button
+                type="button"
+                class="channel-name-btn"
+                data-open-channel-deep="${escapeHtml(ch.id)}"
+                title="Bấm để mở thư mục Quản lý sâu kênh ${escapeHtml(ch.name)}"
+              >
+                <strong class="channel-name-text">${escapeHtml(ch.name)}</strong>
+              </button>
               ${
                 ch.channelUrl
                   ? `<a href="${escapeHtml(ch.channelUrl)}" target="_blank" rel="noopener" class="channel-handle-link">${escapeHtml(
@@ -1123,6 +1450,12 @@ function renderYoutubeChannelsBoard() {
               }
 
               <div class="channel-inline-actions">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-xs"
+                  data-open-channel-deep="${escapeHtml(ch.id)}"
+                  title="Đi vào thư mục chi tiết của riêng kênh này để quản lý sâu hơn"
+                >🔍 Quản lý sâu</button>
                 <button
                   type="button"
                   class="btn btn-secondary btn-xs"
@@ -1256,11 +1589,17 @@ function renderYoutubeInsightsHub() {
   if (!hubEl) return;
 
   if (state.channels.length === 0) {
-    hubEl.innerHTML = '';
+    hubEl.innerHTML = `
+      <div class="insights-card" style="padding:24px;text-align:center;">
+        <h3 class="insights-card-title">Chưa có kênh YouTube nào trong hệ thống</h3>
+        <p class="insights-card-sub" style="margin:8px 0 14px;">Hãy mở Thư mục Kênh YouTube để dán link kênh đầu tiên vào hệ thống.</p>
+        <button type="button" class="btn btn-primary" data-goto-tab="youtube">+ Thêm Kênh YouTube mới</button>
+      </div>
+    `;
     return;
   }
 
-  // 1. Tính toán Thống kê tổng hợp theo Nhãn (Group, Ngách, Quản lý) trực tiếp từ danh sách kênh + video hiện tại
+  // 1. Tính toán Thống kê tổng hợp theo Nhãn (Group, Ngách, Quản lý) + danh sách kênh con trong mỗi thư mục
   const buildBreakdown = (getKeyFn) => {
     const map = new Map();
     for (const ch of state.channels) {
@@ -1279,16 +1618,29 @@ function renderYoutubeInsightsHub() {
         totalSubscribers: 0,
         totalViews: 0,
         totalVideos: 0,
+        channels: [],
       };
       prev.channelCount += 1;
       if (isMonetized) prev.monetizedCount += 1;
       prev.totalSubscribers += Number(ch.subscribers) || 0;
       prev.totalViews += chViews;
       prev.totalVideos += chVideoCount;
+      prev.channels.push({
+        id: ch.id,
+        name: ch.name,
+        handle: ch.handle || '',
+        views: chViews,
+        subscribers: Number(ch.subscribers) || 0,
+      });
       map.set(filterKey, prev);
     }
     return [...map.values()].sort((a, b) => b.totalViews - a.totalViews || b.channelCount - a.channelCount);
   };
+
+  const groupFolders = buildBreakdown((ch) => {
+    const g = String(ch.group || '').trim();
+    return g ? { label: g, filterKey: g } : { label: 'Chưa gắn Group', filterKey: '__none__' };
+  });
 
   const labelMode = state.insightsLabelMode || 'group';
   const labelRows =
@@ -1302,15 +1654,15 @@ function renderYoutubeInsightsHub() {
           const m = String(ch.managerEmail || ch.manager || '').trim();
           return m ? { label: m, filterKey: m } : { label: 'Chưa phân công', filterKey: '__none__' };
         })
-      : buildBreakdown((ch) => {
-          const g = String(ch.group || '').trim();
-          return g ? { label: g, filterKey: g } : { label: 'Chưa gắn Group', filterKey: '__none__' };
-        });
+      : groupFolders;
 
   const grandTotalViews = Math.max(
-    labelRows.reduce((s, r) => s + r.totalViews, 0),
+    groupFolders.reduce((s, r) => s + r.totalViews, 0),
     1
   );
+  const grandTotalSubs = groupFolders.reduce((s, r) => s + r.totalSubscribers, 0);
+  const grandTotalVideos = groupFolders.reduce((s, r) => s + r.totalVideos, 0);
+  const grandMonetized = groupFolders.reduce((s, r) => s + r.monetizedCount, 0);
 
   const activeFilterValue =
     labelMode === 'category'
@@ -1338,7 +1690,7 @@ function renderYoutubeInsightsHub() {
           class="label-stat-row ${isSelected ? 'active' : ''}"
           data-filter-label-mode="${escapeHtml(labelMode)}"
           data-filter-label-key="${escapeHtml(row.filterKey)}"
-          title="Bấm để lọc riêng các kênh thuộc nhãn: ${escapeHtml(row.label)}"
+          title="Bấm để lọc nhanh theo nhãn: ${escapeHtml(row.label)}"
         >
           <div class="label-stat-main">
             <span class="niche-chip ${colorClass} label-stat-chip">
@@ -1363,7 +1715,7 @@ function renderYoutubeInsightsHub() {
     })
     .join('');
 
-  // 2. Bảng tổng hợp "Video Nổ View" của cả dàn kênh (tự động lọc theo Nhãn/Kênh nếu đang chọn)
+  // 2. Bảng tổng hợp "Video Nổ View" của cả dàn kênh
   const channelMap = new Map(state.channels.map((c) => [c.id, c]));
   const channelAvgMap = new Map();
   for (const ch of state.channels) {
@@ -1378,7 +1730,6 @@ function renderYoutubeInsightsHub() {
     }
   }
 
-  // Gom video từ state.videos và dự phòng từ ch.topVideos nếu kênh chưa có bản ghi rời
   const rawVideosPool = [...state.videos];
   const seenVideoKeys = new Set(rawVideosPool.map((v) => `${v.channelId}:${v.youtubeVideoId || v.title}`));
   for (const ch of state.channels) {
@@ -1455,7 +1806,11 @@ function renderYoutubeInsightsHub() {
       : b.views - a.views || b.outlierMultiplier - a.outlierMultiplier
   );
 
-  const displayLimit = state.insightsShowAllVideos ? 30 : 12;
+  const topOutlierVideo = [...filteredVideos].sort(
+    (a, b) => b.outlierMultiplier - a.outlierMultiplier || b.views - a.views
+  )[0];
+
+  const displayLimit = state.insightsShowAllVideos ? 30 : 10;
   const topBurstVideos = filteredVideos.slice(0, displayLimit);
 
   const burstVideosHtml =
@@ -1485,7 +1840,7 @@ function renderYoutubeInsightsHub() {
                     ${escapeHtml(v.title)} ↗
                   </a>
                   <div class="burst-video-sub">
-                    <span class="burst-channel-badge">${escapeHtml(v.channelName)}</span>
+                    <button type="button" class="burst-channel-badge burst-channel-btn" data-open-channel-deep="${escapeHtml(v.channelId)}" title="Bấm để mở Quản lý sâu kênh ${escapeHtml(v.channelName)}">📺 ${escapeHtml(v.channelName)}</button>
                     ${groupTag}
                     ${dateTag}
                   </div>
@@ -1508,22 +1863,122 @@ function renderYoutubeInsightsHub() {
           .join('')
       : `<div class="channel-top-videos-empty">Chưa có video nào khớp bộ lọc — bấm <strong>Đồng bộ</strong> trên kênh để quét danh sách video.</div>`;
 
+  // 3. Hệ thống Thư mục con các Nhóm kênh & Kênh riêng lẻ (Subfolders Grid)
+  const subfoldersHtml = groupFolders
+    .map((folder) => {
+      const sharePct = Math.round((folder.totalViews / grandTotalViews) * 100);
+      const channelPillsHtml = folder.channels
+        .map(
+          (chItem) => `
+            <button
+              type="button"
+              class="subfolder-channel-item num"
+              data-open-channel-deep="${escapeHtml(chItem.id)}"
+              title="Bấm để vào thẳng Quản lý sâu kênh ${escapeHtml(chItem.name)}"
+            >
+              <span class="subfolder-ch-name">📺 ${escapeHtml(chItem.name)}</span>
+              <span class="subfolder-ch-views">${formatNumber(chItem.views)} views</span>
+            </button>
+          `
+        )
+        .join('');
+
+      return `
+        <div class="subfolder-card">
+          <div class="subfolder-header">
+            <button
+              type="button"
+              class="subfolder-title-btn"
+              data-open-group-folder="${escapeHtml(folder.filterKey)}"
+              title="Mở thư mục nhóm ${escapeHtml(folder.label)}"
+            >
+              <span class="subfolder-icon">📁</span>
+              <div>
+                <strong class="subfolder-name">${escapeHtml(folder.label)}</strong>
+                <span class="subfolder-count num">${folder.channelCount} kênh · ${folder.monetizedCount} BKT</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary btn-xs"
+              data-open-group-folder="${escapeHtml(folder.filterKey)}"
+            >Mở nhóm →</button>
+          </div>
+
+          <div class="subfolder-stats num">
+            <span><strong>${formatNumber(folder.totalSubscribers)}</strong> SUB</span>
+            <span><strong>${formatNumber(folder.totalVideos)}</strong> VIDEO</span>
+            <span class="subfolder-stat-gold"><strong>${formatNumber(folder.totalViews)}</strong> VIEWS (${sharePct}%)</span>
+          </div>
+
+          <div class="subfolder-channels-list">
+            ${channelPillsHtml}
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
   hubEl.innerHTML = `
+    <!-- PHẦN 1: TÓM TẮT PHÂN TÍCH TOÀN HỆ THỐNG (EXECUTIVE OVERVIEW) -->
+    <div class="home-exec-grid num">
+      <div class="deep-kpi-card">
+        <span class="deep-kpi-label">HỆ THỐNG KÊNH &amp; NHÓM</span>
+        <strong class="deep-kpi-val">${formatNumber(state.channels.length)} kênh</strong>
+        <span class="deep-kpi-sub">${grandMonetized} kênh Đã BKT · ${groupFolders.length} thư mục Nhóm</span>
+      </div>
+      <div class="deep-kpi-card deep-kpi-gold">
+        <span class="deep-kpi-label">TỔNG LƯỢT XEM THỰC TẾ</span>
+        <strong class="deep-kpi-val">${formatNumber(grandTotalViews)}</strong>
+        <span class="deep-kpi-sub">TB ${formatNumber(Math.round(grandTotalViews / Math.max(state.channels.length, 1)))} views / kênh</span>
+      </div>
+      <div class="deep-kpi-card">
+        <span class="deep-kpi-label">TỔNG SUB &amp; KHO VIDEO</span>
+        <strong class="deep-kpi-val">${formatNumber(grandTotalSubs)} sub</strong>
+        <span class="deep-kpi-sub">Đã quét ${formatNumber(grandTotalVideos)} video trên toàn dàn kênh</span>
+      </div>
+      <div class="deep-kpi-card">
+        <span class="deep-kpi-label">KEY VIDEO NỔ MẠNH NHẤT</span>
+        <strong class="deep-kpi-val" style="font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(topOutlierVideo ? topOutlierVideo.title : '')}">
+          ${topOutlierVideo ? `🔥 x${topOutlierVideo.outlierMultiplier} TB kênh (${formatNumber(topOutlierVideo.views)} views)` : 'Chưa có dữ liệu'}
+        </strong>
+        <span class="deep-kpi-sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${topOutlierVideo ? `${escapeHtml(topOutlierVideo.channelName)}: ${escapeHtml(topOutlierVideo.title)}` : 'Bấm Đồng bộ để quét'}
+        </span>
+      </div>
+    </div>
+
+    <!-- PHẦN 2: THƯ MỤC CON CÁC NHÓM KÊNH & ĐI SÂU TỪNG KÊNH RIÊNG LẺ -->
+    <section class="insights-card" style="margin-bottom:12px;">
+      <div class="insights-card-header">
+        <div>
+          <h3 class="insights-card-title">📁 Thư mục con các Nhóm Kênh &amp; Kênh riêng lẻ</h3>
+          <p class="insights-card-sub">Bấm <strong>"Mở nhóm →"</strong> để vào thư mục Nhóm kênh, hoặc bấm trực tiếp vào <strong>tên Kênh (📺)</strong> để quản lý sâu từng kênh riêng lẻ</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary btn-xs" data-open-group-folder="all">
+            📁 Mở Tất cả Kênh (${state.channels.length}) →
+          </button>
+        </div>
+      </div>
+      <div class="subfolders-grid">
+        ${subfoldersHtml}
+      </div>
+    </section>
+
+    <!-- PHẦN 3: BẢNG THỐNG KÊ THEO NHÃN & BẢNG VIDEO NỔ VIEW CẢ DÀN KÊNH -->
     <div class="insights-hub-bar">
       <div class="insights-hub-title-group">
-        <span class="insights-hub-badge">⚡ THỐNG KÊ NHÃN &amp; VIDEO NỔ VIEW TOÀN HỆ THỐNG</span>
+        <span class="insights-hub-badge">⚡ PHÂN TÍCH NHÃN &amp; BẢNG XẾP HẠNG VIDEO NỔ VIEW CẢ DÀN KÊNH</span>
         ${
           hasAnyActiveFilter
             ? `
-              <button type="button" class="btn btn-danger-outline btn-xs" data-clear-all-yt-filters="true" title="Xóa bộ lọc để xem toàn bộ dàn kênh">✕ Bỏ lọc (Xem tất cả ${state.channels.length} kênh)</button>
-              <button type="button" class="btn btn-secondary btn-xs" data-goto-tab="youtube">Mở danh sách kênh của Nhãn đang lọc →</button>
+              <button type="button" class="btn btn-danger-outline btn-xs" data-clear-all-yt-filters="true">✕ Bỏ lọc (Xem tất cả ${state.channels.length} kênh)</button>
+              <button type="button" class="btn btn-secondary btn-xs" data-goto-tab="youtube">Mở thư mục Nhãn đang lọc →</button>
             `
             : `<span class="insights-hub-hint">Bấm vào từng Nhãn bên trái để lọc nhanh video · Bấm "+ Lưu Key" bên phải để lưu chủ đề ăn khách</span>`
         }
       </div>
-      <button type="button" class="btn btn-secondary btn-xs" data-goto-tab="youtube">
-        ← Quay lại Danh sách Kênh
-      </button>
     </div>
 
     <div class="insights-hub-grid">
@@ -1561,10 +2016,10 @@ function renderYoutubeInsightsHub() {
           ${burstVideosHtml}
         </div>
         ${
-          filteredVideos.length > 12
+          filteredVideos.length > 10
             ? `<div class="insights-card-footer">
                 <button type="button" class="btn btn-ghost btn-xs" data-toggle-show-all-burst="true">
-                  ${state.insightsShowAllVideos ? '▲ Thu gọn về Top 12' : `▼ Xem toàn bộ ${Math.min(filteredVideos.length, 30)} video`}
+                  ${state.insightsShowAllVideos ? '▲ Thu gọn về Top 10' : `▼ Xem toàn bộ ${Math.min(filteredVideos.length, 30)} video`}
                 </button>
               </div>`
             : ''
@@ -1668,12 +2123,24 @@ function switchTab(tabName) {
 function setupEventListeners() {
   document.getElementById('side-nav')?.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-tab]');
-    if (btn) switchTab(btn.dataset.tab);
+    if (btn) {
+      if (btn.dataset.tab === 'youtube' && state.activeChannelDeepId) {
+        state.activeChannelDeepId = null;
+        renderYoutubeTab();
+      }
+      switchTab(btn.dataset.tab);
+    }
   });
 
   document.getElementById('mobile-bottom-nav')?.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-tab]');
-    if (btn) switchTab(btn.dataset.tab);
+    if (btn) {
+      if (btn.dataset.tab === 'youtube' && state.activeChannelDeepId) {
+        state.activeChannelDeepId = null;
+        renderYoutubeTab();
+      }
+      switchTab(btn.dataset.tab);
+    }
   });
 
   document.body.addEventListener('click', async (e) => {
@@ -1695,6 +2162,7 @@ function setupEventListeners() {
     if (selectGroupBtn) {
       const targetGroup = selectGroupBtn.dataset.selectGroup || 'all';
       state.filters.ytGroup = targetGroup;
+      state.activeChannelDeepId = null;
       if (groupDropdownEl) groupDropdownEl.classList.remove('open');
       renderYoutubeTab();
       return;
@@ -1715,6 +2183,7 @@ function setupEventListeners() {
     if (selectCatBtn) {
       const targetCat = selectCatBtn.dataset.selectCategory || 'all';
       state.filters.ytCategory = targetCat;
+      state.activeChannelDeepId = null;
       if (dropdownEl) dropdownEl.classList.remove('open');
       renderYoutubeTab();
       return;
@@ -1730,7 +2199,57 @@ function setupEventListeners() {
 
     const gotoTabBtn = e.target.closest('[data-goto-tab]');
     if (gotoTabBtn) {
-      switchTab(gotoTabBtn.dataset.gotoTab);
+      const targetTab = gotoTabBtn.dataset.gotoTab;
+      if (targetTab === 'youtube') {
+        state.activeChannelDeepId = null;
+        renderYoutubeTab();
+      }
+      switchTab(targetTab);
+      return;
+    }
+
+    // Mở Thư mục con (Nhóm Kênh) từ Trang chủ hoặc từ thanh Breadcrumb
+    const openGroupFolderBtn = e.target.closest('[data-open-group-folder]');
+    if (openGroupFolderBtn) {
+      const targetGroup = openGroupFolderBtn.dataset.openGroupFolder || 'all';
+      state.filters.ytGroup = targetGroup;
+      state.filters.ytCategory = 'all';
+      state.filters.ytManager = 'all';
+      state.filters.ytChannel = 'all';
+      state.activeChannelDeepId = null;
+      renderYoutubeTab();
+      switchTab('youtube');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Mở không gian Quản lý sâu của 1 Kênh riêng lẻ
+    const openChannelDeepBtn = e.target.closest('[data-open-channel-deep]');
+    if (openChannelDeepBtn) {
+      const chId = openChannelDeepBtn.dataset.openChannelDeep;
+      if (chId) {
+        state.activeChannelDeepId = chId;
+        renderYoutubeTab();
+        switchTab('youtube');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+
+    // Đóng chế độ Quản lý sâu Kênh riêng lẻ -> Quay về Thư mục Nhóm Kênh
+    const closeChannelDeepBtn = e.target.closest('[data-close-channel-deep]');
+    if (closeChannelDeepBtn) {
+      state.activeChannelDeepId = null;
+      renderYoutubeTab();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Đổi cách sắp xếp danh sách video trong chế độ Quản lý sâu 1 kênh
+    const setDeepVideoSortBtn = e.target.closest('[data-set-deep-video-sort]');
+    if (setDeepVideoSortBtn) {
+      state.deepChannelVideoSort = setDeepVideoSortBtn.dataset.setDeepVideoSort || 'views';
+      renderYoutubeTab();
       return;
     }
 
@@ -1740,6 +2259,7 @@ function setupEventListeners() {
       const targetCat = catFilterBtn.dataset.filterCategory || 'all';
       state.filters.ytCategory =
         state.filters.ytCategory === targetCat && targetCat !== 'all' ? 'all' : targetCat;
+      state.activeChannelDeepId = null;
       if (dropdownEl) dropdownEl.classList.remove('open');
       renderYoutubeTab();
       return;
@@ -1777,11 +2297,12 @@ function setupEventListeners() {
       return;
     }
 
-    // Bấm vào 1 hàng Nhãn (Group / Ngách / Quản lý) trong bảng thống kê để lọc nhanh danh sách kênh
+    // Bấm vào 1 hàng Nhãn (Group / Ngách / Quản lý) trong bảng thống kê để mở thư mục tương ứng
     const filterLabelBtn = e.target.closest('[data-filter-label-key]');
     if (filterLabelBtn) {
       const mode = filterLabelBtn.dataset.filterLabelMode || 'group';
       const key = filterLabelBtn.dataset.filterLabelKey || 'all';
+      state.activeChannelDeepId = null;
       if (mode === 'category') {
         state.filters.ytCategory = state.filters.ytCategory === key ? 'all' : key;
       } else if (mode === 'manager') {
@@ -1790,6 +2311,8 @@ function setupEventListeners() {
         state.filters.ytGroup = state.filters.ytGroup === key ? 'all' : key;
       }
       renderYoutubeTab();
+      switchTab('youtube');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -1801,6 +2324,7 @@ function setupEventListeners() {
       state.filters.ytManager = 'all';
       state.filters.ytChannel = 'all';
       state.filters.ytSearch = '';
+      state.activeChannelDeepId = null;
       const searchEl = document.getElementById('yt-search');
       if (searchEl) searchEl.value = '';
       const chSelectEl = document.getElementById('yt-channel-filter');
@@ -1916,6 +2440,9 @@ function setupEventListeners() {
         });
         if (state.filters.ytChannel === chId) {
           state.filters.ytChannel = 'all';
+        }
+        if (state.activeChannelDeepId === chId) {
+          state.activeChannelDeepId = null;
         }
         await loadOverview();
         showBanner(`Đã xóa kênh "${res.deletedChannelName || chId}" khỏi hệ thống.`);
@@ -2079,6 +2606,25 @@ function setupEventListeners() {
         });
         await loadOverview();
         showBanner(`Đã lưu Người / Mail quản lý cho kênh "${updated.name}"!`);
+      } catch (err) {
+        showBanner(err.message, true);
+      }
+      return;
+    }
+
+    const statusNoteInput = e.target.closest('[data-channel-status-note]');
+    if (statusNoteInput) {
+      const chId = statusNoteInput.dataset.channelStatusNote;
+      const val = statusNoteInput.value.trim();
+      try {
+        const updated = await apiRequest(`/api/youtube/channels/${encodeURIComponent(chId)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            statusNote: val,
+          }),
+        });
+        await loadOverview();
+        showBanner(`Đã lưu ghi chú quản lý sâu cho kênh "${updated.name}"!`);
       } catch (err) {
         showBanner(err.message, true);
       }
@@ -2439,7 +2985,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=14', { updateViaCache: 'none' })
+      .register('/sw.js?v=15', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
