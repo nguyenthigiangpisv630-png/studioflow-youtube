@@ -414,3 +414,57 @@ test('Top 3 Highest-Viewed Videos on Sync/Update: quét hàng loạt video của
   }
 });
 
+test('Exact YouTube Views on Sync: đồng bộ kênh hoặc đồng bộ hằng ngày phải đưa về đúng con số thực tế trên YouTube, không bao giờ tự cộng view ảo', async () => {
+  const { store, cleanup } = createTempStore(false);
+  try {
+    const ch = store.createChannel({
+      name: 'FOOD 75',
+      handle: '@FOOD75-h2q',
+      channelUrl: 'https://www.youtube.com/@FOOD75-h2q',
+      subscribers: 4,
+      totalVideos: 3,
+      totalViews: 84585, // Giả sử trước đó bị nhảy số ảo
+    });
+
+    // Giả sử video bị lưu nhầm số view ảo cao hơn thực tế (2279 thay vì 442)
+    store.createVideo({
+      title: "6 Tables Randy 'Macho Man' Savage Sat At",
+      youtubeVideoId: 'd_Ft0bFYLxg',
+      channelId: ch.id,
+      publishedAt: '2026-10-05',
+      initialViews: 2279,
+      metricDate: '2026-10-16',
+    });
+
+    const mockExactFetcher = async (query) => {
+      if (!String(query).includes('FOOD75')) return null;
+      return {
+        name: 'FOOD 75',
+        handle: '@FOOD75-h2q',
+        channelUrl: 'https://www.youtube.com/@FOOD75-h2q',
+        subscribers: 4,
+        totalVideos: 3,
+        totalViews: 929,
+        videos: [
+          { youtubeVideoId: 'd_Ft0bFYLxg', title: "6 Tables Randy 'Macho Man' Savage Sat At", views: 443, publishedAt: '2026-10-05' },
+          { youtubeVideoId: 'd5giUxqaVy8', title: '10 Wild Foods Andre the Giant Used', views: 294, publishedAt: '2026-10-01' },
+          { youtubeVideoId: 'JrTFXCWmaaA', title: '12 Wild Things Hulk Hogan Put in His Body', views: 192, publishedAt: '2026-10-03' },
+        ],
+      };
+    };
+
+    const synced = await store.syncChannelFromYouTube(ch.id, { channelFetcher: mockExactFetcher });
+    assert.equal(synced.channel.totalViews, 929, 'Tổng views của kênh phải đưa về đúng 929 thực tế');
+    assert.equal(synced.topVideos[0].views, 443, 'Video #1 phải đưa về đúng 443 views thực tế (không giữ số ảo 2279)');
+
+    // Gọi tiếp syncAllVideosDailyMetrics không truyền fetcher giả lập -> phải quét thực tế từ YouTube chứ không cộng số ảo
+    await store.syncAllVideosDailyMetrics({ channelFetcher: mockExactFetcher });
+    const videosAfterDaily = store.listVideos({ channelId: ch.id });
+    const sumViews = videosAfterDaily.reduce((s, v) => s + v.currentViews, 0);
+    assert.equal(sumViews, 929, 'Sau khi bấm đồng bộ hằng ngày, tổng view các video vẫn phải chuẩn xác 929');
+  } finally {
+    cleanup();
+  }
+});
+
+

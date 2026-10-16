@@ -1276,14 +1276,21 @@ export class StudioStore {
       const today = todayIsoDate();
       // Đảo ngược để video mới nhất nằm lên đầu sau khi unshift
       for (const v of [...remote.videos].reverse()) {
+        const exactViews = Math.max(0, Number(v.views) || 0);
         const existing = this.state.videos.find((x) => x.youtubeVideoId === v.youtubeVideoId);
         if (existing) {
           existing.channelId = channel.id;
           if (v.title) existing.title = v.title;
           if (v.publishedAt && !existing.publishedAt) existing.publishedAt = v.publishedAt;
+          existing.metricsHistory = (existing.metricsHistory || [])
+            .filter((m) => m.date < today)
+            .map((m) => ({
+              ...m,
+              views: Math.min(Number(m.views) || 0, exactViews),
+            }));
           this.recordVideoDailyMetrics(existing.id, {
             date: today,
-            views: v.views || existing.currentViews || 0,
+            views: exactViews,
             likes: v.likes ?? existing.currentLikes ?? 0,
             comments: v.comments ?? existing.currentComments ?? 0,
           });
@@ -1293,7 +1300,7 @@ export class StudioStore {
             youtubeVideoId: v.youtubeVideoId,
             channelId: channel.id,
             publishedAt: v.publishedAt || today,
-            initialViews: v.views || 0,
+            initialViews: exactViews,
             initialLikes: v.likes || 0,
             initialComments: v.comments || 0,
             metricDate: today,
@@ -1301,6 +1308,8 @@ export class StudioStore {
           importedVideosCount += 1;
         }
       }
+      const sumScannedViews = remote.videos.reduce((s, v) => s + (Number(v.views) || 0), 0);
+      channel.totalViews = Math.max(Number(remote.totalViews) || 0, sumScannedViews);
     }
 
     const topVideos = this.getChannelTopVideos(channel.id, 3);
@@ -1339,13 +1348,16 @@ export class StudioStore {
         videos: remote.videos || [],
       });
 
+    const sumScannedViews = (remote.videos || []).reduce((s, v) => s + (Number(v.views) || 0), 0);
+    const exactChannelTotalViews = Math.max(Number(remote.totalViews) || 0, sumScannedViews);
+
     this.updateChannel(channel.id, {
       name: remote.name || channel.name,
       handle: remote.handle || channel.handle,
       channelUrl: remote.channelUrl || channel.channelUrl,
       subscribers: nextSubs,
       totalVideos: remote.totalVideos > 0 ? remote.totalVideos : channel.totalVideos,
-      totalViews: remote.totalViews > 0 ? remote.totalViews : channel.totalViews,
+      totalViews: exactChannelTotalViews > 0 ? exactChannelTotalViews : channel.totalViews,
       firstVideoDate: channel.firstVideoDate || remote.firstVideoDate || '',
       category: autoCategory,
     });
@@ -1353,14 +1365,23 @@ export class StudioStore {
     let importedVideosCount = 0;
     const today = todayIsoDate();
     for (const v of [...(remote.videos || [])].reverse()) {
-      const existing = this.state.videos.find((x) => x.youtubeVideoId === v.youtubeVideoId);
+      const exactViews = Math.max(0, Number(v.views) || 0);
+      const existing = this.state.videos.find(
+        (x) => x.youtubeVideoId === v.youtubeVideoId && (x.channelId === channel.id || !this.state.channels.some((c) => c.id === x.channelId))
+      );
       if (existing) {
         existing.channelId = channel.id;
         if (v.title) existing.title = v.title;
         if (v.publishedAt && !existing.publishedAt) existing.publishedAt = v.publishedAt;
+        existing.metricsHistory = (existing.metricsHistory || [])
+          .filter((m) => m.date < today)
+          .map((m) => ({
+            ...m,
+            views: Math.min(Number(m.views) || 0, exactViews),
+          }));
         this.recordVideoDailyMetrics(existing.id, {
           date: today,
-          views: v.views || existing.currentViews || 0,
+          views: exactViews,
           likes: v.likes ?? existing.currentLikes ?? 0,
           comments: v.comments ?? existing.currentComments ?? 0,
         });
@@ -1370,7 +1391,7 @@ export class StudioStore {
           youtubeVideoId: v.youtubeVideoId,
           channelId: channel.id,
           publishedAt: v.publishedAt || today,
-          initialViews: v.views || 0,
+          initialViews: exactViews,
           initialLikes: v.likes || 0,
           initialComments: v.comments || 0,
           metricDate: today,
@@ -1620,46 +1641,36 @@ export class StudioStore {
 
   async syncAllVideosDailyMetrics(options = {}) {
     const date = options.date || todayIsoDate();
-    const fetcher =
-      options.fetcher ||
-      (async (video) => {
-        // Nếu có cấu hình YOUTUBE_API_KEY thì gọi YouTube Data API v3 thật
-        const apiKey = process.env.YOUTUBE_API_KEY;
-        if (apiKey && video.youtubeVideoId) {
-          try {
-            const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${encodeURIComponent(
-              video.youtubeVideoId
-            )}&key=${encodeURIComponent(apiKey)}`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const data = await res.json();
-              const stats = data.items?.[0]?.statistics;
-              if (stats) {
-                return {
-                  views: Number(stats.viewCount) || video.currentViews,
-                  likes: Number(stats.likeCount) || video.currentLikes,
-                  comments: Number(stats.commentCount) || video.currentComments,
-                };
-              }
-            }
-          } catch {
-            // Chuyển sang cơ chế ước tính tăng trưởng hằng ngày nếu mạng lỗi
-          }
+
+    // Nếu không truyền fetcher tùy chỉnh (tức là bấm nút "Đồng bộ chỉ số hôm nay" thực tế),
+    // quét lại trực tiếp tất cả các kênh từ YouTube để đưa về đúng con số thực tế chuẩn xác 100%!
+    if (!options.fetcher) {
+      for (const ch of this.state.channels) {
+        try {
+          await this.syncChannelFromYouTube(ch.id, {
+            channelFetcher: options.channelFetcher,
+          });
+        } catch {
+          // Bỏ qua nếu kênh ngoại tuyến tạm thời
         }
+      }
+      const totalDailyViewsGained = this.state.videos.reduce(
+        (sum, v) => sum + (Number(v.dailyViewsDelta) || 0),
+        0
+      );
+      this.state.meta.lastDailySyncDate = date;
+      this.state.meta.lastDailySyncAt = new Date().toISOString();
+      this.#save();
+      return {
+        date,
+        syncedAt: this.state.meta.lastDailySyncAt,
+        updatedCount: this.state.videos.length,
+        totalDailyViewsGained,
+        videos: this.state.videos,
+      };
+    }
 
-        // Tính toán mức tăng trưởng lượt xem hằng ngày dựa trên đà tăng (momentum) gần nhất
-        const baseDelta = Math.max(850, video.dailyViewsDelta || Math.round((video.currentViews || 5000) * 0.08));
-        const deterministicBoost = ((video.title.length * 137) % 900) + 250;
-        const nextViews = (video.currentViews || 0) + Math.round(baseDelta * 0.92) + deterministicBoost;
-        const nextLikes = (video.currentLikes || 0) + Math.max(15, Math.round(deterministicBoost * 0.08));
-        const nextComments = (video.currentComments || 0) + Math.max(3, Math.round(deterministicBoost * 0.015));
-        return {
-          views: nextViews,
-          likes: nextLikes,
-          comments: nextComments,
-        };
-      });
-
+    const fetcher = options.fetcher;
     let totalDailyViewsGained = 0;
     const updatedVideos = [];
 
