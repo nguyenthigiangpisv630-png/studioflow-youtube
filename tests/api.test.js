@@ -187,3 +187,53 @@ test('POST /api/youtube/channels nhập kênh mới và PATCH /api/youtube/chann
     );
   });
 });
+
+test('POST /api/auth/password đặt mật khẩu khóa Web, chặn 401 khi chưa đăng nhập và mở khóa qua POST /api/auth/login', async () => {
+  await withTestServer(async ({ baseUrl }) => {
+    const statusBefore = await (await fetch(`${baseUrl}/api/auth/status`)).json();
+    assert.equal(statusBefore.passwordEnabled, false);
+    assert.equal(statusBefore.authenticated, true);
+
+    // Đặt mật khẩu mới: "888999"
+    const setPassRes = await fetch(`${baseUrl}/api/auth/password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newPassword: '888999' }),
+    });
+    assert.equal(setPassRes.status, 200);
+    const setPassBody = await setPassRes.json();
+    assert.equal(setPassBody.passwordEnabled, true);
+    assert.ok(setPassBody.token);
+
+    // Người lạ truy cập /api/overview không có token -> bị chặn 401
+    const unauthRes = await fetch(`${baseUrl}/api/overview`);
+    assert.equal(unauthRes.status, 401);
+    const unauthBody = await unauthRes.json();
+    assert.equal(unauthBody.requiresAuth, true);
+
+    // Đăng nhập sai mật khẩu -> 400
+    const badLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: '000000' }),
+    });
+    assert.equal(badLoginRes.status, 400);
+
+    // Đăng nhập đúng mật khẩu -> 200 kèm token
+    const goodLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: '888999' }),
+    });
+    assert.equal(goodLoginRes.status, 200);
+    const goodLoginBody = await goodLoginRes.json();
+    assert.equal(goodLoginBody.token, setPassBody.token);
+
+    // Có X-Studio-Token hợp lệ -> truy cập /api/overview thành công 200
+    const authedOverviewRes = await fetch(`${baseUrl}/api/overview`, {
+      headers: { 'X-Studio-Token': goodLoginBody.token },
+    });
+    assert.equal(authedOverviewRes.status, 200);
+  });
+});
+

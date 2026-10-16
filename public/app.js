@@ -97,19 +97,87 @@ function showBanner(message, isError = false) {
   }, 4200);
 }
 
+const AUTH_TOKEN_KEY = 'studioflow_auth_token';
+
+function getStoredAuthToken() {
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+function setStoredAuthToken(token = '') {
+  try {
+    if (token) {
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+    }
+  } catch {
+    // Bỏ qua nếu trình duyệt chặn localStorage
+  }
+}
+
+function showAuthLockOverlay(visible) {
+  const overlay = document.getElementById('auth-lock-overlay');
+  if (!overlay) return;
+  overlay.hidden = !visible;
+  if (visible) {
+    setTimeout(() => {
+      document.getElementById('input-auth-login-pass')?.focus();
+    }, 60);
+  }
+}
+
+function updatePasswordUiState() {
+  const btn = document.getElementById('btn-password-settings');
+  const currentField = document.getElementById('field-current-password');
+  const lockNowBtn = document.getElementById('btn-lock-now');
+  const disableBtn = document.getElementById('btn-disable-password');
+
+  const enabled = Boolean(state.passwordEnabled);
+  if (btn) {
+    btn.textContent = enabled ? '🔒 Đã khóa mật khẩu' : '🔓 Đặt mật khẩu Web';
+  }
+  if (currentField) currentField.hidden = !enabled;
+  if (lockNowBtn) lockNowBtn.hidden = !enabled;
+  if (disableBtn) disableBtn.hidden = !enabled;
+}
+
 async function apiRequest(url, options = {}) {
+  const token = getStoredAuthToken();
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'X-Studio-Token': token } : {}),
+      ...(options.headers || {}),
+    },
   });
   const data = await res.json();
   if (!res.ok) {
+    if (res.status === 401 && data.requiresAuth) {
+      state.passwordEnabled = true;
+      updatePasswordUiState();
+      showAuthLockOverlay(true);
+    }
     throw new Error(data.error || 'Yêu cầu thất bại');
   }
   return data;
 }
 
 async function loadOverview() {
+  const authStatus = await apiRequest('/api/auth/status');
+  state.passwordEnabled = Boolean(authStatus.passwordEnabled);
+  updatePasswordUiState();
+
+  if (authStatus.passwordEnabled && !authStatus.authenticated) {
+    showAuthLockOverlay(true);
+    return;
+  }
+  showAuthLockOverlay(false);
+
   const data = await apiRequest('/api/overview');
   state.summary = data.summary;
   state.channels = data.channels || [];
@@ -1496,9 +1564,11 @@ function setupEventListeners() {
 
   document.getElementById('btn-yt-sync-all')?.addEventListener('click', () => triggerDailySync(getTodayStr()));
 
-  // Mở/đóng Form Nội dung & Form Cấu hình Notion
+  // Mở/đóng Form Nội dung, Form Cấu hình Notion & Hộp thoại Mật khẩu Web
   const contentForm = document.getElementById('form-create-content');
   const notionConfigForm = document.getElementById('form-notion-config');
+  const passwordModal = document.getElementById('password-settings-modal');
+
   document.getElementById('btn-toggle-content-form')?.addEventListener('click', () => {
     if (contentForm) contentForm.hidden = !contentForm.hidden;
   });
@@ -1510,6 +1580,49 @@ function setupEventListeners() {
   });
   document.getElementById('btn-cancel-notion-config')?.addEventListener('click', () => {
     if (notionConfigForm) notionConfigForm.hidden = true;
+  });
+
+  document.getElementById('btn-password-settings')?.addEventListener('click', () => {
+    if (passwordModal) {
+      updatePasswordUiState();
+      passwordModal.hidden = false;
+      setTimeout(() => {
+        document.getElementById('input-new-password')?.focus();
+      }, 60);
+    }
+  });
+
+  document.getElementById('btn-close-password-modal')?.addEventListener('click', () => {
+    if (passwordModal) passwordModal.hidden = true;
+  });
+
+  document.getElementById('btn-lock-now')?.addEventListener('click', () => {
+    setStoredAuthToken('');
+    document.cookie = 'studioflow_auth=; Path=/; Max-Age=0';
+    if (passwordModal) passwordModal.hidden = true;
+    showAuthLockOverlay(true);
+    showBanner('Đã khóa màn hình bảo mật Web!');
+  });
+
+  document.getElementById('btn-disable-password')?.addEventListener('click', async () => {
+    try {
+      const form = document.getElementById('form-password-settings');
+      const currentPassword = form?.querySelector('[name="currentPassword"]')?.value || '';
+      await apiRequest('/api/auth/password', {
+        method: 'POST',
+        body: JSON.stringify({
+          currentPassword,
+          disableLock: true,
+        }),
+      });
+      setStoredAuthToken('');
+      state.passwordEnabled = false;
+      updatePasswordUiState();
+      if (passwordModal) passwordModal.hidden = true;
+      showBanner('Đã tắt khóa mật khẩu Web.');
+    } catch (err) {
+      showBanner(err.message, true);
+    }
   });
 
   // Bộ lọc tìm kiếm
@@ -1537,6 +1650,54 @@ function setupEventListeners() {
   // Xử lý tất cả các Form Submit
   document.body.addEventListener('submit', async (e) => {
     const form = e.target;
+
+    if (form.id === 'form-auth-login') {
+      e.preventDefault();
+      const errEl = document.getElementById('auth-login-error');
+      if (errEl) errEl.hidden = true;
+      try {
+        const fd = new FormData(form);
+        const password = fd.get('password') || '';
+        const res = await apiRequest('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ password }),
+        });
+        setStoredAuthToken(res.token || '');
+        form.reset();
+        showAuthLockOverlay(false);
+        await loadOverview();
+        showBanner('Đã mở khóa truy cập thành công!');
+      } catch (err) {
+        if (errEl) {
+          errEl.textContent = err.message;
+          errEl.hidden = false;
+        } else {
+          showBanner(err.message, true);
+        }
+      }
+      return;
+    }
+
+    if (form.id === 'form-password-settings') {
+      e.preventDefault();
+      try {
+        const fd = new FormData(form);
+        const payload = Object.fromEntries(fd.entries());
+        const res = await apiRequest('/api/auth/password', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        setStoredAuthToken(res.token || '');
+        state.passwordEnabled = Boolean(res.passwordEnabled);
+        updatePasswordUiState();
+        form.reset();
+        if (passwordModal) passwordModal.hidden = true;
+        showBanner('Đã cài đặt mật khẩu khóa bảo mật Web thành công!');
+      } catch (err) {
+        showBanner(err.message, true);
+      }
+      return;
+    }
 
     if (form.id === 'form-notion-config') {
       e.preventDefault();

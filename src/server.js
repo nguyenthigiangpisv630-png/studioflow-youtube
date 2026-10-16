@@ -19,15 +19,26 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon',
 };
 
-function sendJson(res, statusCode, payload) {
+function sendJson(res, statusCode, payload, extraHeaders = {}) {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Studio-Token',
+    ...extraHeaders,
   });
   res.end(JSON.stringify(payload));
+}
+
+function extractAuthToken(req) {
+  const headerToken = req.headers['x-studio-token'];
+  if (headerToken && typeof headerToken === 'string') {
+    return headerToken.trim();
+  }
+  const cookieHeader = String(req.headers.cookie || '');
+  const match = cookieHeader.match(/(?:^|;\s*)studioflow_auth=([^;]+)/);
+  return match ? decodeURIComponent(match[1]).trim() : '';
 }
 
 async function readJsonBody(req) {
@@ -80,10 +91,47 @@ export function createAppServer({
         res.writeHead(204, {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Headers': 'Content-Type, X-Studio-Token',
         });
         res.end();
         return;
+      }
+
+      // =======================================================================
+      // AUTHENTICATION & PASSWORD LOCK ROUTES
+      // =======================================================================
+      const clientToken = extractAuthToken(req);
+
+      if (pathname === '/api/auth/status' && method === 'GET') {
+        return sendJson(res, 200, store.getAuthStatus(clientToken));
+      }
+
+      if (pathname === '/api/auth/login' && method === 'POST') {
+        const body = await readJsonBody(req);
+        const result = store.verifyPassword(body.password || '');
+        const cookieStr = `studioflow_auth=${encodeURIComponent(
+          result.token || ''
+        )}; Path=/; Max-Age=2592000; SameSite=Lax`;
+        return sendJson(res, 200, result, { 'Set-Cookie': cookieStr });
+      }
+
+      if (pathname === '/api/auth/password' && method === 'POST') {
+        const body = await readJsonBody(req);
+        const result = store.updatePassword(body, clientToken);
+        const cookieStr = `studioflow_auth=${encodeURIComponent(
+          result.token || ''
+        )}; Path=/; Max-Age=2592000; SameSite=Lax`;
+        return sendJson(res, 200, result, { 'Set-Cookie': cookieStr });
+      }
+
+      if (pathname.startsWith('/api/') && pathname !== '/api/health') {
+        const authStatus = store.getAuthStatus(clientToken);
+        if (authStatus.passwordEnabled && !authStatus.authenticated) {
+          return sendJson(res, 401, {
+            error: 'Web đã được khóa bảo mật. Vui lòng nhập mật khẩu của anh để tiếp tục!',
+            requiresAuth: true,
+          });
+        }
       }
 
       // =======================================================================

@@ -24,6 +24,12 @@ function countWords(text = '') {
   return trimmed.split(/\s+/).length;
 }
 
+export function hashPassword(rawPassword = '') {
+  const clean = String(rawPassword || '').trim();
+  if (!clean) return '';
+  return crypto.createHash('sha256').update(`studioflow-salt:${clean}`).digest('hex');
+}
+
 function normalizeChannel(ch) {
   ch.status = ch.status && VALID_CHANNEL_STATUSES.includes(ch.status) ? ch.status : 'monetized';
   ch.monetization = ch.monetization && VALID_MONETIZATION.includes(ch.monetization) ? ch.monetization : 'enabled';
@@ -808,6 +814,85 @@ export class StudioStore {
     item.updatedAt = new Date().toISOString();
     this.#save();
     return item;
+  }
+
+  getRequiredPasswordHash() {
+    const envPass = String(process.env.STUDIOFLOW_PASSWORD || '').trim();
+    if (envPass) {
+      return hashPassword(envPass);
+    }
+    return String(this.state.meta?.authPasswordHash || '').trim();
+  }
+
+  getAuthStatus(token = '') {
+    const requiredHash = this.getRequiredPasswordHash();
+    if (!requiredHash) {
+      return {
+        passwordEnabled: false,
+        authenticated: true,
+      };
+    }
+    const cleanToken = String(token || '').trim();
+    return {
+      passwordEnabled: true,
+      authenticated: Boolean(cleanToken && cleanToken === requiredHash),
+    };
+  }
+
+  verifyPassword(password = '') {
+    const requiredHash = this.getRequiredPasswordHash();
+    if (!requiredHash) {
+      return {
+        ok: true,
+        passwordEnabled: false,
+        token: '',
+      };
+    }
+    const candidateHash = hashPassword(password);
+    if (!candidateHash || candidateHash !== requiredHash) {
+      throw new Error('Mật khẩu không chính xác. Vui lòng kiểm tra lại!');
+    }
+    return {
+      ok: true,
+      passwordEnabled: true,
+      token: requiredHash,
+    };
+  }
+
+  updatePassword(input = {}, currentAuthToken = '') {
+    if (!this.state.meta) this.state.meta = {};
+    const requiredHash = this.getRequiredPasswordHash();
+    const providedCurrentPass = String(input.currentPassword || '').trim();
+    const isAlreadyAuthed = Boolean(requiredHash && currentAuthToken === requiredHash);
+
+    if (requiredHash && !isAlreadyAuthed) {
+      if (hashPassword(providedCurrentPass) !== requiredHash) {
+        throw new Error('Mật khẩu hiện tại không đúng!');
+      }
+    }
+
+    const disableLock = Boolean(input.disableLock);
+    const newPassword = String(input.newPassword || '').trim();
+    if (disableLock) {
+      this.state.meta.authPasswordHash = '';
+      this.#save();
+      return {
+        passwordEnabled: false,
+        token: '',
+      };
+    }
+
+    if (!newPassword || newPassword.length < 3) {
+      throw new Error('Mật khẩu mới phải có ít nhất 3 ký tự!');
+    }
+
+    const nextHash = hashPassword(newPassword);
+    this.state.meta.authPasswordHash = nextHash;
+    this.#save();
+    return {
+      passwordEnabled: true,
+      token: nextHash,
+    };
   }
 
   getNotionConfig() {
