@@ -386,6 +386,78 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=5"></script>
+  <!-- HỘP THOẠI THÂM NHẬP SÂU YOUTUBE STUDIO (BÓC TÁCH TỰ ĐỘNG & BOOKMARKLET 1-CLICK) -->
+  <div id="studio-deep-modal" class="auth-overlay" hidden>
+    <div class="auth-card panel-box" style="max-width:620px;">
+      <div class="drawer-header" style="margin-bottom:12px;">
+        <div>
+          <h3 style="font-size:1.05rem;font-weight:800;">⚡ Truy cập sâu YouTube Studio: <span id="studio-deep-channel-name">Kênh</span></h3>
+          <p class="panel-desc">
+            Lấy chính xác các chỉ số nội bộ bên trong <strong>studio.youtube.com</strong>: Tổng lượt xem chuẩn Studio, Giờ xem (Watch Hours), Views 48h, Tỷ lệ nhấp CTR %, Thời lượng xem TB &amp; Doanh thu.
+          </p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-close-studio-deep">Đóng</button>
+      </div>
+
+      <form id="form-studio-deep" class="auth-form">
+        <input type="hidden" name="channelId" id="studio-deep-channel-id" />
+
+        <div style="background:#FAF8F2;border:1px solid #D4AF37;border-radius:8px;padding:10px 12px;font-size:0.8125rem;line-height:1.5;">
+          <strong>Cách nhanh nhất (2 giây):</strong> Mở trang <strong>Số liệu phân tích (Analytics)</strong> của kênh này trong <code>studio.youtube.com</code> &rarr; ấn <strong><code>Ctrl + A</code></strong> rồi <strong><code>Ctrl + C</code></strong> &rarr; dán (<strong><code>Ctrl + V</code></strong>) vào ô dưới đây. Hệ thống sẽ tự động nhặt sạch mọi chỉ số!
+        </div>
+
+        <label class="field">
+          <span>Dán nội dung copy từ trang YouTube Studio Analytics (Ctrl+V)</span>
+          <textarea
+            name="rawStudioText"
+            id="input-studio-raw-text"
+            rows="3"
+            placeholder="Dán (Ctrl+V) toàn bộ chữ copy từ màn hình YouTube Studio Analytics vào đây để tự động điền các ô bên dưới..."
+          ></textarea>
+        </label>
+
+        <div class="form-grid" style="grid-template-columns:repeat(3, 1fr);gap:10px;">
+          <label class="field">
+            <span>Tổng Views (Studio)</span>
+            <input type="number" name="totalViews" id="deep-input-views" min="0" placeholder="VD: 34457" />
+          </label>
+          <label class="field">
+            <span>Giờ xem (Watch Hours)</span>
+            <input type="number" name="watchHours" id="deep-input-watch-hours" step="any" min="0" placeholder="VD: 2200" />
+          </label>
+          <label class="field">
+            <span>Views Realtime (48h)</span>
+            <input type="number" name="realtimeViews48h" id="deep-input-realtime-48h" min="0" placeholder="VD: 1850" />
+          </label>
+          <label class="field">
+            <span>Tỷ lệ nhấp CTR (%)</span>
+            <input type="number" name="ctrPercent" id="deep-input-ctr" step="any" min="0" placeholder="VD: 6.8" />
+          </label>
+          <label class="field">
+            <span>Thời lượng xem TB</span>
+            <input type="text" name="avgViewDuration" id="deep-input-avd" placeholder="VD: 3:45" />
+          </label>
+          <label class="field">
+            <span>Doanh thu ước tính</span>
+            <input type="text" name="estimatedRevenue" id="deep-input-revenue" placeholder="VD: $125.40" />
+          </label>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <a
+            id="bookmarklet-studio-sync"
+            href="#"
+            class="btn btn-secondary btn-sm"
+            title="Kéo nút này thả lên thanh Dấu trang (Bookmark Bar) trình duyệt. Khi đang ở trang studio.youtube.com, bấm vào nó để hút dữ liệu 1-Click!"
+          >
+            📌 Kéo nút "⚡ Hút Studio 1-Click" lên Thanh Dấu Trang
+          </a>
+          <button type="submit" class="btn btn-primary">Lưu chỉ số YouTube Studio</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/app.js?v=6"></script>
 </body>
 </html>

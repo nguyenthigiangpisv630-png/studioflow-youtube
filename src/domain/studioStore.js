@@ -30,6 +30,107 @@ export function hashPassword(rawPassword = '') {
   return crypto.createHash('sha256').update(`studioflow-salt:${clean}`).digest('hex');
 }
 
+function parseCompactVnNumber(raw = '') {
+  const s = String(raw || '')
+    .trim()
+    .replace(/^\+/, '');
+  if (!s) return 0;
+
+  // Ví dụ: "34,5 N", "2,2 N", "1,5 Tr", "12.4K", "1.2M"
+  const compactMatch = s.match(/^([\d.,]+)\s*(N|Tr|T|K|M|B)\b/i);
+  if (compactMatch) {
+    const numStr = compactMatch[1].replace(/\./g, '').replace(',', '.');
+    const val = parseFloat(numStr);
+    if (Number.isNaN(val)) return 0;
+    const unit = compactMatch[2].toUpperCase();
+    if (unit === 'N' || unit === 'K') return Math.round(val * 1000);
+    if (unit === 'TR' || unit === 'M') return Math.round(val * 1000000);
+    if (unit === 'T' || unit === 'B') return Math.round(val * 1000000000);
+  }
+
+  // Số nguyên đầy đủ có dấu chấm/phẩy phân cách hàng nghìn: "34.457" hoặc "34,457"
+  const digitsOnly = s.replace(/[^\d]/g, '');
+  return digitsOnly ? Number(digitsOnly) : 0;
+}
+
+export function parseYouTubeStudioText(rawText = '') {
+  const text = String(rawText || '').replace(/\r/g, '\n');
+  const result = {};
+
+  // 1. Bắt câu tổng kết chính xác nhất trong Studio: "Kênh của bạn đã có 34.457 lượt xem" hoặc "got 34,457 views"
+  const exactViewsMatch =
+    text.match(/đã có\s+([\d.,]+)\s+lượt xem/i) ||
+    text.match(/got\s+([\d.,]+)\s+views/i);
+  if (exactViewsMatch) {
+    const v = parseCompactVnNumber(exactViewsMatch[1]);
+    if (v > 0) result.totalViews = v;
+  }
+
+  // Nếu không có câu tổng kết, bắt cụm "Lượt xem \n 34,5 N"
+  if (!result.totalViews) {
+    const labelViewsMatch =
+      text.match(/Lượt xem\s*\n+\s*([\d.,]+(?:\s*(?:N|Tr|K|M))?)/i) ||
+      text.match(/Views\s*\n+\s*([\d.,]+(?:\s*(?:K|M|B))?)/i);
+    if (labelViewsMatch) {
+      const v = parseCompactVnNumber(labelViewsMatch[1]);
+      if (v > 0) result.totalViews = v;
+    }
+  }
+
+  // 2. Thời gian xem (giờ): "Thời gian xem (giờ) \n 2,2 N" hoặc "Watch time (hours) \n 2.2K"
+  const watchMatch =
+    text.match(/Thời gian xem\s*\(giờ\)\s*\n+\s*([\d.,]+(?:\s*(?:N|Tr|K|M))?)/i) ||
+    text.match(/Watch time\s*\(hours\)\s*\n+\s*([\d.,]+(?:\s*(?:K|M|B))?)/i);
+  if (watchMatch) {
+    const wh = parseCompactVnNumber(watchMatch[1]);
+    if (wh >= 0) result.watchHours = wh;
+  }
+
+  // 3. Số người đăng ký: "Số người đăng ký \n +48"
+  const subsMatch =
+    text.match(/Số người đăng ký\s*\n+\s*([+-]?[\d.,]+(?:\s*(?:N|Tr|K|M))?)/i) ||
+    text.match(/Subscribers\s*\n+\s*([+-]?[\d.,]+(?:\s*(?:K|M|B))?)/i);
+  if (subsMatch) {
+    const subVal = parseCompactVnNumber(subsMatch[1]);
+    if (subVal > 0) result.subscribers = subVal;
+  }
+
+  // 4. Lượt xem Thời gian thực (48 giờ qua / Realtime)
+  const realtimeMatch =
+    text.match(/(?:Thời gian thực|48 giờ qua)[\s\S]{0,120}?([\d.,]+(?:\s*(?:N|Tr|K|M))?)\s*lượt xem/i) ||
+    text.match(/([\d.,]+)\s*lượt xem\s*\n+\s*(?:Trong 48 giờ|48 giờ qua)/i) ||
+    text.match(/(?:Realtime|Last 48 hours)[\s\S]{0,120}?([\d.,]+)\s*views/i);
+  if (realtimeMatch) {
+    const rt = parseCompactVnNumber(realtimeMatch[1]);
+    if (rt > 0) result.realtimeViews48h = rt;
+  }
+
+  // 5. Tỷ lệ nhấp của số lần hiển thị (CTR %): "Tỷ lệ nhấp... \n 6,8%"
+  const ctrMatch =
+    text.match(/(?:Tỷ lệ nhấp|click-through rate|CTR)[^\n]*\n+\s*([\d.,]+)\s*%/i) ||
+    text.match(/([\d.,]+)\s*%\s*\n+\s*(?:Tỷ lệ nhấp|Impressions click-through rate)/i);
+  if (ctrMatch) {
+    const ctr = parseFloat(ctrMatch[1].replace(',', '.'));
+    if (!Number.isNaN(ctr) && ctr > 0) result.ctrPercent = ctr;
+  }
+
+  // 6. Thời lượng xem trung bình (AVD): "Thời lượng xem trung bình \n 3:45"
+  const avdMatch =
+    text.match(/(?:Thời lượng xem trung bình|Average view duration)[^\n]*\n+\s*(\d{1,2}:\d{2}(?::\d{2})?)/i);
+  if (avdMatch) {
+    result.avgViewDuration = avdMatch[1];
+  }
+
+  // 7. Doanh thu ước tính (Estimated revenue)
+  const revMatch =
+    text.match(/(?:Doanh thu ước tính|Estimated revenue)[^\n]*\n+\s*([$₫€£]?[\d.,]+\s*(?:US\$|\$|₫|đ|VNĐ)?)/i);
+  if (revMatch) {
+    result.estimatedRevenue = revMatch[1].trim();
+  }
+
+  return result;
+}
+
 function normalizeChannel(ch) {
   ch.status = ch.status && VALID_CHANNEL_STATUSES.includes(ch.status) ? ch.status : 'monetized';
   ch.monetization = ch.monetization && VALID_MONETIZATION.includes(ch.monetization) ? ch.monetization : 'enabled';
@@ -40,6 +141,10 @@ function normalizeChannel(ch) {
   ch.totalVideos = Number(ch.totalVideos) || 0;
   ch.totalViews = Number(ch.totalViews) || 0;
   ch.watchHours = Number(ch.watchHours) || 0;
+  ch.realtimeViews48h = Number(ch.realtimeViews48h) || 0;
+  ch.ctrPercent = Number(ch.ctrPercent) || 0;
+  ch.avgViewDuration = ch.avgViewDuration ?? '';
+  ch.estimatedRevenue = ch.estimatedRevenue ?? '';
   ch.strikeCount = Number(ch.strikeCount) || 0;
   ch.statusNote = ch.statusNote || 'Kênh hoạt động ổn định, xanh sạch, lịch đăng video đều đặn.';
   if (!ch.category || ch.category === 'Sáng tạo nội dung') {
@@ -1269,6 +1374,12 @@ export class StudioStore {
     if (patch.totalVideos !== undefined) channel.totalVideos = Math.max(0, Number(patch.totalVideos) || 0);
     if (patch.totalViews !== undefined) channel.totalViews = Math.max(0, Number(patch.totalViews) || 0);
     if (patch.watchHours !== undefined) channel.watchHours = Math.max(0, Number(patch.watchHours) || 0);
+    if (patch.realtimeViews48h !== undefined) {
+      channel.realtimeViews48h = Math.max(0, Number(patch.realtimeViews48h) || 0);
+    }
+    if (patch.ctrPercent !== undefined) channel.ctrPercent = Math.max(0, Number(patch.ctrPercent) || 0);
+    if (patch.avgViewDuration !== undefined) channel.avgViewDuration = String(patch.avgViewDuration).trim();
+    if (patch.estimatedRevenue !== undefined) channel.estimatedRevenue = String(patch.estimatedRevenue).trim();
     if (patch.firstVideoDate !== undefined) channel.firstVideoDate = String(patch.firstVideoDate).trim();
     if (patch.category !== undefined) channel.category = String(patch.category).trim();
     if (patch.group !== undefined) channel.group = String(patch.group).trim();
@@ -1301,18 +1412,35 @@ export class StudioStore {
       throw new Error('Không tìm thấy kênh khớp với dữ liệu YouTube Studio');
     }
 
+    const parsedFromText = payload.rawStudioText
+      ? parseYouTubeStudioText(payload.rawStudioText)
+      : {};
+    const merged = { ...parsedFromText, ...payload };
+
     const patch = {};
-    if (payload.totalViews !== undefined && Number(payload.totalViews) > 0) {
-      patch.totalViews = Number(payload.totalViews);
+    if (merged.totalViews !== undefined && Number(merged.totalViews) > 0) {
+      patch.totalViews = Number(merged.totalViews);
     }
-    if (payload.watchHours !== undefined && Number(payload.watchHours) >= 0) {
-      patch.watchHours = Number(payload.watchHours);
+    if (merged.watchHours !== undefined && Number(merged.watchHours) >= 0 && String(merged.watchHours) !== '') {
+      patch.watchHours = Number(merged.watchHours);
     }
-    if (payload.subscribers !== undefined && Number(payload.subscribers) > 0) {
-      patch.subscribers = Number(payload.subscribers);
+    if (merged.subscribers !== undefined && Number(merged.subscribers) > 0) {
+      patch.subscribers = Number(merged.subscribers);
     }
-    if (payload.totalVideos !== undefined && Number(payload.totalVideos) > 0) {
-      patch.totalVideos = Number(payload.totalVideos);
+    if (merged.totalVideos !== undefined && Number(merged.totalVideos) > 0) {
+      patch.totalVideos = Number(merged.totalVideos);
+    }
+    if (merged.realtimeViews48h !== undefined && Number(merged.realtimeViews48h) >= 0 && String(merged.realtimeViews48h) !== '') {
+      patch.realtimeViews48h = Number(merged.realtimeViews48h);
+    }
+    if (merged.ctrPercent !== undefined && Number(merged.ctrPercent) >= 0 && String(merged.ctrPercent) !== '') {
+      patch.ctrPercent = Number(merged.ctrPercent);
+    }
+    if (merged.avgViewDuration !== undefined && String(merged.avgViewDuration).trim() !== '') {
+      patch.avgViewDuration = String(merged.avgViewDuration).trim();
+    }
+    if (merged.estimatedRevenue !== undefined && String(merged.estimatedRevenue).trim() !== '') {
+      patch.estimatedRevenue = String(merged.estimatedRevenue).trim();
     }
     return this.updateChannel(channel.id, patch);
   }

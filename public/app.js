@@ -1065,6 +1065,10 @@ function renderYoutubeChannelsBoard() {
       const sumVideoViews = chVideos.reduce((s, v) => s + (Number(v.currentViews) || 0), 0);
       const chTotalViews = Math.max(Number(ch.totalViews) || 0, sumVideoViews);
       const chWatchHours = Number(ch.watchHours) || 0;
+      const chRealtime48h = Number(ch.realtimeViews48h) || 0;
+      const chCtr = Number(ch.ctrPercent) || 0;
+      const chAvd = (ch.avgViewDuration || '').trim();
+      const chRevenue = (ch.estimatedRevenue || '').trim();
       const videoCount = Math.max(Number(ch.totalVideos) || 0, chVideos.length);
       const earliestVideoDate =
         ch.firstVideoDate ||
@@ -1082,7 +1086,7 @@ function renderYoutubeChannelsBoard() {
       return `
         <article class="channel-row" data-channel-row-id="${escapeHtml(ch.id)}">
           <div class="channel-col-identity">
-            <!-- Hàng 1: Tên Kênh + @Handle + Nút Đồng bộ & Xóa ngay gần tên kênh + Group -->
+            <!-- Hàng 1: Tên Kênh + @Handle + Nút Đồng bộ, ⚡ Studio sâu & Xóa ngay gần tên kênh + Group -->
             <div class="channel-title-line">
               <strong class="channel-name-text">${escapeHtml(ch.name)}</strong>
               ${
@@ -1100,6 +1104,13 @@ function renderYoutubeChannelsBoard() {
                   data-sync-channel-id="${escapeHtml(ch.id)}"
                   title="Tự động cập nhật lại số Sub và lượt xem mới nhất từ YouTube"
                 >Đồng bộ</button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  style="border-color:#D4AF37;background:#FDF8E7;color:#6B4D04;"
+                  data-open-studio-deep="${escapeHtml(ch.id)}"
+                  title="Truy cập sâu YouTube Studio: lấy Giờ xem, Views 48h, CTR%, Thời lượng xem TB & Doanh thu"
+                >⚡ Studio sâu</button>
                 <button
                   type="button"
                   class="btn btn-danger-outline btn-xs"
@@ -1122,7 +1133,7 @@ function renderYoutubeChannelsBoard() {
               </label>
             </div>
 
-            <!-- Hàng 2 dưới tên kênh: Chọn BKT + Ngách tự lọc (mỗi danh mục 1 màu riêng, bấm để lọc) + SUB, TỔNG VIEWS, GIỜ XEM & VIDEO to nổi bật -->
+            <!-- Hàng 2 dưới tên kênh: Chọn BKT + Ngách tự lọc + SUB, TỔNG VIEWS, GIỜ XEM, 48H, CTR%, AVD, DOANH THU & VIDEO -->
             <div class="channel-metrics-under-title num">
               <select
                 class="bkt-pill-select bkt-status-${escapeHtml(ch.status || 'monetized')}"
@@ -1162,6 +1173,42 @@ function renderYoutubeChannelsBoard() {
                   ? `<div class="hero-stat-pill hero-stat-subs" title="Thời gian xem (giờ) từ YouTube Studio Analytics">
                       <strong class="hero-stat-num">${formatNumber(chWatchHours)}h</strong>
                       <span class="hero-stat-label">GIỜ XEM</span>
+                    </div>`
+                  : ''
+              }
+
+              ${
+                chRealtime48h > 0
+                  ? `<div class="hero-stat-pill hero-stat-views" title="Lượt xem Thời gian thực (48 giờ qua) trong YouTube Studio">
+                      <strong class="hero-stat-num">${formatNumber(chRealtime48h)}</strong>
+                      <span class="hero-stat-label">48H QUA</span>
+                    </div>`
+                  : ''
+              }
+
+              ${
+                chCtr > 0
+                  ? `<div class="hero-stat-pill hero-stat-videos" title="Tỷ lệ nhấp của số lần hiển thị (CTR %)">
+                      <strong class="hero-stat-num">${escapeHtml(String(chCtr))}%</strong>
+                      <span class="hero-stat-label">CTR</span>
+                    </div>`
+                  : ''
+              }
+
+              ${
+                chAvd
+                  ? `<div class="hero-stat-pill hero-stat-videos" title="Thời lượng xem trung bình (AVD)">
+                      <strong class="hero-stat-num">${escapeHtml(chAvd)}</strong>
+                      <span class="hero-stat-label">THỜI LƯỢNG TB</span>
+                    </div>`
+                  : ''
+              }
+
+              ${
+                chRevenue
+                  ? `<div class="hero-stat-pill hero-stat-subs" title="Doanh thu ước tính từ YouTube Studio">
+                      <strong class="hero-stat-num">${escapeHtml(chRevenue)}</strong>
+                      <span class="hero-stat-label">DOANH THU</span>
                     </div>`
                   : ''
               }
@@ -1222,6 +1269,69 @@ function renderYoutubeTab() {
   renderGroupDropdown();
   renderCategoryDropdown();
   renderYoutubeChannelsBoard();
+}
+
+function parseStudioTextInBrowser(rawText = '') {
+  const text = String(rawText || '').replace(/\r/g, '\n');
+  const parseCompact = (raw = '') => {
+    const s = String(raw || '').trim().replace(/^\+/, '');
+    if (!s) return 0;
+    const m = s.match(/^([\d.,]+)\s*(N|Tr|T|K|M|B)\b/i);
+    if (m) {
+      const val = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
+      if (Number.isNaN(val)) return 0;
+      const u = m[2].toUpperCase();
+      if (u === 'N' || u === 'K') return Math.round(val * 1000);
+      if (u === 'TR' || u === 'M') return Math.round(val * 1000000);
+      if (u === 'T' || u === 'B') return Math.round(val * 1000000000);
+    }
+    const digits = s.replace(/[^\d]/g, '');
+    return digits ? Number(digits) : 0;
+  };
+
+  const out = {};
+  const exactViews =
+    text.match(/đã có\s+([\d.,]+)\s+lượt xem/i) ||
+    text.match(/got\s+([\d.,]+)\s+views/i);
+  if (exactViews) {
+    out.totalViews = parseCompact(exactViews[1]);
+  } else {
+    const lblViews =
+      text.match(/Lượt xem\s*\n+\s*([\d.,]+(?:\s*(?:N|Tr|K|M))?)/i) ||
+      text.match(/Views\s*\n+\s*([\d.,]+(?:\s*(?:K|M|B))?)/i);
+    if (lblViews) out.totalViews = parseCompact(lblViews[1]);
+  }
+
+  const watchMatch =
+    text.match(/Thời gian xem\s*\(giờ\)\s*\n+\s*([\d.,]+(?:\s*(?:N|Tr|K|M))?)/i) ||
+    text.match(/Watch time\s*\(hours\)\s*\n+\s*([\d.,]+(?:\s*(?:K|M|B))?)/i);
+  if (watchMatch) out.watchHours = parseCompact(watchMatch[1]);
+
+  const rtMatch =
+    text.match(/(?:Thời gian thực|48 giờ qua)[\s\S]{0,120}?([\d.,]+(?:\s*(?:N|Tr|K|M))?)\s*lượt xem/i) ||
+    text.match(/([\d.,]+)\s*lượt xem\s*\n+\s*(?:Trong 48 giờ|48 giờ qua)/i) ||
+    text.match(/(?:Realtime|Last 48 hours)[\s\S]{0,120}?([\d.,]+)\s*views/i);
+  if (rtMatch) out.realtimeViews48h = parseCompact(rtMatch[1]);
+
+  const ctrMatch =
+    text.match(/(?:Tỷ lệ nhấp|click-through rate|CTR)[^\n]*\n+\s*([\d.,]+)\s*%/i) ||
+    text.match(/([\d.,]+)\s*%\s*\n+\s*(?:Tỷ lệ nhấp|Impressions click-through rate)/i);
+  if (ctrMatch) {
+    const c = parseFloat(ctrMatch[1].replace(',', '.'));
+    if (!Number.isNaN(c)) out.ctrPercent = c;
+  }
+
+  const avdMatch = text.match(
+    /(?:Thời lượng xem trung bình|Average view duration)[^\n]*\n+\s*(\d{1,2}:\d{2}(?::\d{2})?)/i
+  );
+  if (avdMatch) out.avgViewDuration = avdMatch[1];
+
+  const revMatch = text.match(
+    /(?:Doanh thu ước tính|Estimated revenue)[^\n]*\n+\s*([$₫€£]?[\d.,]+\s*(?:US\$|\$|₫|đ|VNĐ)?)/i
+  );
+  if (revMatch) out.estimatedRevenue = revMatch[1].trim();
+
+  return out;
 }
 
 // =============================================================================
@@ -1322,6 +1432,39 @@ function setupEventListeners() {
         state.filters.ytCategory === targetCat && targetCat !== 'all' ? 'all' : targetCat;
       if (dropdownEl) dropdownEl.classList.remove('open');
       renderYoutubeTab();
+      return;
+    }
+
+    // Mở hộp thoại Truy cập sâu YouTube Studio cho kênh
+    const openStudioDeepBtn = e.target.closest('[data-open-studio-deep]');
+    if (openStudioDeepBtn) {
+      const chId = openStudioDeepBtn.dataset.openStudioDeep;
+      const ch = state.channels.find((c) => c.id === chId);
+      const modal = document.getElementById('studio-deep-modal');
+      if (ch && modal) {
+        document.getElementById('studio-deep-channel-id').value = ch.id;
+        document.getElementById('studio-deep-channel-name').textContent = `${ch.name} (${ch.handle})`;
+        document.getElementById('input-studio-raw-text').value = '';
+        document.getElementById('deep-input-views').value = ch.totalViews || '';
+        document.getElementById('deep-input-watch-hours').value = ch.watchHours || '';
+        document.getElementById('deep-input-realtime-48h').value = ch.realtimeViews48h || '';
+        document.getElementById('deep-input-ctr').value = ch.ctrPercent || '';
+        document.getElementById('deep-input-avd').value = ch.avgViewDuration || '';
+        document.getElementById('deep-input-revenue').value = ch.estimatedRevenue || '';
+
+        const bookmarkletEl = document.getElementById('bookmarklet-studio-sync');
+        if (bookmarkletEl) {
+          const origin = window.location.origin;
+          const token = getStoredAuthToken();
+          const bmCode = `javascript:(function(){const t=document.body.innerText;fetch('${origin}/api/youtube/studio-ingest',{method:'POST',headers:{'Content-Type':'application/json','X-Studio-Token':'${token}'},body:JSON.stringify({channelId:'${ch.id}',rawStudioText:t})}).then(r=>r.json()).then(d=>{if(d.error)alert(d.error);else alert('Đã hút chỉ số YouTube Studio về StudioFlow cho kênh: '+d.name);}).catch(e=>alert('Lỗi kết nối: '+e.message));})();`;
+          bookmarkletEl.setAttribute('href', bmCode);
+        }
+
+        modal.hidden = false;
+        setTimeout(() => {
+          document.getElementById('input-studio-raw-text')?.focus();
+        }, 60);
+      }
       return;
     }
 
@@ -1570,10 +1713,37 @@ function setupEventListeners() {
 
   document.getElementById('btn-yt-sync-all')?.addEventListener('click', () => triggerDailySync(getTodayStr()));
 
-  // Mở/đóng Form Nội dung, Form Cấu hình Notion & Hộp thoại Mật khẩu Web
+  // Mở/đóng Form Nội dung, Form Cấu hình Notion, Hộp thoại Mật khẩu Web & Hộp thoại Studio sâu
   const contentForm = document.getElementById('form-create-content');
   const notionConfigForm = document.getElementById('form-notion-config');
   const passwordModal = document.getElementById('password-settings-modal');
+  const studioDeepModal = document.getElementById('studio-deep-modal');
+
+  document.getElementById('btn-close-studio-deep')?.addEventListener('click', () => {
+    if (studioDeepModal) studioDeepModal.hidden = true;
+  });
+
+  document.getElementById('input-studio-raw-text')?.addEventListener('input', (e) => {
+    const parsed = parseStudioTextInBrowser(e.target.value);
+    if (parsed.totalViews !== undefined) {
+      document.getElementById('deep-input-views').value = parsed.totalViews;
+    }
+    if (parsed.watchHours !== undefined) {
+      document.getElementById('deep-input-watch-hours').value = parsed.watchHours;
+    }
+    if (parsed.realtimeViews48h !== undefined) {
+      document.getElementById('deep-input-realtime-48h').value = parsed.realtimeViews48h;
+    }
+    if (parsed.ctrPercent !== undefined) {
+      document.getElementById('deep-input-ctr').value = parsed.ctrPercent;
+    }
+    if (parsed.avgViewDuration !== undefined) {
+      document.getElementById('deep-input-avd').value = parsed.avgViewDuration;
+    }
+    if (parsed.estimatedRevenue !== undefined) {
+      document.getElementById('deep-input-revenue').value = parsed.estimatedRevenue;
+    }
+  });
 
   document.getElementById('btn-toggle-content-form')?.addEventListener('click', () => {
     if (contentForm) contentForm.hidden = !contentForm.hidden;
@@ -1658,6 +1828,24 @@ function setupEventListeners() {
   // Xử lý tất cả các Form Submit
   document.body.addEventListener('submit', async (e) => {
     const form = e.target;
+
+    if (form.id === 'form-studio-deep') {
+      e.preventDefault();
+      try {
+        const fd = new FormData(form);
+        const payload = Object.fromEntries(fd.entries());
+        const res = await apiRequest('/api/youtube/studio-ingest', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        if (studioDeepModal) studioDeepModal.hidden = true;
+        await loadOverview();
+        showBanner(`Đã cập nhật chỉ số sâu từ YouTube Studio cho kênh "${res.name}"!`);
+      } catch (err) {
+        showBanner(err.message, true);
+      }
+      return;
+    }
 
     if (form.id === 'form-auth-login') {
       e.preventDefault();
