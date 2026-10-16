@@ -547,9 +547,8 @@ test('Label Aggregation & Cross-Channel Top Videos Leaderboard (YouTubeLabs Insi
 });
 
 test('Gà kết nối (adsenseAccount & verifyGaPassword): lưu thông tin Gà kết nối và bắt buộc đúng mật khẩu khi mở xem', () => {
-  const { filePath, cleanup } = createTempStoreFile();
+  const { store, cleanup } = createTempStore(false);
   try {
-    const store = new StudioStore({ dataFilePath: filePath });
     store.updatePassword({ newPassword: 'ga-secret-password' });
 
     const ch = store.createChannel({
