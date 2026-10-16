@@ -2001,15 +2001,13 @@ function setupEventListeners() {
 // Đăng ký Service Worker cho Mobile App (PWA) & dọn cache cũ tránh lỗi hiển thị CSS
 if ('caches' in window) {
   caches.keys().then((keys) => {
-    keys.forEach((k) => {
-      if (k !== 'studioflow-pwa-v9') caches.delete(k);
-    });
+    keys.forEach((k) => caches.delete(k));
   }).catch(() => {});
 }
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=9', { updateViaCache: 'none' })
+      .register('/sw.js?v=10', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
