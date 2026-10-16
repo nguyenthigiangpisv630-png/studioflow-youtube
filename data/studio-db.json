@@ -1,7 +1,7 @@
 {
   "meta": {
-    "lastDailySyncDate": "2026-10-16",
-    "lastDailySyncAt": "2026-10-16T16:42:39.209Z",
+    "lastDailySyncDate": "2026-10-17",
+    "lastDailySyncAt": "2026-10-16T18:12:56.350Z",
     "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b"
   },
   "channels": [
@@ -12,7 +12,7 @@
       "channelUrl": "https://www.youtube.com/@FOOD75-h2q",
       "subscribers": 4,
       "totalVideos": 3,
-      "totalViews": 926,
+      "totalViews": 929,
       "firstVideoDate": "2026-10-01",
       "category": "Ẩm thực & Đời sống",
       "manager": "",
@@ -21,9 +21,42 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-16T16:42:39.207Z",
+      "updatedAt": "2026-10-16T18:08:58.330Z",
       "group": "KÊNH ÂM THỰC",
-      "watchHours": 0
+      "watchHours": 0,
+      "realtimeViews48h": 0,
+      "ctrPercent": 0,
+      "avgViewDuration": "",
+      "estimatedRevenue": "",
+      "topVideos": [
+        {
+          "id": "vid-73bed26b",
+          "youtubeVideoId": "d_Ft0bFYLxg",
+          "title": "6 Tables Randy 'Macho Man' Savage Sat At Until His Heart Gave Out",
+          "views": 2279,
+          "likes": 86,
+          "comments": 18,
+          "publishedAt": "2026-10-05"
+        },
+        {
+          "id": "vid-6c66a438",
+          "youtubeVideoId": "d5giUxqaVy8",
+          "title": "10 Wild Foods and Drinks Andre the Giant Used to Hide His Pain",
+          "views": 1719,
+          "likes": 52,
+          "comments": 12,
+          "publishedAt": "2026-10-01"
+        },
+        {
+          "id": "vid-0a472fab",
+          "youtubeVideoId": "JrTFXCWmaaA",
+          "title": "12 Wild Things Hulk Hogan Put in His Body Before His Heart Gave Out",
+          "views": 1405,
+          "likes": 40,
+          "comments": 8,
+          "publishedAt": "2026-10-03"
+        }
+      ]
     },
     {
       "id": "ch-4a6e6a97",
@@ -40,10 +73,43 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-16T16:42:28.853Z",
-      "totalViews": 34517,
+      "updatedAt": "2026-10-16T18:09:02.379Z",
+      "totalViews": 34600,
       "watchHours": 2200,
-      "group": ""
+      "group": "",
+      "realtimeViews48h": 0,
+      "ctrPercent": 0,
+      "avgViewDuration": "",
+      "estimatedRevenue": "",
+      "topVideos": [
+        {
+          "id": "vid-42078c14",
+          "youtubeVideoId": "UEQ5XifO7L8",
+          "title": "How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked",
+          "views": 25522,
+          "likes": 190,
+          "comments": 25,
+          "publishedAt": "2026-09-29"
+        },
+        {
+          "id": "vid-3dfb07a0",
+          "youtubeVideoId": "LGu_sMQ-ANo",
+          "title": "Stephen Fry, Brian Cox & 13 More British TV Stars You Underestimated",
+          "views": 5411,
+          "likes": 49,
+          "comments": 10,
+          "publishedAt": "2026-10-04"
+        },
+        {
+          "id": "vid-790f40ec",
+          "youtubeVideoId": "IJ79UvSykBE",
+          "title": "12 OLD HOLLYWOOD GIANTS: #12 STOOD ABOUT 7'7\" TALL",
+          "views": 4819,
+          "likes": 81,
+          "comments": 14,
+          "publishedAt": "2026-09-30"
+        }
+      ]
     }
   ],
   "deals": [
@@ -380,13 +446,20 @@
           "likes": 0,
           "comments": 2,
           "dailyViewsDelta": 0
+        },
+        {
+          "date": "2026-10-17",
+          "views": 2983,
+          "likes": 82,
+          "comments": 18,
+          "dailyViewsDelta": 2982
         }
       ],
-      "currentViews": 1,
-      "currentLikes": 0,
-      "currentComments": 2,
-      "dailyViewsDelta": 0,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 2983,
+      "currentLikes": 82,
+      "currentComments": 18,
+      "dailyViewsDelta": 2982,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-73bed26b",
@@ -404,13 +477,20 @@
           "likes": 2,
           "comments": 2,
           "dailyViewsDelta": 442
+        },
+        {
+          "date": "2026-10-17",
+          "views": 5024,
+          "likes": 170,
+          "comments": 34,
+          "dailyViewsDelta": 4582
         }
       ],
-      "currentViews": 442,
-      "currentLikes": 2,
-      "currentComments": 2,
-      "dailyViewsDelta": 442,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 5024,
+      "currentLikes": 170,
+      "currentComments": 34,
+      "dailyViewsDelta": 4582,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-0a472fab",
@@ -428,13 +508,20 @@
           "likes": 6,
           "comments": 2,
           "dailyViewsDelta": 191
+        },
+        {
+          "date": "2026-10-17",
+          "views": 2951,
+          "likes": 74,
+          "comments": 14,
+          "dailyViewsDelta": 2760
         }
       ],
-      "currentViews": 191,
-      "currentLikes": 6,
-      "currentComments": 2,
-      "dailyViewsDelta": 191,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 2951,
+      "currentLikes": 74,
+      "currentComments": 14,
+      "dailyViewsDelta": 2760,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-6c66a438",
@@ -452,13 +539,20 @@
           "likes": 0,
           "comments": 2,
           "dailyViewsDelta": 293
+        },
+        {
+          "date": "2026-10-17",
+          "views": 3675,
+          "likes": 104,
+          "comments": 22,
+          "dailyViewsDelta": 3382
         }
       ],
-      "currentViews": 293,
-      "currentLikes": 0,
-      "currentComments": 2,
-      "dailyViewsDelta": 293,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 3675,
+      "currentLikes": 104,
+      "currentComments": 22,
+      "dailyViewsDelta": 3382,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-73c6d55c",
@@ -476,13 +570,20 @@
           "likes": 0,
           "comments": 2,
           "dailyViewsDelta": 256
+        },
+        {
+          "date": "2026-10-17",
+          "views": 3866,
+          "likes": 116,
+          "comments": 24,
+          "dailyViewsDelta": 3610
         }
       ],
-      "currentViews": 256,
-      "currentLikes": 0,
-      "currentComments": 2,
-      "dailyViewsDelta": 256,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 3866,
+      "currentLikes": 116,
+      "currentComments": 24,
+      "dailyViewsDelta": 3610,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-8ca5a9f6",
@@ -500,13 +601,20 @@
           "likes": 4,
           "comments": 2,
           "dailyViewsDelta": 253
+        },
+        {
+          "date": "2026-10-17",
+          "views": 3635,
+          "likes": 108,
+          "comments": 22,
+          "dailyViewsDelta": 3382
         }
       ],
-      "currentViews": 253,
-      "currentLikes": 4,
-      "currentComments": 2,
-      "dailyViewsDelta": 253,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 3635,
+      "currentLikes": 108,
+      "currentComments": 22,
+      "dailyViewsDelta": 3382,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-093e62f1",
@@ -524,13 +632,20 @@
           "likes": 0,
           "comments": 2,
           "dailyViewsDelta": 500
+        },
+        {
+          "date": "2026-10-17",
+          "views": 4910,
+          "likes": 160,
+          "comments": 32,
+          "dailyViewsDelta": 4410
         }
       ],
-      "currentViews": 500,
-      "currentLikes": 0,
-      "currentComments": 2,
-      "dailyViewsDelta": 500,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 4910,
+      "currentLikes": 160,
+      "currentComments": 32,
+      "dailyViewsDelta": 4410,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-790f40ec",
@@ -548,13 +663,20 @@
           "likes": 17,
           "comments": 2,
           "dailyViewsDelta": 3237
+        },
+        {
+          "date": "2026-10-17",
+          "views": 7074,
+          "likes": 145,
+          "comments": 26,
+          "dailyViewsDelta": 3837
         }
       ],
-      "currentViews": 3237,
-      "currentLikes": 17,
-      "currentComments": 2,
-      "dailyViewsDelta": 3237,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 7074,
+      "currentLikes": 145,
+      "currentComments": 26,
+      "dailyViewsDelta": 3837,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-42078c14",
@@ -572,13 +694,20 @@
           "likes": 99,
           "comments": 8,
           "dailyViewsDelta": 23524
+        },
+        {
+          "date": "2026-10-17",
+          "views": 28493,
+          "likes": 281,
+          "comments": 42,
+          "dailyViewsDelta": 4969
         }
       ],
-      "currentViews": 23524,
-      "currentLikes": 99,
-      "currentComments": 8,
-      "dailyViewsDelta": 23524,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 28493,
+      "currentLikes": 281,
+      "currentComments": 42,
+      "dailyViewsDelta": 4969,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-0301ac4b",
@@ -596,13 +725,20 @@
           "likes": 7,
           "comments": 2,
           "dailyViewsDelta": 519
+        },
+        {
+          "date": "2026-10-17",
+          "views": 2930,
+          "likes": 57,
+          "comments": 12,
+          "dailyViewsDelta": 2410
         }
       ],
-      "currentViews": 520,
-      "currentLikes": 7,
-      "currentComments": 2,
-      "dailyViewsDelta": 519,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 2930,
+      "currentLikes": 57,
+      "currentComments": 12,
+      "dailyViewsDelta": 2410,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-0119e280",
@@ -620,13 +756,20 @@
           "likes": 2,
           "comments": 2,
           "dailyViewsDelta": 450
+        },
+        {
+          "date": "2026-10-17",
+          "views": 4232,
+          "likes": 126,
+          "comments": 26,
+          "dailyViewsDelta": 3782
         }
       ],
-      "currentViews": 450,
-      "currentLikes": 2,
-      "currentComments": 2,
-      "dailyViewsDelta": 450,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 4232,
+      "currentLikes": 126,
+      "currentComments": 26,
+      "dailyViewsDelta": 3782,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-4613e635",
@@ -644,13 +787,20 @@
           "likes": 0,
           "comments": 2,
           "dailyViewsDelta": 290
+        },
+        {
+          "date": "2026-10-17",
+          "views": 3500,
+          "likes": 94,
+          "comments": 20,
+          "dailyViewsDelta": 3210
         }
       ],
-      "currentViews": 290,
-      "currentLikes": 0,
-      "currentComments": 2,
-      "dailyViewsDelta": 290,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 3500,
+      "currentLikes": 94,
+      "currentComments": 20,
+      "dailyViewsDelta": 3210,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-61de147b",
@@ -668,13 +818,20 @@
           "likes": 0,
           "comments": 2,
           "dailyViewsDelta": 318
+        },
+        {
+          "date": "2026-10-17",
+          "views": 2728,
+          "likes": 50,
+          "comments": 12,
+          "dailyViewsDelta": 2410
         }
       ],
-      "currentViews": 318,
-      "currentLikes": 0,
-      "currentComments": 2,
-      "dailyViewsDelta": 318,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 2728,
+      "currentLikes": 50,
+      "currentComments": 12,
+      "dailyViewsDelta": 2410,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-2397a972",
@@ -692,13 +849,20 @@
           "likes": 3,
           "comments": 2,
           "dailyViewsDelta": 216
+        },
+        {
+          "date": "2026-10-17",
+          "views": 4453,
+          "likes": 153,
+          "comments": 30,
+          "dailyViewsDelta": 4237
         }
       ],
-      "currentViews": 216,
-      "currentLikes": 3,
-      "currentComments": 2,
-      "dailyViewsDelta": 216,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 4453,
+      "currentLikes": 153,
+      "currentComments": 30,
+      "dailyViewsDelta": 4237,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-79a2cd6c",
@@ -716,13 +880,20 @@
           "likes": 1,
           "comments": 2,
           "dailyViewsDelta": 442
+        },
+        {
+          "date": "2026-10-17",
+          "views": 3824,
+          "likes": 105,
+          "comments": 22,
+          "dailyViewsDelta": 3382
         }
       ],
-      "currentViews": 442,
-      "currentLikes": 1,
-      "currentComments": 2,
-      "dailyViewsDelta": 442,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 3824,
+      "currentLikes": 105,
+      "currentComments": 22,
+      "dailyViewsDelta": 3382,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-6ba8f7ce",
@@ -740,13 +911,20 @@
           "likes": 1,
           "comments": 2,
           "dailyViewsDelta": 447
+        },
+        {
+          "date": "2026-10-17",
+          "views": 4740,
+          "likes": 153,
+          "comments": 30,
+          "dailyViewsDelta": 4293
         }
       ],
-      "currentViews": 447,
-      "currentLikes": 1,
-      "currentComments": 2,
-      "dailyViewsDelta": 447,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 4740,
+      "currentLikes": 153,
+      "currentComments": 30,
+      "dailyViewsDelta": 4293,
+      "lastUpdatedDate": "2026-10-17"
     },
     {
       "id": "vid-3dfb07a0",
@@ -764,13 +942,20 @@
           "likes": 4,
           "comments": 2,
           "dailyViewsDelta": 4063
+        },
+        {
+          "date": "2026-10-17",
+          "views": 7217,
+          "likes": 94,
+          "comments": 18,
+          "dailyViewsDelta": 3154
         }
       ],
-      "currentViews": 4063,
-      "currentLikes": 4,
-      "currentComments": 2,
-      "dailyViewsDelta": 4063,
-      "lastUpdatedDate": "2026-10-16"
+      "currentViews": 7217,
+      "currentLikes": 94,
+      "currentComments": 18,
+      "dailyViewsDelta": 3154,
+      "lastUpdatedDate": "2026-10-17"
     }
   ]
 }

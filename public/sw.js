@@ -1,4 +1,4 @@
-const CACHE_NAME = 'studioflow-pwa-v7';
+const CACHE_NAME = 'studioflow-pwa-v8';
 const STATIC_ASSETS = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.webmanifest', '/icon.svg'];
 
 self.addEventListener('install', (event) => {

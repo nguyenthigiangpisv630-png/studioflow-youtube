@@ -1117,13 +1117,6 @@ function renderYoutubeChannelsBoard() {
                 >Đồng bộ</button>
                 <button
                   type="button"
-                  class="btn btn-secondary btn-xs"
-                  style="border-color:#D4AF37;background:#FDF8E7;color:#6B4D04;"
-                  data-open-studio-deep="${escapeHtml(ch.id)}"
-                  title="Truy cập sâu YouTube Studio: lấy Giờ xem, Views 48h, CTR%, Thời lượng xem TB & Doanh thu"
-                >⚡ Studio sâu</button>
-                <button
-                  type="button"
                   class="btn btn-danger-outline btn-xs"
                   data-delete-channel-id="${escapeHtml(ch.id)}"
                   data-delete-channel-name="${escapeHtml(ch.name)}"
@@ -1144,7 +1137,7 @@ function renderYoutubeChannelsBoard() {
               </label>
             </div>
 
-            <!-- Hàng 2 dưới tên kênh: Chọn BKT + Ngách tự lọc + SUB, TỔNG VIEWS, GIỜ XEM, 48H, CTR%, AVD, DOANH THU & VIDEO -->
+            <!-- Hàng 2 dưới tên kênh: Chọn BKT + Ngách tự lọc + SUB, TỔNG VIEWS & VIDEO -->
             <div class="channel-metrics-under-title num">
               <select
                 class="bkt-pill-select bkt-status-${escapeHtml(ch.status || 'monetized')}"
@@ -1179,58 +1172,13 @@ function renderYoutubeChannelsBoard() {
                 <span class="hero-stat-label">TỔNG VIEWS</span>
               </div>
 
-              ${
-                chWatchHours > 0
-                  ? `<div class="hero-stat-pill hero-stat-subs" title="Thời gian xem (giờ) từ YouTube Studio Analytics">
-                      <strong class="hero-stat-num">${formatNumber(chWatchHours)}h</strong>
-                      <span class="hero-stat-label">GIỜ XEM</span>
-                    </div>`
-                  : ''
-              }
-
-              ${
-                chRealtime48h > 0
-                  ? `<div class="hero-stat-pill hero-stat-views" title="Lượt xem Thời gian thực (48 giờ qua) trong YouTube Studio">
-                      <strong class="hero-stat-num">${formatNumber(chRealtime48h)}</strong>
-                      <span class="hero-stat-label">48H QUA</span>
-                    </div>`
-                  : ''
-              }
-
-              ${
-                chCtr > 0
-                  ? `<div class="hero-stat-pill hero-stat-videos" title="Tỷ lệ nhấp của số lần hiển thị (CTR %)">
-                      <strong class="hero-stat-num">${escapeHtml(String(chCtr))}%</strong>
-                      <span class="hero-stat-label">CTR</span>
-                    </div>`
-                  : ''
-              }
-
-              ${
-                chAvd
-                  ? `<div class="hero-stat-pill hero-stat-videos" title="Thời lượng xem trung bình (AVD)">
-                      <strong class="hero-stat-num">${escapeHtml(chAvd)}</strong>
-                      <span class="hero-stat-label">THỜI LƯỢNG TB</span>
-                    </div>`
-                  : ''
-              }
-
-              ${
-                chRevenue
-                  ? `<div class="hero-stat-pill hero-stat-subs" title="Doanh thu ước tính từ YouTube Studio">
-                      <strong class="hero-stat-num">${escapeHtml(chRevenue)}</strong>
-                      <span class="hero-stat-label">DOANH THU</span>
-                    </div>`
-                  : ''
-              }
-
               <div class="hero-stat-pill hero-stat-videos">
                 <strong class="hero-stat-num">${formatNumber(videoCount)}</strong>
                 <span class="hero-stat-label">VIDEO</span>
               </div>
             </div>
 
-            <!-- Hàng 3: Ngày đầu đăng video, Giờ xem Studio & Người / Mail quản lý (tự nhập) -->
+            <!-- Hàng 3: Ngày đầu đăng video & Người / Mail quản lý (tự nhập) -->
             <div class="channel-extra-meta-row">
               <label class="inline-meta-field">
                 <span class="inline-meta-label">Ngày đầu đăng video:</span>
@@ -1239,20 +1187,6 @@ function renderYoutubeChannelsBoard() {
                   class="inline-meta-input num"
                   data-channel-first-date="${escapeHtml(ch.id)}"
                   value="${escapeHtml(earliestVideoDate)}"
-                />
-              </label>
-
-              <label class="inline-meta-field" title="Thời gian xem (giờ) từ YouTube Studio Analytics">
-                <span class="inline-meta-label">Giờ xem (Studio):</span>
-                <input
-                  type="number"
-                  step="any"
-                  min="0"
-                  class="inline-meta-input num"
-                  style="width:92px;"
-                  data-channel-watch-hours="${escapeHtml(ch.id)}"
-                  value="${chWatchHours > 0 ? escapeHtml(String(chWatchHours)) : ''}"
-                  placeholder="VD: 2200"
                 />
               </label>
 
@@ -2068,14 +2002,14 @@ function setupEventListeners() {
 if ('caches' in window) {
   caches.keys().then((keys) => {
     keys.forEach((k) => {
-      if (k !== 'studioflow-pwa-v7') caches.delete(k);
+      if (k !== 'studioflow-pwa-v8') caches.delete(k);
     });
   }).catch(() => {});
 }
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=7', { updateViaCache: 'none' })
+      .register('/sw.js?v=8', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
