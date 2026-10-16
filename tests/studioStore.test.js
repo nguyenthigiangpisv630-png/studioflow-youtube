@@ -546,5 +546,37 @@ test('Label Aggregation & Cross-Channel Top Videos Leaderboard (YouTubeLabs Insi
   }
 });
 
+test('Gà kết nối (adsenseAccount & verifyGaPassword): lưu thông tin Gà kết nối và bắt buộc đúng mật khẩu khi mở xem', () => {
+  const { filePath, cleanup } = createTempStoreFile();
+  try {
+    const store = new StudioStore({ dataFilePath: filePath });
+    store.updatePassword({ newPassword: 'ga-secret-password' });
+
+    const ch = store.createChannel({
+      name: '1970s Show',
+      handle: '@1970sShow',
+      adsenseAccount: 'pub-8899001122 / ga-us-01@gmail.com',
+    });
+    assert.equal(ch.adsenseAccount, 'pub-8899001122 / ga-us-01@gmail.com');
+
+    const updated = store.updateChannel(ch.id, {
+      adsenseAccount: 'pub-9999999999 / ga-vip@gmail.com',
+    });
+    assert.equal(updated.adsenseAccount, 'pub-9999999999 / ga-vip@gmail.com');
+
+    assert.throws(
+      () => store.verifyGaPassword('wrong-pass'),
+      /Mật khẩu không chính xác/,
+      'Nhập sai mật khẩu không được phép mở xem Gà kết nối'
+    );
+
+    const verified = store.verifyGaPassword('ga-secret-password');
+    assert.equal(verified.ok, true);
+  } finally {
+    cleanup();
+  }
+});
+
+
 
 

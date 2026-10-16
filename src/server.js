@@ -116,6 +116,12 @@ export function createAppServer({
         return sendJson(res, 200, result);
       }
 
+      if (pathname === '/api/auth/verify-ga' && method === 'POST') {
+        const body = await readJsonBody(req);
+        const result = store.verifyGaPassword(body.password || '');
+        return sendJson(res, 200, result);
+      }
+
       if (pathname.startsWith('/api/') && pathname !== '/api/health') {
         const authStatus = store.getAuthStatus(clientToken);
         if (authStatus.passwordEnabled && !authStatus.authenticated) {

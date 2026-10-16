@@ -137,6 +137,7 @@ function normalizeChannel(ch) {
   ch.group = ch.group ?? '';
   ch.manager = ch.manager ?? '';
   ch.managerEmail = ch.managerEmail ?? '';
+  ch.adsenseAccount = ch.adsenseAccount ?? ch.gaConnected ?? '';
   ch.firstVideoDate = ch.firstVideoDate ?? '';
   ch.totalVideos = Number(ch.totalVideos) || 0;
   ch.totalViews = Number(ch.totalViews) || 0;
@@ -965,6 +966,36 @@ export class StudioStore {
     };
   }
 
+  verifyGaPassword(password = '') {
+    if (!this.state.meta) this.state.meta = {};
+    const cleanPass = String(password || '').trim();
+    if (!cleanPass) {
+      throw new Error('Vui lòng nhập mật khẩu để mở khóa xem Gà kết nối!');
+    }
+    const candidateHash = hashPassword(cleanPass);
+    const gaHash = String(this.state.meta.gaPasswordHash || '').trim();
+    const webHash = this.getRequiredPasswordHash();
+
+    if (gaHash || webHash) {
+      const matchedGa = Boolean(gaHash && candidateHash === gaHash);
+      const matchedWeb = Boolean(webHash && candidateHash === webHash);
+      if (!matchedGa && !matchedWeb) {
+        throw new Error('Mật khẩu không chính xác. Không thể mở xem Gà kết nối!');
+      }
+      return {
+        ok: true,
+        firstTimeSet: false,
+      };
+    }
+
+    this.state.meta.gaPasswordHash = candidateHash;
+    this.#save();
+    return {
+      ok: true,
+      firstTimeSet: true,
+    };
+  }
+
   updatePassword(input = {}, currentAuthToken = '') {
     if (!this.state.meta) this.state.meta = {};
     const requiredHash = this.getRequiredPasswordHash();
@@ -1168,6 +1199,12 @@ export class StudioStore {
         group: input.group !== undefined ? input.group : existingChannel.group,
         manager: input.manager !== undefined ? input.manager : existingChannel.manager,
         managerEmail: input.managerEmail !== undefined ? input.managerEmail : existingChannel.managerEmail,
+        adsenseAccount:
+          input.adsenseAccount !== undefined
+            ? input.adsenseAccount
+            : input.gaConnected !== undefined
+            ? input.gaConnected
+            : existingChannel.adsenseAccount,
         status: input.status || existingChannel.status,
         monetization: input.monetization || existingChannel.monetization,
         statusNote: input.statusNote || existingChannel.statusNote,
@@ -1187,6 +1224,7 @@ export class StudioStore {
       group: String(input.group || '').trim(),
       manager: String(input.manager || '').trim(),
       managerEmail: String(input.managerEmail || '').trim(),
+      adsenseAccount: String(input.adsenseAccount ?? input.gaConnected ?? '').trim(),
       status,
       monetization,
       strikeCount: Math.max(0, Number(input.strikeCount) || 0),
@@ -1451,6 +1489,8 @@ export class StudioStore {
     if (patch.group !== undefined) channel.group = String(patch.group).trim();
     if (patch.manager !== undefined) channel.manager = String(patch.manager).trim();
     if (patch.managerEmail !== undefined) channel.managerEmail = String(patch.managerEmail).trim();
+    if (patch.adsenseAccount !== undefined) channel.adsenseAccount = String(patch.adsenseAccount).trim();
+    if (patch.gaConnected !== undefined) channel.adsenseAccount = String(patch.gaConnected).trim();
     if (patch.strikeCount !== undefined) channel.strikeCount = Math.max(0, Number(patch.strikeCount) || 0);
     if (patch.statusNote !== undefined) channel.statusNote = String(patch.statusNote).trim();
     channel.updatedAt = new Date().toISOString();

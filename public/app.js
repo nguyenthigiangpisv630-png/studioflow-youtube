@@ -11,6 +11,7 @@ const state = {
   selectedVideoId: null,
   activeChannelDeepId: null,
   deepChannelVideoSort: 'views', // 'views' | 'outlier' | 'date'
+  unlockedGaChannels: new Set(),
   filters: {
     crmSearch: '',
     crmStage: 'all',
@@ -1287,17 +1288,19 @@ function renderSingleChannelDeepView(ch, boardEl) {
             />
           </label>
 
-          <label class="inline-meta-field inline-meta-mail" style="flex:1;min-width:220px;">
-            <span class="inline-meta-label">Người / Mail quản lý:</span>
+          <label class="inline-meta-field inline-meta-mail" style="flex:1;min-width:200px;">
+            <span class="inline-meta-label">Quản lý:</span>
             <input
               type="text"
               class="inline-meta-input"
               style="width:100%;"
               data-channel-manager-mail="${escapeHtml(ch.id)}"
               value="${escapeHtml(managerMailValue)}"
-              placeholder="Nhập tên hoặc Gmail quản lý..."
+              placeholder="Tên / Gmail..."
             />
           </label>
+
+          ${renderChannelGaPill(ch, true)}
         </div>
 
         <label class="deep-note-field">
@@ -1328,6 +1331,51 @@ function renderSingleChannelDeepView(ch, boardEl) {
           ${videosListHtml}
         </div>
       </div>
+    </div>
+  `;
+}
+
+function renderChannelGaPill(ch, isDeep = false) {
+  const isUnlocked = state.unlockedGaChannels && state.unlockedGaChannels.has(ch.id);
+  const gaValue = String(ch.adsenseAccount || '').trim();
+  const extraStyle = isDeep ? 'style="flex:1;min-width:220px;"' : '';
+
+  if (isUnlocked) {
+    return `
+      <div class="inline-meta-field inline-meta-ga unlocked" ${extraStyle} title="Gà kết nối (Google AdSense / Mail GA) — Tự động lưu khi nhập xong">
+        <span class="inline-meta-label">Gà kết nối:</span>
+        <input
+          type="text"
+          class="inline-meta-input ga-input-unlocked"
+          data-channel-ga="${escapeHtml(ch.id)}"
+          value="${escapeHtml(gaValue)}"
+          placeholder="Tên / Mail Gà..."
+        />
+        <button
+          type="button"
+          class="ga-eye-btn unlocked"
+          data-lock-ga-id="${escapeHtml(ch.id)}"
+          title="Ẩn lại Gà kết nối"
+        >🙈 Ẩn</button>
+      </div>
+    `;
+  }
+
+  return `
+    <div
+      class="inline-meta-field inline-meta-ga locked"
+      ${extraStyle}
+      data-unlock-ga-id="${escapeHtml(ch.id)}"
+      title="Thông tin Gà kết nối đang được ẩn — Bấm Xem và nhập mật khẩu để mở"
+    >
+      <span class="inline-meta-label">Gà kết nối:</span>
+      <span class="ga-masked-dots" aria-label="Đang ẩn bảo mật">••••••••</span>
+      <button
+        type="button"
+        class="ga-eye-btn"
+        data-unlock-ga-id="${escapeHtml(ch.id)}"
+        title="Nhập mật khẩu để xem / sửa Gà kết nối"
+      >🔒 Xem</button>
     </div>
   `;
 }
@@ -1431,7 +1479,7 @@ function renderYoutubeChannelsBoard() {
       return `
         <article class="channel-row" data-channel-row-id="${escapeHtml(ch.id)}">
           <div class="channel-col-identity">
-            <!-- Dòng 1 duy nhất: Tên Kênh + @Handle + Quản lý sâu/Đồng bộ/Xóa + Group + BKT + Ngách + SUB + VIEWS + VIDEO + Ngày đầu + Quản lý -->
+            <!-- Dòng 1 duy nhất: Tên Kênh + @Handle + Quản lý sâu/Đồng bộ/Xóa + Group + BKT + Ngách + SUB + VIEWS + VIDEO + Ngày đầu + Quản lý + Gà kết nối -->
             <div class="channel-single-line num">
               <button
                 type="button"
@@ -1541,6 +1589,8 @@ function renderYoutubeChannelsBoard() {
                   placeholder="Tên / Gmail..."
                 />
               </label>
+
+              ${renderChannelGaPill(ch, false)}
             </div>
 
             <!-- Top 3 Video Có Lượng View Cao Nhất (Kiểu cũ: dọc từng dòng rõ ràng) -->
@@ -2253,6 +2303,42 @@ function setupEventListeners() {
       return;
     }
 
+    // Bấm nút "🔒 Xem" trên ô Gà kết nối -> Mở hộp thoại nhập mật khẩu
+    const unlockGaBtn = e.target.closest('[data-unlock-ga-id]');
+    if (unlockGaBtn) {
+      const chId = unlockGaBtn.dataset.unlockGaId;
+      const ch = state.channels.find((c) => c.id === chId);
+      const gaModal = document.getElementById('ga-unlock-modal');
+      if (ch && gaModal) {
+        const chIdInput = document.getElementById('ga-unlock-channel-id');
+        if (chIdInput) chIdInput.value = ch.id;
+        const descEl = document.getElementById('ga-unlock-modal-desc');
+        if (descEl) {
+          descEl.textContent = `Thông tin Gà kết nối của kênh "${ch.name}" đang được ẩn bảo mật. Vui lòng nhập mật khẩu để xem hoặc chỉnh sửa.`;
+        }
+        const passInput = document.getElementById('input-ga-unlock-password');
+        if (passInput) passInput.value = '';
+        const errEl = document.getElementById('ga-unlock-error');
+        if (errEl) errEl.hidden = true;
+        gaModal.hidden = false;
+        setTimeout(() => {
+          passInput?.focus();
+        }, 50);
+      }
+      return;
+    }
+
+    // Bấm nút "🙈 Ẩn" trên ô Gà kết nối -> Ẩn lại ngay lập tức
+    const lockGaBtn = e.target.closest('[data-lock-ga-id]');
+    if (lockGaBtn) {
+      const chId = lockGaBtn.dataset.lockGaId;
+      if (chId && state.unlockedGaChannels) {
+        state.unlockedGaChannels.delete(chId);
+        renderYoutubeTab();
+      }
+      return;
+    }
+
     // Bấm vào nhãn danh mục trên kênh để lọc nhanh
     const catFilterBtn = e.target.closest('[data-filter-category]');
     if (catFilterBtn) {
@@ -2628,6 +2714,25 @@ function setupEventListeners() {
       } catch (err) {
         showBanner(err.message, true);
       }
+      return;
+    }
+
+    const gaInput = e.target.closest('[data-channel-ga]');
+    if (gaInput) {
+      const chId = gaInput.dataset.channelGa;
+      const val = gaInput.value.trim();
+      try {
+        const updated = await apiRequest(`/api/youtube/channels/${encodeURIComponent(chId)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            adsenseAccount: val,
+          }),
+        });
+        await loadOverview();
+        showBanner(`Đã lưu thông tin Gà kết nối cho kênh "${updated.name}"!`);
+      } catch (err) {
+        showBanner(err.message, true);
+      }
     }
   });
 
@@ -2674,9 +2779,17 @@ function setupEventListeners() {
   const notionConfigForm = document.getElementById('form-notion-config');
   const passwordModal = document.getElementById('password-settings-modal');
   const studioDeepModal = document.getElementById('studio-deep-modal');
+  const gaUnlockModal = document.getElementById('ga-unlock-modal');
 
   document.getElementById('btn-close-studio-deep')?.addEventListener('click', () => {
     if (studioDeepModal) studioDeepModal.hidden = true;
+  });
+
+  document.getElementById('btn-close-ga-modal')?.addEventListener('click', () => {
+    if (gaUnlockModal) gaUnlockModal.hidden = true;
+  });
+  document.getElementById('btn-cancel-ga-modal')?.addEventListener('click', () => {
+    if (gaUnlockModal) gaUnlockModal.hidden = true;
   });
 
   document.getElementById('input-studio-raw-text')?.addEventListener('input', (e) => {
@@ -2731,7 +2844,9 @@ function setupEventListeners() {
   function lockAndLogout() {
     setStoredAuthToken('');
     document.cookie = 'studioflow_auth=; Path=/; Max-Age=0';
+    if (state.unlockedGaChannels) state.unlockedGaChannels.clear();
     if (passwordModal) passwordModal.hidden = true;
+    if (gaUnlockModal) gaUnlockModal.hidden = true;
     showAuthLockOverlay(true);
   }
 
@@ -2784,6 +2899,48 @@ function setupEventListeners() {
   // Xử lý tất cả các Form Submit
   document.body.addEventListener('submit', async (e) => {
     const form = e.target;
+
+    if (form.id === 'form-ga-unlock') {
+      e.preventDefault();
+      const errEl = document.getElementById('ga-unlock-error');
+      if (errEl) errEl.hidden = true;
+      try {
+        const fd = new FormData(form);
+        const password = fd.get('password') || '';
+        const targetChId = fd.get('channelId') || '';
+        const unlockAll = document.getElementById('checkbox-ga-unlock-all')?.checked;
+        await apiRequest('/api/auth/verify-ga', {
+          method: 'POST',
+          body: JSON.stringify({ password }),
+        });
+        if (!state.unlockedGaChannels) state.unlockedGaChannels = new Set();
+        if (unlockAll) {
+          for (const ch of state.channels) {
+            state.unlockedGaChannels.add(ch.id);
+          }
+        } else if (targetChId) {
+          state.unlockedGaChannels.add(targetChId);
+        }
+        form.reset();
+        if (gaUnlockModal) gaUnlockModal.hidden = true;
+        renderYoutubeTab();
+        setTimeout(() => {
+          if (targetChId) {
+            const gaInputEl = document.querySelector(`[data-channel-ga="${CSS.escape(targetChId)}"]`);
+            gaInputEl?.focus();
+          }
+        }, 50);
+        showBanner('Đã mở khóa hiển thị thông tin Gà kết nối!');
+      } catch (err) {
+        if (errEl) {
+          errEl.textContent = err.message;
+          errEl.hidden = false;
+        } else {
+          showBanner(err.message, true);
+        }
+      }
+      return;
+    }
 
     if (form.id === 'form-studio-deep') {
       e.preventDefault();
@@ -2985,7 +3142,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=15', { updateViaCache: 'none' })
+      .register('/sw.js?v=16', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastDailySyncDate": "2026-10-17",
-    "lastDailySyncAt": "2026-10-16T18:38:23.139Z",
+    "lastDailySyncAt": "2026-10-16T19:23:03.271Z",
     "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b"
   },
   "channels": [
@@ -21,7 +21,7 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-16T18:38:19.108Z",
+      "updatedAt": "2026-10-16T19:23:02.985Z",
       "group": "KÊNH ÂM THỰC",
       "watchHours": 0,
       "realtimeViews48h": 0,
@@ -73,10 +73,10 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-16T18:38:23.133Z",
-      "totalViews": 34601,
+      "updatedAt": "2026-10-16T19:23:03.263Z",
+      "totalViews": 34691,
       "watchHours": 2200,
-      "group": "",
+      "group": "NGƯỜI NỔI TIẾNG",
       "realtimeViews48h": 0,
       "ctrPercent": 0,
       "avgViewDuration": "",
@@ -86,8 +86,8 @@
           "id": "vid-42078c14",
           "youtubeVideoId": "UEQ5XifO7L8",
           "title": "How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked",
-          "views": 23607,
-          "likes": 99,
+          "views": 23697,
+          "likes": 100,
           "comments": 8,
           "publishedAt": "2026-09-29"
         },
@@ -717,16 +717,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 23607,
-          "likes": 99,
+          "views": 23697,
+          "likes": 100,
           "comments": 8,
-          "dailyViewsDelta": 83
+          "dailyViewsDelta": 173
         }
       ],
-      "currentViews": 23607,
-      "currentLikes": 99,
+      "currentViews": 23697,
+      "currentLikes": 100,
       "currentComments": 8,
-      "dailyViewsDelta": 83,
+      "dailyViewsDelta": 173,
       "lastUpdatedDate": "2026-10-17"
     },
     {

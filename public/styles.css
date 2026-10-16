@@ -2423,6 +2423,72 @@ select:focus-visible {
   }
 }
 
+/* ============================================================================
+   Ô "GÀ KẾT NỐI" (GOOGLE ADSENSE) — ẨN MẶC ĐỊNH, BẤM XEM CẦN MẬT KHẨU
+   ============================================================================ */
+.inline-meta-ga {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-subtle, #F1EFEA);
+  border: 1px solid var(--border-strong, #D5D0C5);
+  border-radius: var(--radius-sm, 6px);
+  padding: 2px 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.inline-meta-ga.locked {
+  cursor: pointer;
+}
+
+.inline-meta-ga.locked:hover {
+  border-color: #D4AF37;
+  background: #FAF6E8;
+}
+
+.inline-meta-ga.unlocked {
+  background: #FFFDF7;
+  border-color: #D4AF37;
+}
+
+.ga-masked-dots {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #64748B;
+  padding: 1px 4px;
+  user-select: none;
+}
+
+.ga-input-unlocked {
+  min-width: 145px;
+}
+
+.ga-eye-btn {
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #334155;
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.14s ease;
+}
+
+.ga-eye-btn:hover {
+  border-color: #D4AF37;
+  background: #FDF8E7;
+  color: #6B4D04;
+}
+
+.ga-eye-btn.unlocked {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+
 
 
 
