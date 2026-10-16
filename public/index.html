@@ -9,7 +9,7 @@
   <title>StudioFlow — Quản Lý Kênh YouTube &amp; Kho Nội Dung (Mệnh Kim)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=17" />
+  <link rel="stylesheet" href="/styles.css?v=18" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -59,34 +59,8 @@
           </nav>
         </div>
 
-        <!-- CHỈ SỐ TỔNG HỢP GỌN TRÊN THANH NGANG & CHUYỂN ĐỔI WEB/APP -->
+        <!-- THANH CÔNG CỤ GÓC PHẢI GỌN GÀNG -->
         <div class="topbar-right">
-          <div class="mini-kpi-bar" aria-label="Chỉ số tổng hợp">
-            <div class="mini-kpi">
-              <span class="mini-kpi-label">Kênh</span>
-              <strong class="mini-kpi-val num" id="stat-channels-total">0</strong>
-              <span class="mini-kpi-sub num" id="stat-channels-sub">0 BKT</span>
-            </div>
-            <div class="mini-kpi">
-              <span class="mini-kpi-label">Tổng Sub</span>
-              <strong class="mini-kpi-val num" id="stat-subscribers-total">0</strong>
-            </div>
-            <div class="mini-kpi">
-              <span class="mini-kpi-label">Tổng Views</span>
-              <strong class="mini-kpi-val num" id="stat-yt-views">0</strong>
-              <span class="mini-kpi-delta num" id="stat-yt-delta">+0 hôm nay</span>
-            </div>
-            <div class="mini-kpi">
-              <span class="mini-kpi-label">Nội dung</span>
-              <strong class="mini-kpi-val num" id="stat-contents-total">0</strong>
-            </div>
-          </div>
-
-          <div class="viewport-switcher" role="group" aria-label="Chế độ hiển thị Web hoặc Mobile App">
-            <button type="button" class="switch-btn active" id="btn-view-web" title="Giao diện Web">Web</button>
-            <button type="button" class="switch-btn" id="btn-view-app" title="Giao diện Mobile App">App</button>
-          </div>
-
           <button
             type="button"
             class="hourly-sync-pill num"
@@ -125,7 +99,7 @@
       <!-- KHÔNG GIAN LÀM VIỆC CHÍNH TỐI GIẢN, TOÀN MÀN HÌNH -->
       <main class="main-content">
         <!-- =============================================================== -->
-        <!-- TRANG CHỦ: TÓM TẮT PHÂN TÍCH, THƯ MỤC CON CÁC NHÓM & VIDEO NỔ VIEW -->
+        <!-- TRANG CHỦ: TÓM TẮT PHÂN TÍCH & VIDEO NỔ VIEW -->
         <!-- =============================================================== -->
         <section class="tab-panel active" id="panel-insights">
           <div id="yt-insights-hub" class="yt-insights-hub"></div>
@@ -135,9 +109,6 @@
         <!-- PHÂN HỆ 1: THƯ MỤC NHÓM KÊNH & QUẢN LÝ SÂU TỪNG KÊNH RIÊNG LẺ -->
         <!-- =============================================================== -->
         <section class="tab-panel" id="panel-youtube">
-          <!-- THANH ĐƯỜNG DẪN THƯ MỤC (BREADCRUMB: TRANG CHỦ > NHÓM > KÊNH RIÊNG LẺ) -->
-          <div id="yt-folder-breadcrumb" class="folder-breadcrumb-bar"></div>
-
           <!-- THANH NHẬP KÊNH TỰ ĐỘNG 1 DÒNG + TÌM KIẾM + ĐỒNG BỘ -->
           <div class="minimal-command-bar" id="yt-command-bar">
             <form id="form-create-channel" class="quick-channel-form">
@@ -461,7 +432,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=17"></script>
+  <script type="module" src="/app.js?v=18"></script>
 </body>
 </html>
 

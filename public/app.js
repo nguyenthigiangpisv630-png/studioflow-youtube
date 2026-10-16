@@ -1409,8 +1409,6 @@ function renderYoutubeChannelsBoard() {
   const cmdBarEl = document.getElementById('yt-command-bar');
   if (!boardEl) return;
 
-  renderFolderBreadcrumb();
-
   // Nếu đang mở chế độ Quản lý sâu 1 kênh riêng lẻ
   if (state.activeChannelDeepId) {
     const targetCh = state.channels.find((c) => c.id === state.activeChannelDeepId);
@@ -1937,62 +1935,6 @@ function renderYoutubeInsightsHub() {
           .join('')
       : `<div class="channel-top-videos-empty">Chưa có video nào khớp bộ lọc — bấm <strong>Đồng bộ</strong> trên kênh để quét danh sách video.</div>`;
 
-  // 3. Hệ thống Thư mục con các Nhóm kênh & Kênh riêng lẻ (Subfolders Grid)
-  const subfoldersHtml = groupFolders
-    .map((folder) => {
-      const sharePct = Math.round((folder.totalViews / grandTotalViews) * 100);
-      const channelPillsHtml = folder.channels
-        .map(
-          (chItem) => `
-            <button
-              type="button"
-              class="subfolder-channel-item num"
-              data-open-channel-deep="${escapeHtml(chItem.id)}"
-              title="Bấm để vào thẳng Quản lý sâu kênh ${escapeHtml(chItem.name)}"
-            >
-              <span class="subfolder-ch-name">📺 ${escapeHtml(chItem.name)}</span>
-              <span class="subfolder-ch-views">${formatNumber(chItem.views)} views</span>
-            </button>
-          `
-        )
-        .join('');
-
-      return `
-        <div class="subfolder-card">
-          <div class="subfolder-header">
-            <button
-              type="button"
-              class="subfolder-title-btn"
-              data-open-group-folder="${escapeHtml(folder.filterKey)}"
-              title="Mở thư mục nhóm ${escapeHtml(folder.label)}"
-            >
-              <span class="subfolder-icon">📁</span>
-              <div>
-                <strong class="subfolder-name">${escapeHtml(folder.label)}</strong>
-                <span class="subfolder-count num">${folder.channelCount} kênh · ${folder.monetizedCount} BKT</span>
-              </div>
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary btn-xs"
-              data-open-group-folder="${escapeHtml(folder.filterKey)}"
-            >Mở nhóm →</button>
-          </div>
-
-          <div class="subfolder-stats num">
-            <span><strong>${formatNumber(folder.totalSubscribers)}</strong> SUB</span>
-            <span><strong>${formatNumber(folder.totalVideos)}</strong> VIDEO</span>
-            <span class="subfolder-stat-gold"><strong>${formatNumber(folder.totalViews)}</strong> VIEWS (${sharePct}%)</span>
-          </div>
-
-          <div class="subfolder-channels-list">
-            ${channelPillsHtml}
-          </div>
-        </div>
-      `;
-    })
-    .join('');
-
   hubEl.innerHTML = `
     <!-- PHẦN 1: TÓM TẮT PHÂN TÍCH TOÀN HỆ THỐNG (EXECUTIVE OVERVIEW) -->
     <div class="home-exec-grid num">
@@ -2022,25 +1964,7 @@ function renderYoutubeInsightsHub() {
       </div>
     </div>
 
-    <!-- PHẦN 2: THƯ MỤC CON CÁC NHÓM KÊNH & ĐI SÂU TỪNG KÊNH RIÊNG LẺ -->
-    <section class="insights-card" style="margin-bottom:12px;">
-      <div class="insights-card-header">
-        <div>
-          <h3 class="insights-card-title">📁 Thư mục con các Nhóm Kênh &amp; Kênh riêng lẻ</h3>
-          <p class="insights-card-sub">Bấm <strong>"Mở nhóm →"</strong> để vào thư mục Nhóm kênh, hoặc bấm trực tiếp vào <strong>tên Kênh (📺)</strong> để quản lý sâu từng kênh riêng lẻ</p>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-primary btn-xs" data-open-group-folder="all">
-            📁 Mở Tất cả Kênh (${state.channels.length}) →
-          </button>
-        </div>
-      </div>
-      <div class="subfolders-grid">
-        ${subfoldersHtml}
-      </div>
-    </section>
-
-    <!-- PHẦN 3: BẢNG THỐNG KÊ THEO NHÃN & BẢNG VIDEO NỔ VIEW CẢ DÀN KÊNH -->
+    <!-- PHẦN 2: BẢNG THỐNG KÊ THEO NHÃN & BẢNG VIDEO NỔ VIEW CẢ DÀN KÊNH -->
     <div class="insights-hub-bar">
       <div class="insights-hub-title-group">
         <span class="insights-hub-badge">⚡ PHÂN TÍCH NHÃN &amp; BẢNG XẾP HẠNG VIDEO NỔ VIEW CẢ DÀN KÊNH</span>
@@ -3194,7 +3118,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=17', { updateViaCache: 'none' })
+      .register('/sw.js?v=18', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
