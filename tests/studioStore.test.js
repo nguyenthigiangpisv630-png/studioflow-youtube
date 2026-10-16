@@ -576,6 +576,31 @@ test('Gà kết nối (adsenseAccount & verifyGaPassword): lưu thông tin Gà k
   }
 });
 
+test('Bảng Doanh Thu 12 Tháng (monthlyRevenue & totalYearlyRevenue): nhập doanh thu từ Tháng 1 đến Tháng 12 và tự động cộng tổng', () => {
+  const { store, cleanup } = createTempStore(false);
+  try {
+    const ch = store.createChannel({
+      name: 'FOOD 75',
+      handle: '@FOOD75-h2q',
+    });
+    assert.equal(ch.totalYearlyRevenue, 0);
+    assert.equal(Object.keys(ch.monthlyRevenue).length, 12);
 
-
-
+    const updated = store.updateChannel(ch.id, {
+      monthlyRevenue: {
+        1: 120.5,
+        2: 230,
+        3: 150.25,
+        10: 500,
+      },
+    });
+    assert.equal(updated.monthlyRevenue['1'], 120.5);
+    assert.equal(updated.monthlyRevenue['2'], 230);
+    assert.equal(updated.monthlyRevenue['3'], 150.25);
+    assert.equal(updated.monthlyRevenue['10'], 500);
+    assert.equal(updated.monthlyRevenue['12'], 0);
+    assert.equal(updated.totalYearlyRevenue, 1000.75);
+  } finally {
+    cleanup();
+  }
+});

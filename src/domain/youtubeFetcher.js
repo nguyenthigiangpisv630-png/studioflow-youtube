@@ -53,7 +53,7 @@ export function normalizeChannelTargetUrl(query = '') {
 }
 
 function collectVideoRenderers(node, list = []) {
-  if (!node || typeof node !== 'object' || list.length >= 200) return list;
+  if (!node || typeof node !== 'object' || list.length >= 500) return list;
   if (node.videoRenderer && node.videoRenderer.videoId) {
     const vr = node.videoRenderer;
     const title =
@@ -92,13 +92,90 @@ function collectVideoRenderers(node, list = []) {
     }
     return list;
   }
+  if (node.shortsLockupViewModel) {
+    const sl = node.shortsLockupViewModel;
+    const videoId =
+      sl.onTap?.innertubeCommand?.reelWatchEndpoint?.videoId ||
+      sl.entityId?.replace(/^shorts-shelf-item-/, '') ||
+      '';
+    if (videoId && !list.some((x) => x.youtubeVideoId === videoId)) {
+      const title =
+        sl.overlayMetadata?.primaryText?.content ||
+        sl.accessibilityText?.split(',')?.[0] ||
+        'YouTube Short';
+      const viewText = sl.overlayMetadata?.secondaryText?.content || '0';
+      const views = parseCompactNumber(viewText);
+      list.push({
+        youtubeVideoId: videoId,
+        title,
+        views,
+        likes: Math.max(10, Math.round(views * 0.042)),
+        comments: Math.max(2, Math.round(views * 0.004)),
+      });
+    }
+    return list;
+  }
   for (const val of Object.values(node)) {
     if (val && typeof val === 'object') {
       collectVideoRenderers(val, list);
-      if (list.length >= 200) break;
+      if (list.length >= 500) break;
     }
   }
   return list;
+}
+
+function findContinuationToken(node) {
+  if (!node || typeof node !== 'object') return null;
+  if (node.continuationItemRenderer) {
+    const token =
+      node.continuationItemRenderer?.continuationEndpoint?.continuationCommand?.token ||
+      node.continuationItemRenderer?.continuationEndpoint?.commandExecutorCommand?.commands?.find(
+        (c) => c.continuationCommand?.token
+      )?.continuationCommand?.token;
+    if (token) return token;
+  }
+  for (const val of Object.values(node)) {
+    if (val && typeof val === 'object') {
+      const found = findContinuationToken(val);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+async function fetchMoreContinuationVideos(initialContents, existingList = [], maxPages = 4) {
+  let token = findContinuationToken(initialContents);
+  let page = 0;
+  while (token && page < maxPages && existingList.length < 500) {
+    page += 1;
+    try {
+      const res = await fetch('https://www.youtube.com/youtubei/v1/browse?prettyPrint=false', {
+        method: 'POST',
+        headers: {
+          ...DEFAULT_HEADERS,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          context: {
+            client: {
+              clientName: 'WEB',
+              clientVersion: '2.20241015.01.00',
+            },
+          },
+          continuation: token,
+        }),
+      });
+      if (!res.ok) break;
+      const data = await res.json();
+      const before = existingList.length;
+      collectVideoRenderers(data, existingList);
+      if (existingList.length === before) break;
+      token = findContinuationToken(data.onResponseReceivedActions || data);
+    } catch {
+      break;
+    }
+  }
+  return existingList;
 }
 
 function extractHandleAndSubscribers(initialData, fallbackHandle) {
@@ -422,6 +499,24 @@ export async function fetchYouTubeChannelProfile(rawQuery) {
     fetchChannelAboutMetrics(initialData),
   ]);
   const pageVideos = collectVideoRenderers(initialData, []);
+  await fetchMoreContinuationVideos(initialData?.contents, pageVideos, 5);
+
+  const expectedCount = totalVideos || aboutMetrics.totalVideos || 0;
+  if (expectedCount > pageVideos.length) {
+    try {
+      const shortsRes = await fetch(`${channelUrl}/shorts`, { headers: DEFAULT_HEADERS });
+      if (shortsRes.ok) {
+        const shortsHtml = await shortsRes.text();
+        const shortsMatch = shortsHtml.match(/var ytInitialData = (\{.*?\});<\/script>/);
+        if (shortsMatch) {
+          const shortsData = JSON.parse(shortsMatch[1]);
+          collectVideoRenderers(shortsData, pageVideos);
+        }
+      }
+    } catch {
+      // Bỏ qua nếu tab Shorts không có dữ liệu
+    }
+  }
 
   // Ưu tiên danh sách từ RSS Feed (có ngày đăng và lượt xem chính xác từ YouTube XML) kết hợp pageVideos
   const mergedMap = new Map();

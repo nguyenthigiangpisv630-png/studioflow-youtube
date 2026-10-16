@@ -131,6 +131,25 @@ export function parseYouTubeStudioText(rawText = '') {
   return result;
 }
 
+function normalizeMonthlyRevenue(raw = {}) {
+  const out = {};
+  for (let m = 1; m <= 12; m += 1) {
+    const key = String(m);
+    const val = raw && typeof raw === 'object' ? raw[key] ?? raw[m] : 0;
+    const cleaned = typeof val === 'number' ? val : parseFloat(String(val ?? '0').replace(/,/g, '').trim());
+    out[key] = Number.isFinite(cleaned) && cleaned >= 0 ? Math.round(cleaned * 100) / 100 : 0;
+  }
+  return out;
+}
+
+function sumMonthlyRevenue(monthlyRevenue = {}) {
+  let total = 0;
+  for (let m = 1; m <= 12; m += 1) {
+    total += Number(monthlyRevenue[String(m)]) || 0;
+  }
+  return Math.round(total * 100) / 100;
+}
+
 function normalizeChannel(ch) {
   ch.status = ch.status && VALID_CHANNEL_STATUSES.includes(ch.status) ? ch.status : 'monetized';
   ch.monetization = ch.monetization && VALID_MONETIZATION.includes(ch.monetization) ? ch.monetization : 'enabled';
@@ -146,6 +165,8 @@ function normalizeChannel(ch) {
   ch.ctrPercent = Number(ch.ctrPercent) || 0;
   ch.avgViewDuration = ch.avgViewDuration ?? '';
   ch.estimatedRevenue = ch.estimatedRevenue ?? '';
+  ch.monthlyRevenue = normalizeMonthlyRevenue(ch.monthlyRevenue);
+  ch.totalYearlyRevenue = sumMonthlyRevenue(ch.monthlyRevenue);
   ch.topVideos = Array.isArray(ch.topVideos) ? ch.topVideos : [];
   ch.strikeCount = Number(ch.strikeCount) || 0;
   ch.statusNote = ch.statusNote || 'Kênh hoạt động ổn định, xanh sạch, lịch đăng video đều đặn.';
@@ -1491,6 +1512,13 @@ export class StudioStore {
     if (patch.managerEmail !== undefined) channel.managerEmail = String(patch.managerEmail).trim();
     if (patch.adsenseAccount !== undefined) channel.adsenseAccount = String(patch.adsenseAccount).trim();
     if (patch.gaConnected !== undefined) channel.adsenseAccount = String(patch.gaConnected).trim();
+    if (patch.monthlyRevenue !== undefined && typeof patch.monthlyRevenue === 'object') {
+      channel.monthlyRevenue = normalizeMonthlyRevenue({
+        ...(channel.monthlyRevenue || {}),
+        ...patch.monthlyRevenue,
+      });
+      channel.totalYearlyRevenue = sumMonthlyRevenue(channel.monthlyRevenue);
+    }
     if (patch.strikeCount !== undefined) channel.strikeCount = Math.max(0, Number(patch.strikeCount) || 0);
     if (patch.statusNote !== undefined) channel.statusNote = String(patch.statusNote).trim();
     channel.updatedAt = new Date().toISOString();

@@ -1140,6 +1140,32 @@ function renderSidebarFolderTree() {
   treeEl.innerHTML = branchesHtml;
 }
 
+function formatRevenueAmount(num) {
+  const val = Number(num) || 0;
+  return new Intl.NumberFormat('vi-VN', {
+    minimumFractionDigits: Number.isInteger(val) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(val);
+}
+
+function getChannelMonthlyRevenueMap(ch) {
+  const raw = ch?.monthlyRevenue && typeof ch.monthlyRevenue === 'object' ? ch.monthlyRevenue : {};
+  const map = {};
+  for (let m = 1; m <= 12; m += 1) {
+    const val = Number(raw[String(m)] ?? raw[m]) || 0;
+    map[String(m)] = val >= 0 ? Math.round(val * 100) / 100 : 0;
+  }
+  return map;
+}
+
+function sumChannelMonthlyRevenue(monthlyMap = {}) {
+  let total = 0;
+  for (let m = 1; m <= 12; m += 1) {
+    total += Number(monthlyMap[String(m)]) || 0;
+  }
+  return Math.round(total * 100) / 100;
+}
+
 function renderSingleChannelDeepView(ch, boardEl) {
   const chVideos = state.videos.filter((v) => v.channelId === ch.id);
   const fallbackTop = Array.isArray(ch.topVideos) ? ch.topVideos : [];
@@ -1148,18 +1174,36 @@ function renderSingleChannelDeepView(ch, boardEl) {
     ...chVideos.map((v) => ({
       ...v,
       views: Number(v.currentViews ?? v.views) || 0,
+      dailyDelta: Number(v.dailyViewsDelta) || 0,
     })),
     ...fallbackTop
       .filter((tv) => !seenKeys.has(tv.youtubeVideoId || tv.title))
       .map((tv) => ({
         ...tv,
         views: Number(tv.views ?? tv.currentViews) || 0,
+        dailyDelta: Number(tv.dailyViewsDelta) || 0,
       })),
   ];
 
+  // Nếu kênh trên YouTube có nhiều video hơn số video đã nạp chi tiết, tự động quét ngầm toàn bộ video 1 lần
+  if (!state.autoSyncedDeepChannels) state.autoSyncedDeepChannels = new Set();
+  const expectedTotalVideos = Number(ch.totalVideos) || 0;
+  if (
+    !state.autoSyncedDeepChannels.has(ch.id) &&
+    (allChannelVideos.length === 0 || (expectedTotalVideos > allChannelVideos.length))
+  ) {
+    state.autoSyncedDeepChannels.add(ch.id);
+    apiRequest(`/api/youtube/channels/${encodeURIComponent(ch.id)}/sync`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
+      .then(() => loadOverview())
+      .catch(() => {});
+  }
+
   const sumVideoViews = allChannelVideos.reduce((s, v) => s + v.views, 0);
   const chTotalViews = Math.max(Number(ch.totalViews) || 0, sumVideoViews);
-  const videoCount = Math.max(Number(ch.totalVideos) || 0, allChannelVideos.length);
+  const videoCount = Math.max(expectedTotalVideos, allChannelVideos.length);
   const avgViewsPerVideo =
     allChannelVideos.length > 0
       ? Math.max(Math.round(sumVideoViews / allChannelVideos.length), 1)
@@ -1178,8 +1222,45 @@ function renderSingleChannelDeepView(ch, boardEl) {
   const chGroup = (ch.group || '').trim();
   const groupColorClass = chGroup ? getCategoryColorClass(chGroup) : '';
 
+  // Dữ liệu Bảng Doanh Thu Tháng 1 -> Tháng 12
+  const monthlyMap = getChannelMonthlyRevenueMap(ch);
+  const totalYearlyRevenue = sumChannelMonthlyRevenue(monthlyMap);
+  const activeRevMonths = Object.values(monthlyMap).filter((v) => Number(v) > 0).length;
+  const avgMonthlyRevenue =
+    activeRevMonths > 0 ? Math.round((totalYearlyRevenue / activeRevMonths) * 100) / 100 : 0;
+
+  let monthlyCellsHtml = '';
+  for (let m = 1; m <= 12; m += 1) {
+    const val = monthlyMap[String(m)];
+    monthlyCellsHtml += `
+      <label class="monthly-rev-cell ${val > 0 ? 'has-rev' : ''}">
+        <span class="monthly-rev-label">Tháng ${m}</span>
+        <input
+          type="number"
+          step="any"
+          min="0"
+          class="monthly-rev-input num"
+          data-channel-rev-id="${escapeHtml(ch.id)}"
+          data-rev-month="${m}"
+          value="${val > 0 ? val : ''}"
+          placeholder="0"
+        />
+      </label>
+    `;
+  }
+
   const sortMode = state.deepChannelVideoSort || 'views';
-  const sortedVideos = [...allChannelVideos]
+  const videoSearchQuery = (state.deepChannelVideoSearch || '').toLowerCase().trim();
+  const filteredDeepVideos = allChannelVideos.filter((v) => {
+    if (!videoSearchQuery) return true;
+    return (
+      (v.title || '').toLowerCase().includes(videoSearchQuery) ||
+      (v.youtubeVideoId || '').toLowerCase().includes(videoSearchQuery) ||
+      (v.publishedAt || '').toLowerCase().includes(videoSearchQuery)
+    );
+  });
+
+  const sortedVideos = [...filteredDeepVideos]
     .map((v) => {
       const outlierMultiplier = Number((v.views / Math.max(avgViewsPerVideo, 1)).toFixed(1));
       return { ...v, outlierMultiplier };
@@ -1187,6 +1268,9 @@ function renderSingleChannelDeepView(ch, boardEl) {
     .sort((a, b) => {
       if (sortMode === 'date') {
         return String(b.publishedAt || '').localeCompare(String(a.publishedAt || '')) || b.views - a.views;
+      }
+      if (sortMode === 'oldest') {
+        return String(a.publishedAt || '9999').localeCompare(String(b.publishedAt || '9999')) || b.views - a.views;
       }
       if (sortMode === 'outlier') {
         return b.outlierMultiplier - a.outlierMultiplier || b.views - a.views;
@@ -1205,10 +1289,14 @@ function renderSingleChannelDeepView(ch, boardEl) {
             const outlierBadge =
               v.outlierMultiplier >= 1.2
                 ? `<span class="outlier-badge ${isHot ? 'outlier-hot' : ''} num">${isHot ? '🔥 ' : ''}x${v.outlierMultiplier} TB kênh</span>`
-                : '';
+                : `<span class="outlier-badge num">x${v.outlierMultiplier} TB kênh</span>`;
             const vDate = v.publishedAt
-              ? `<span class="top-video-date num">${escapeHtml(v.publishedAt)}</span>`
+              ? `<span class="top-video-date num">📅 ${escapeHtml(v.publishedAt)}</span>`
               : '';
+            const deltaBadge =
+              v.dailyDelta > 0
+                ? `<span class="label-stat-pill label-stat-pill-views num">+${formatNumber(v.dailyDelta)} hôm nay</span>`
+                : '';
             return `
               <div class="top-video-item burst-video-row top-video-rank-${idx < 3 ? idx + 1 : 'other'}">
                 <span class="top-video-rank num">#${idx + 1}</span>
@@ -1218,6 +1306,7 @@ function renderSingleChannelDeepView(ch, boardEl) {
                   </a>
                 </div>
                 ${vDate}
+                ${deltaBadge}
                 ${outlierBadge}
                 <span class="top-video-views num">${formatNumber(v.views)} views</span>
                 <button
@@ -1234,7 +1323,7 @@ function renderSingleChannelDeepView(ch, boardEl) {
             `;
           })
           .join('')
-      : `<div class="channel-top-videos-empty">Chưa có danh sách video — bấm nút <strong>Đồng bộ</strong> để quét toàn bộ video của kênh này.</div>`;
+      : `<div class="channel-top-videos-empty">Chưa có video khớp điều kiện lọc — bấm nút <strong>Đồng bộ quét lại kênh</strong> để quét toàn bộ video của kênh này.</div>`;
 
   boardEl.innerHTML = `
     <div class="deep-channel-workspace">
@@ -1266,8 +1355,8 @@ function renderSingleChannelDeepView(ch, boardEl) {
         </div>
       </div>
 
-      <!-- 4 THẺ CHỈ SỐ CHUYÊN SÂU CỦA RIÊNG KÊNH NÀY -->
-      <div class="deep-kpi-grid num">
+      <!-- 5 THẺ CHỈ SỐ CHUYÊN SÂU CỦA RIÊNG KÊNH NÀY -->
+      <div class="deep-kpi-grid deep-kpi-grid-5 num">
         <div class="deep-kpi-card">
           <span class="deep-kpi-label">SUBSCRIBERS</span>
           <strong class="deep-kpi-val">${formatNumber(ch.subscribers || 0)}</strong>
@@ -1281,12 +1370,17 @@ function renderSingleChannelDeepView(ch, boardEl) {
         <div class="deep-kpi-card">
           <span class="deep-kpi-label">TỔNG SỐ VIDEO</span>
           <strong class="deep-kpi-val">${formatNumber(videoCount)}</strong>
-          <span class="deep-kpi-sub">Đã quét chi tiết ${formatNumber(allChannelVideos.length)} video</span>
+          <span class="deep-kpi-sub">Đã liệt kê ${formatNumber(allChannelVideos.length)} video</span>
         </div>
         <div class="deep-kpi-card">
           <span class="deep-kpi-label">TRUNG BÌNH / VIDEO</span>
           <strong class="deep-kpi-val">${formatNumber(avgViewsPerVideo)}</strong>
           <span class="deep-kpi-sub">Views trung bình mỗi video</span>
+        </div>
+        <div class="deep-kpi-card deep-kpi-gold">
+          <span class="deep-kpi-label">TỔNG DOANH THU (T1–T12)</span>
+          <strong class="deep-kpi-val" id="deep-kpi-rev-${escapeHtml(ch.id)}">${formatRevenueAmount(totalYearlyRevenue)}</strong>
+          <span class="deep-kpi-sub" id="deep-kpi-rev-sub-${escapeHtml(ch.id)}">Đã nhập ${activeRevMonths}/12 tháng</span>
         </div>
       </div>
 
@@ -1359,20 +1453,67 @@ function renderSingleChannelDeepView(ch, boardEl) {
         </label>
       </div>
 
+      <!-- BẢNG DOANH THU TỪ THÁNG 1 ĐẾN THÁNG 12 (NHẬP & CỘNG TỔNG TỰ ĐỘNG) -->
+      <div class="insights-card monthly-revenue-card">
+        <div class="insights-card-header">
+          <div>
+            <h3 class="insights-card-title">💰 Bảng Doanh Thu Kênh Từ Tháng 1 Đến Tháng 12 — "${escapeHtml(ch.name)}"</h3>
+            <p class="insights-card-sub">Nhập doanh thu từng tháng (Tháng 1 → Tháng 12) — hệ thống tự động cộng tổng ngay khi nhập và lưu lại</p>
+          </div>
+          <div class="monthly-rev-header-actions num">
+            <div class="monthly-rev-total-pill">
+              <span>Tổng cộng (T1–T12):</span>
+              <strong id="deep-revenue-total-${escapeHtml(ch.id)}">${formatRevenueAmount(totalYearlyRevenue)}</strong>
+            </div>
+            <button
+              type="button"
+              class="btn btn-primary btn-xs"
+              data-save-monthly-revenue="${escapeHtml(ch.id)}"
+            >💾 Lưu doanh thu</button>
+          </div>
+        </div>
+
+        <div class="monthly-revenue-grid" data-monthly-rev-grid="${escapeHtml(ch.id)}">
+          ${monthlyCellsHtml}
+        </div>
+
+        <div class="monthly-rev-summary-bar num">
+          <div class="monthly-rev-summary-left">
+            <span>📊 Trạng thái:</span>
+            <strong id="deep-revenue-months-count-${escapeHtml(ch.id)}">Đã có doanh thu ${activeRevMonths}/12 tháng · Trung bình: ${formatRevenueAmount(avgMonthlyRevenue)} / tháng</strong>
+          </div>
+          <div class="monthly-rev-summary-right">
+            <span>∑ TỔNG DOANH THU CẢ NĂM (THÁNG 1 → THÁNG 12):</span>
+            <strong class="monthly-rev-grand-total" id="deep-revenue-footer-sum-${escapeHtml(ch.id)}">${formatRevenueAmount(totalYearlyRevenue)}</strong>
+          </div>
+        </div>
+      </div>
+
       <!-- DANH SÁCH TOÀN BỘ VIDEO ĐÃ QUÉT CỦA KÊNH -->
       <div class="insights-card">
         <div class="insights-card-header">
           <div>
-            <h3 class="insights-card-title">🎬 Danh sách toàn bộ Video của kênh "${escapeHtml(ch.name)}" (${formatNumber(sortedVideos.length)} video)</h3>
-            <p class="insights-card-sub">So sánh hiệu suất từng video với mức trung bình kênh (${formatNumber(avgViewsPerVideo)} views/video)</p>
+            <h3 class="insights-card-title">🎬 Danh sách toàn bộ Video của kênh "${escapeHtml(ch.name)}" (${formatNumber(sortedVideos.length)} / ${formatNumber(allChannelVideos.length)} video)</h3>
+            <p class="insights-card-sub">Liệt kê toàn bộ video trên kênh · Trung bình kênh: <strong>${formatNumber(avgViewsPerVideo)} views/video</strong> · Tổng lượt xem video: <strong>${formatNumber(sumVideoViews)} views</strong></p>
           </div>
-          <div class="insights-mode-tabs">
-            <button type="button" class="insights-tab-btn ${sortMode === 'views' ? 'active' : ''}" data-set-deep-video-sort="views">Views cao nhất</button>
-            <button type="button" class="insights-tab-btn ${sortMode === 'outlier' ? 'active' : ''}" data-set-deep-video-sort="outlier">Độ nổ (xTB kênh)</button>
-            <button type="button" class="insights-tab-btn ${sortMode === 'date' ? 'active' : ''}" data-set-deep-video-sort="date">Mới đăng nhất</button>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <input
+              type="search"
+              id="input-deep-video-search"
+              class="input-control quick-search-input"
+              style="padding:4px 10px;font-size:0.76rem;width:210px;"
+              placeholder="🔍 Tìm trong ${allChannelVideos.length} video..."
+              value="${escapeHtml(state.deepChannelVideoSearch || '')}"
+            />
+            <div class="insights-mode-tabs">
+              <button type="button" class="insights-tab-btn ${sortMode === 'views' ? 'active' : ''}" data-set-deep-video-sort="views">Views cao nhất</button>
+              <button type="button" class="insights-tab-btn ${sortMode === 'outlier' ? 'active' : ''}" data-set-deep-video-sort="outlier">Độ nổ (xTB kênh)</button>
+              <button type="button" class="insights-tab-btn ${sortMode === 'date' ? 'active' : ''}" data-set-deep-video-sort="date">Mới đăng nhất</button>
+              <button type="button" class="insights-tab-btn ${sortMode === 'oldest' ? 'active' : ''}" data-set-deep-video-sort="oldest">Cũ nhất</button>
+            </div>
           </div>
         </div>
-        <div class="channel-top-videos-list">
+        <div class="channel-top-videos-list deep-all-videos-list">
           ${videosListHtml}
         </div>
       </div>
@@ -2548,12 +2689,93 @@ function setupEventListeners() {
       return;
     }
 
+    // Lưu bảng doanh thu 12 tháng khi bấm nút Lưu doanh thu
+    const saveRevBtn = e.target.closest('[data-save-monthly-revenue]');
+    if (saveRevBtn) {
+      const chId = saveRevBtn.dataset.saveMonthlyRevenue;
+      await saveChannelMonthlyRevenueFromDom(chId);
+      return;
+    }
+
     // Chọn nội dung trong Content Vault
     const selectContentCard = e.target.closest('[data-select-content]');
     if (selectContentCard) {
       state.selectedContentId = selectContentCard.dataset.selectContent;
       renderContentsTab();
       return;
+    }
+  });
+
+  function readChannelMonthlyRevenueFromDom(chId) {
+    const grid = document.querySelector(`[data-monthly-rev-grid="${CSS.escape(chId)}"]`);
+    const monthlyRevenue = {};
+    let total = 0;
+    let activeMonths = 0;
+    for (let m = 1; m <= 12; m += 1) {
+      const inputEl = grid?.querySelector(`[data-rev-month="${m}"]`);
+      const rawVal = inputEl ? parseFloat(String(inputEl.value || '0').replace(/,/g, '')) : 0;
+      const cleanVal = Number.isFinite(rawVal) && rawVal >= 0 ? Math.round(rawVal * 100) / 100 : 0;
+      monthlyRevenue[String(m)] = cleanVal;
+      total += cleanVal;
+      if (cleanVal > 0) activeMonths += 1;
+      inputEl?.closest('.monthly-rev-cell')?.classList.toggle('has-rev', cleanVal > 0);
+    }
+    total = Math.round(total * 100) / 100;
+    const avg = activeMonths > 0 ? Math.round((total / activeMonths) * 100) / 100 : 0;
+
+    const totalEl = document.getElementById(`deep-revenue-total-${chId}`);
+    const footerSumEl = document.getElementById(`deep-revenue-footer-sum-${chId}`);
+    const monthsCountEl = document.getElementById(`deep-revenue-months-count-${chId}`);
+    const kpiRevEl = document.getElementById(`deep-kpi-rev-${chId}`);
+    const kpiRevSubEl = document.getElementById(`deep-kpi-rev-sub-${chId}`);
+
+    if (totalEl) totalEl.textContent = formatRevenueAmount(total);
+    if (footerSumEl) footerSumEl.textContent = formatRevenueAmount(total);
+    if (monthsCountEl) {
+      monthsCountEl.textContent = `Đã có doanh thu ${activeMonths}/12 tháng · Trung bình: ${formatRevenueAmount(avg)} / tháng`;
+    }
+    if (kpiRevEl) kpiRevEl.textContent = formatRevenueAmount(total);
+    if (kpiRevSubEl) kpiRevSubEl.textContent = `Đã nhập ${activeMonths}/12 tháng`;
+
+    return { monthlyRevenue, total, activeMonths };
+  }
+
+  async function saveChannelMonthlyRevenueFromDom(chId) {
+    const { monthlyRevenue, total } = readChannelMonthlyRevenueFromDom(chId);
+    try {
+      const updated = await apiRequest(`/api/youtube/channels/${encodeURIComponent(chId)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ monthlyRevenue }),
+      });
+      const localCh = state.channels.find((c) => c.id === chId);
+      if (localCh) {
+        localCh.monthlyRevenue = updated.monthlyRevenue || monthlyRevenue;
+        localCh.totalYearlyRevenue = updated.totalYearlyRevenue ?? total;
+      }
+      showBanner(`Đã lưu bảng doanh thu kênh "${updated.name}" — Tổng cộng 12 tháng: ${formatRevenueAmount(total)}!`);
+    } catch (err) {
+      showBanner(err.message, true);
+    }
+  }
+
+  // Tự động cộng tổng ngay tức thì khi gõ vào bất kỳ ô Tháng 1 -> Tháng 12 nào & lọc tìm kiếm video trong kênh
+  document.body.addEventListener('input', (e) => {
+    const revInput = e.target.closest('[data-channel-rev-id]');
+    if (revInput) {
+      const chId = revInput.dataset.channelRevId;
+      readChannelMonthlyRevenueFromDom(chId);
+      return;
+    }
+
+    if (e.target.id === 'input-deep-video-search') {
+      state.deepChannelVideoSearch = e.target.value;
+      const pos = e.target.selectionStart || e.target.value.length;
+      renderYoutubeTab();
+      const nextInput = document.getElementById('input-deep-video-search');
+      if (nextInput) {
+        nextInput.focus();
+        nextInput.setSelectionRange(pos, pos);
+      }
     }
   });
 
@@ -2700,6 +2922,13 @@ function setupEventListeners() {
       } catch (err) {
         showBanner(err.message, true);
       }
+      return;
+    }
+
+    const revChangeInput = e.target.closest('[data-channel-rev-id]');
+    if (revChangeInput) {
+      const chId = revChangeInput.dataset.channelRevId;
+      await saveChannelMonthlyRevenueFromDom(chId);
     }
   });
 
@@ -3164,7 +3393,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=21', { updateViaCache: 'none' })
+      .register('/sw.js?v=22', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
