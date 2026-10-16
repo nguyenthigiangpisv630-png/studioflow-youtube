@@ -1,0 +1,18 @@
+{
+  "name": "StudioFlow — YouTube CRM, Dự Án & Kho Nội Dung",
+  "short_name": "StudioFlow",
+  "description": "Ứng dụng quản lý Sales CRM, Dự án sản xuất, Kho lưu trữ nội dung và Theo dõi lượt xem YouTube hằng ngày.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

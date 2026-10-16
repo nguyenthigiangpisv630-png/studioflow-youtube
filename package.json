@@ -1,0 +1,10 @@
+{
+  "name": "studioflow-youtube-crm-pm",
+  "version": "1.0.0",
+  "description": "CRM (Sales), Project Management, Content Vault & YouTube Daily Analytics (Web & Mobile App PWA)",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test tests/*.test.js"
+  }
+}

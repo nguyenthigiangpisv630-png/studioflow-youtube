@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#F3F5F8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>StudioFlow — Quản Lý Kênh YouTube &amp; Kho Nội Dung (Mệnh Kim)</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=3" />
+</head>
+<body>
+  <div id="platform-wrapper" class="platform-wrapper mode-web">
+    <div class="app-shell">
+      <!-- THANH ĐIỀU HƯỚNG TỐI GIẢN HỢP NHẤT (SINGLE MINIMALIST HEADER — MỆNH KIM) -->
+      <header class="topbar">
+        <div class="topbar-brand-nav">
+          <div class="brand-block">
+            <div class="brand-logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="4" />
+                <polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none" />
+              </svg>
+            </div>
+            <div class="brand-text">
+              <span class="brand-name">StudioFlow</span>
+              <span class="brand-sub">Mệnh Kim · Bạch Kim &amp; Hoàng Kim</span>
+            </div>
+          </div>
+
+          <nav class="top-nav" id="side-nav" aria-label="Điều hướng chính">
+            <button type="button" class="nav-btn active" data-tab="youtube">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <span>Quản lý Kênh YouTube</span>
+              <span class="nav-count" id="nav-count-youtube">0</span>
+            </button>
+
+            <button type="button" class="nav-btn" data-tab="contents">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              <span>Nơi lưu nội dung</span>
+              <span class="nav-count" id="nav-count-contents">0</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- CHỈ SỐ TỔNG HỢP GỌN TRÊN THANH NGANG & CHUYỂN ĐỔI WEB/APP -->
+        <div class="topbar-right">
+          <div class="mini-kpi-bar" aria-label="Chỉ số tổng hợp">
+            <div class="mini-kpi">
+              <span class="mini-kpi-label">Kênh</span>
+              <strong class="mini-kpi-val num" id="stat-channels-total">0</strong>
+              <span class="mini-kpi-sub num" id="stat-channels-sub">0 BKT</span>
+            </div>
+            <div class="mini-kpi">
+              <span class="mini-kpi-label">Tổng Sub</span>
+              <strong class="mini-kpi-val num" id="stat-subscribers-total">0</strong>
+            </div>
+            <div class="mini-kpi">
+              <span class="mini-kpi-label">Tổng Views</span>
+              <strong class="mini-kpi-val num" id="stat-yt-views">0</strong>
+              <span class="mini-kpi-delta num" id="stat-yt-delta">+0 hôm nay</span>
+            </div>
+            <div class="mini-kpi">
+              <span class="mini-kpi-label">Nội dung</span>
+              <strong class="mini-kpi-val num" id="stat-contents-total">0</strong>
+            </div>
+          </div>
+
+          <div class="viewport-switcher" role="group" aria-label="Chế độ hiển thị Web hoặc Mobile App">
+            <button type="button" class="switch-btn active" id="btn-view-web" title="Giao diện Web">Web</button>
+            <button type="button" class="switch-btn" id="btn-view-app" title="Giao diện Mobile App">App</button>
+          </div>
+
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-install-pwa" hidden>Cài App</button>
+        </div>
+      </header>
+
+      <!-- THÔNG BÁO TRẠNG THÁI NHANH -->
+      <div id="status-banner" class="status-banner" role="status" aria-live="polite" hidden></div>
+
+      <!-- KHÔNG GIAN LÀM VIỆC CHÍNH TỐI GIẢN, TOÀN MÀN HÌNH -->
+      <main class="main-content">
+        <!-- =============================================================== -->
+        <!-- PHÂN HỆ 1: QUẢN LÝ KÊNH YOUTUBE (HÀNG NGANG TỐI GIẢN & ĐẦY ĐỦ TÍNH NĂNG) -->
+        <!-- =============================================================== -->
+        <section class="tab-panel active" id="panel-youtube">
+          <!-- THANH NHẬP KÊNH TỰ ĐỘNG 1 DÒNG + TÌM KIẾM + ĐỒNG BỘ -->
+          <div class="minimal-command-bar">
+            <form id="form-create-channel" class="quick-channel-form">
+              <input
+                type="text"
+                name="channelUrl"
+                id="channel-input-url"
+                class="input-control quick-url-input"
+                placeholder="Dán đường dẫn Kênh YouTube (URL) hoặc @Handle vào đây (VD: https://www.youtube.com/@TinyWrist)..."
+                required
+              />
+              <button type="submit" class="btn btn-primary" id="btn-submit-channel">
+                Lưu &amp; Tự chạy thông tin
+              </button>
+            </form>
+
+            <div class="quick-filter-cluster">
+              <input
+                type="search"
+                id="yt-search"
+                class="input-control quick-search-input"
+                placeholder="Tìm kênh, @handle, group, quản lý..."
+              />
+              <!-- Ô CỬA SỔ TRỎ XUỐNG LỌC THEO GROUP (NHÓM KÊNH) -->
+              <div id="yt-group-dropdown" class="cat-dropdown"></div>
+              <!-- Ô CỬA SỔ TRỎ XUỐNG LỌC THEO DANH MỤC (MỖI DANH MỤC 1 MÀU RIÊNG) -->
+              <div id="yt-category-dropdown" class="cat-dropdown"></div>
+              <select id="yt-channel-filter" class="select-control" aria-label="Lọc theo kênh YouTube">
+                <option value="all">Tất cả kênh</option>
+              </select>
+              <button type="button" class="btn btn-secondary" id="btn-yt-sync-all" title="Cập nhật lượt xem hằng ngày cho toàn bộ hệ thống">
+                Đồng bộ Views hôm nay
+              </button>
+            </div>
+            <datalist id="yt-groups-datalist"></datalist>
+          </div>
+
+          <!-- BẢNG KÊNH HÀNG NGANG TỐI GIẢN -->
+          <div id="yt-channels-board" class="channels-grid"></div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- PHÂN HỆ 2: NƠI LƯU NỘI DUNG (CONTENT VAULT TỐI GIẢN & ĐẦY ĐỦ) -->
+        <!-- =============================================================== -->
+        <section class="tab-panel" id="panel-contents">
+          <div class="toolbar-row">
+            <div class="filter-group">
+              <input type="search" id="content-search" class="input-control" placeholder="Tìm kịch bản, từ khóa SEO, thẻ tag, tác giả..." />
+              <select id="content-type-filter" class="select-control" aria-label="Lọc theo loại nội dung">
+                <option value="all">Tất cả loại nội dung</option>
+                <option value="script">Kịch bản (Script)</option>
+                <option value="outline">Dàn ý (Outline)</option>
+                <option value="seo">Từ khóa &amp; Mô tả SEO</option>
+                <option value="footage">Kho Footage / Media</option>
+                <option value="thumbnail">Thiết kế Thumbnail</option>
+                <option value="brand_brief">Brief Nhãn hàng</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <button type="button" class="btn btn-secondary" id="btn-toggle-notion-config">
+                <span id="notion-status-indicator">○</span> Cấu hình tự động lưu Notion
+              </button>
+              <button type="button" class="btn btn-primary" id="btn-toggle-content-form">
+                + Lưu nội dung / Kịch bản mới
+              </button>
+            </div>
+          </div>
+
+          <!-- FORM CẤU HÌNH TỰ ĐỘNG ĐỒNG BỘ SANG FILE NOTION -->
+          <form id="form-notion-config" class="inline-drawer" hidden>
+            <div class="drawer-header">
+              <h3>Cấu hình tự động cập nhật sang File Notion khi lưu nội dung</h3>
+              <button type="button" class="btn-close-drawer" id="btn-cancel-notion-config">Đóng</button>
+            </div>
+            <div class="form-grid">
+              <label class="field span-2">
+                <span>1. Mã Notion Integration Token (`ntn_...` hoặc `secret_...`) *</span>
+                <input
+                  type="password"
+                  name="notionToken"
+                  id="input-notion-token"
+                  placeholder="Dán mã Internal Integration Secret từ https://www.notion.so/profile/integrations..."
+                />
+              </label>
+              <label class="field span-2">
+                <span>2. Đường dẫn (Link) File / Trang Notion đích *</span>
+                <input
+                  type="url"
+                  name="notionPageUrl"
+                  id="input-notion-page-url"
+                  required
+                  placeholder="VD: https://www.notion.so/Kho-Kich-Ban-YouTube-1234567890abcdef1234567890abcdef"
+                />
+              </label>
+            </div>
+            <p class="panel-desc" style="margin: 8px 0 12px;">
+              💡 Lưu ý: Trên trang Notion đó, anh bấm nút <strong>⋯ (góc phải trên) → Connections (Kết nối)</strong> và chọn tên Integration của anh để cấp quyền ghi tự động.
+            </p>
+            <div class="drawer-footer">
+              <button type="submit" class="btn btn-primary">Lưu kết nối Notion tự động</button>
+            </div>
+          </form>
+
+          <!-- FORM TẠO NỘI DUNG LƯU TRỮ -->
+          <form id="form-create-content" class="inline-drawer" hidden>
+            <div class="drawer-header">
+              <h3>Lưu kịch bản, bộ SEO hoặc đường dẫn tài nguyên mới</h3>
+              <button type="button" class="btn-close-drawer" id="btn-cancel-content">Đóng</button>
+            </div>
+            <div class="form-grid">
+              <label class="field span-2">
+                <span>Tiêu đề nội dung lưu trữ *</span>
+                <input type="text" name="title" required placeholder="VD: Kịch bản chi tiết Tập 5..." />
+              </label>
+              <label class="field">
+                <span>Phân loại</span>
+                <select name="type">
+                  <option value="script" selected>Kịch bản (Script)</option>
+                  <option value="outline">Dàn ý (Outline)</option>
+                  <option value="seo">Từ khóa &amp; Mô tả SEO</option>
+                  <option value="footage">Kho Footage / Media</option>
+                  <option value="thumbnail">Thiết kế Thumbnail</option>
+                  <option value="brand_brief">Brief Nhãn hàng</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Tác giả / Người tải lên</span>
+                <input type="text" name="author" value="Minh Đức" />
+              </label>
+              <label class="field span-2">
+                <span>Đường dẫn File gốc / Google Drive / Frame.io</span>
+                <input type="url" name="assetUrl" placeholder="https://drive.google.com/..." />
+              </label>
+              <label class="field">
+                <span>Thẻ phân loại (Tags)</span>
+                <input type="text" name="tags" placeholder="Kịch bản, SEO, 4K" />
+              </label>
+              <label class="field">
+                <span>Trạng thái duyệt</span>
+                <select name="status">
+                  <option value="draft">Bản nháp</option>
+                  <option value="review">Chờ duyệt</option>
+                  <option value="approved" selected>Đã duyệt</option>
+                </select>
+              </label>
+              <label class="field span-full">
+                <span>Nội dung chi tiết (Kịch bản toàn văn, Dàn ý, Từ khóa SEO...) *</span>
+                <textarea name="body" rows="5" required placeholder="Nhập nội dung kịch bản, lời thoại hoặc danh sách file tại đây..."></textarea>
+              </label>
+            </div>
+            <div class="drawer-footer">
+              <button type="submit" class="btn btn-primary">Lưu vào Kho nội dung</button>
+            </div>
+          </form>
+
+          <!-- KHÔNG GIAN 2 CỘT: DANH MỤC NỘI DUNG & TRÌNH SOẠN THẢO -->
+          <div class="content-vault-split">
+            <div class="vault-list" id="vault-list"></div>
+            <div class="vault-reader panel-box" id="vault-reader"></div>
+          </div>
+        </section>
+      </main>
+
+      <!-- THANH ĐIỀU HƯỚNG ĐÁY CHO MOBILE APP -->
+      <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Điều hướng ứng dụng di động">
+        <button type="button" class="m-nav-btn active" data-tab="youtube">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          <span>Quản lý YouTube</span>
+        </button>
+        <button type="button" class="m-nav-btn" data-tab="contents">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <span>Nơi lưu nội dung</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <script type="module" src="/app.js?v=3"></script>
+</body>
+</html>
