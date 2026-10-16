@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastDailySyncDate": "2026-10-17",
-    "lastDailySyncAt": "2026-10-16T18:36:37.598Z",
+    "lastDailySyncAt": "2026-10-16T18:38:23.139Z",
     "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b"
   },
   "channels": [
@@ -21,7 +21,7 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-16T18:36:37.310Z",
+      "updatedAt": "2026-10-16T18:38:19.108Z",
       "group": "KÊNH ÂM THỰC",
       "watchHours": 0,
       "realtimeViews48h": 0,
@@ -73,7 +73,7 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-16T18:36:37.590Z",
+      "updatedAt": "2026-10-16T18:38:23.133Z",
       "totalViews": 34601,
       "watchHours": 2200,
       "group": "",

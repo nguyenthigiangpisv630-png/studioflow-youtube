@@ -1097,9 +1097,9 @@ function renderYoutubeChannelsBoard() {
       return `
         <article class="channel-row" data-channel-row-id="${escapeHtml(ch.id)}">
           <div class="channel-col-identity">
-            <!-- Hàng 1: Tên Kênh + @Handle + Nút Đồng bộ, ⚡ Studio sâu & Xóa ngay gần tên kênh + Group -->
-            <div class="channel-title-line">
-              <strong class="channel-name-text">${escapeHtml(ch.name)}</strong>
+            <!-- Dòng 1 duy nhất: Tên Kênh + @Handle + Đồng bộ/Xóa + Group + BKT + Ngách + SUB + VIEWS + VIDEO + Ngày đầu + Quản lý -->
+            <div class="channel-single-line num">
+              <strong class="channel-name-text" title="${escapeHtml(ch.name)}">${escapeHtml(ch.name)}</strong>
               ${
                 ch.channelUrl
                   ? `<a href="${escapeHtml(ch.channelUrl)}" target="_blank" rel="noopener" class="channel-handle-link">${escapeHtml(
@@ -1132,13 +1132,10 @@ function renderYoutubeChannelsBoard() {
                   class="inline-group-input"
                   data-channel-group="${escapeHtml(ch.id)}"
                   value="${escapeHtml(chGroup)}"
-                  placeholder="Chọn / nhập Group..."
+                  placeholder="Chọn Group..."
                 />
               </label>
-            </div>
 
-            <!-- Hàng 2 dưới tên kênh: Chọn BKT + Ngách tự lọc + SUB, TỔNG VIEWS & VIDEO -->
-            <div class="channel-metrics-under-title num">
               <select
                 class="bkt-pill-select bkt-status-${escapeHtml(ch.status || 'monetized')}"
                 data-channel-bkt-select="${escapeHtml(ch.id)}"
@@ -1176,12 +1173,9 @@ function renderYoutubeChannelsBoard() {
                 <strong class="hero-stat-num">${formatNumber(videoCount)}</strong>
                 <span class="hero-stat-label">VIDEO</span>
               </div>
-            </div>
 
-            <!-- Hàng 3: Ngày đầu đăng video & Người / Mail quản lý (tự nhập) -->
-            <div class="channel-extra-meta-row">
-              <label class="inline-meta-field">
-                <span class="inline-meta-label">Ngày đầu đăng video:</span>
+              <label class="inline-meta-field" title="Ngày đầu đăng video">
+                <span class="inline-meta-label">Ngày đầu:</span>
                 <input
                   type="date"
                   class="inline-meta-input num"
@@ -1190,24 +1184,21 @@ function renderYoutubeChannelsBoard() {
                 />
               </label>
 
-              <label class="inline-meta-field inline-meta-mail">
-                <span class="inline-meta-label">Người / Mail quản lý:</span>
+              <label class="inline-meta-field inline-meta-mail" title="Người / Mail quản lý kênh">
+                <span class="inline-meta-label">Quản lý:</span>
                 <input
                   type="text"
                   class="inline-meta-input"
                   data-channel-manager-mail="${escapeHtml(ch.id)}"
                   value="${escapeHtml(managerMailValue)}"
-                  placeholder="Nhập tên hoặc Gmail quản lý kênh..."
+                  placeholder="Tên / Gmail..."
                 />
               </label>
             </div>
 
-            <!-- Hàng 4: Top 3 Video Có Lượng View Cao Nhất (Tự động quét khi Cập nhật / Đồng bộ kênh) -->
+            <!-- Thanh Top 3 Video Nhiều View Nhất trên 1 hàng ngang gọn gàng -->
             <div class="channel-top-videos-box">
-              <div class="channel-top-videos-header">
-                <span class="top-videos-badge">🏆 TOP 3 VIDEO NHIỀU VIEW NHẤT</span>
-                <span class="top-videos-sub">Đã quét ${formatNumber(chVideos.length || top3Videos.length)} video trên kênh</span>
-              </div>
+              <span class="top-videos-badge" title="Đã quét ${formatNumber(chVideos.length || top3Videos.length)} video trên kênh">🏆 Top 3 View:</span>
               ${
                 top3Videos.length > 0
                   ? `<div class="channel-top-videos-list">
@@ -1217,14 +1208,12 @@ function renderYoutubeChannelsBoard() {
                           const vUrl = v.youtubeVideoId
                             ? `https://www.youtube.com/watch?v=${encodeURIComponent(v.youtubeVideoId)}`
                             : ch.channelUrl || '#';
-                          const vDate = v.publishedAt ? `<span class="top-video-date num">${escapeHtml(v.publishedAt)}</span>` : '';
                           return `
                             <div class="top-video-item top-video-rank-${idx + 1}">
                               <span class="top-video-rank num">#${idx + 1}</span>
                               <a href="${escapeHtml(vUrl)}" target="_blank" rel="noopener" class="top-video-title" title="${escapeHtml(v.title)}">
                                 ${escapeHtml(v.title)} ↗
                               </a>
-                              ${vDate}
                               <span class="top-video-views num">${formatNumber(vViews)} views</span>
                             </div>
                           `;
@@ -2007,7 +1996,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=10', { updateViaCache: 'none' })
+      .register('/sw.js?v=11', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
