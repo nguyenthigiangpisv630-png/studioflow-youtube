@@ -1196,9 +1196,12 @@ function renderYoutubeChannelsBoard() {
               </label>
             </div>
 
-            <!-- Thanh Top 3 Video Nhiều View Nhất trên 1 hàng ngang gọn gàng -->
+            <!-- Top 3 Video Có Lượng View Cao Nhất (Kiểu cũ: dọc từng dòng rõ ràng) -->
             <div class="channel-top-videos-box">
-              <span class="top-videos-badge" title="Đã quét ${formatNumber(chVideos.length || top3Videos.length)} video trên kênh">🏆 Top 3 View:</span>
+              <div class="channel-top-videos-header">
+                <span class="top-videos-badge">🏆 TOP 3 VIDEO NHIỀU VIEW NHẤT</span>
+                <span class="top-videos-sub">Đã quét ${formatNumber(chVideos.length || top3Videos.length)} video trên kênh</span>
+              </div>
               ${
                 top3Videos.length > 0
                   ? `<div class="channel-top-videos-list">
@@ -1208,12 +1211,14 @@ function renderYoutubeChannelsBoard() {
                           const vUrl = v.youtubeVideoId
                             ? `https://www.youtube.com/watch?v=${encodeURIComponent(v.youtubeVideoId)}`
                             : ch.channelUrl || '#';
+                          const vDate = v.publishedAt ? `<span class="top-video-date num">${escapeHtml(v.publishedAt)}</span>` : '';
                           return `
                             <div class="top-video-item top-video-rank-${idx + 1}">
                               <span class="top-video-rank num">#${idx + 1}</span>
                               <a href="${escapeHtml(vUrl)}" target="_blank" rel="noopener" class="top-video-title" title="${escapeHtml(v.title)}">
                                 ${escapeHtml(v.title)} ↗
                               </a>
+                              ${vDate}
                               <span class="top-video-views num">${formatNumber(vViews)} views</span>
                             </div>
                           `;
@@ -1996,7 +2001,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=11', { updateViaCache: 'none' })
+      .register('/sw.js?v=12', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
