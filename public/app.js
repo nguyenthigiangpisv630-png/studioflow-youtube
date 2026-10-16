@@ -1487,7 +1487,7 @@ function renderYoutubeChannelsBoard() {
 
   const headerHtml = `
     <div class="channel-row-header">
-      <div>${escapeHtml(folderTitle)} — Bấm nút <strong>"🔍 Quản lý sâu"</strong> hoặc bấm vào Tên Kênh để mở hồ sơ &amp; toàn bộ video của riêng kênh đó</div>
+      <div>${escapeHtml(folderTitle)}</div>
     </div>
   `;
 
@@ -1524,13 +1524,13 @@ function renderYoutubeChannelsBoard() {
       return `
         <article class="channel-row" data-channel-row-id="${escapeHtml(ch.id)}">
           <div class="channel-col-identity">
-            <!-- Dòng 1 duy nhất: Tên Kênh + @Handle + Quản lý sâu/Đồng bộ/Xóa + Group + BKT + Ngách + SUB + VIEWS + VIDEO + Ngày đầu + Quản lý + Gà kết nối -->
+            <!-- Dòng 1 duy nhất: Tên Kênh + @Handle + Đồng bộ/Xóa + Group + BKT + Ngách + SUB + VIEWS + VIDEO + Ngày đầu + Quản lý + Gà kết nối -->
             <div class="channel-single-line num">
               <button
                 type="button"
                 class="channel-name-btn"
                 data-open-channel-deep="${escapeHtml(ch.id)}"
-                title="Bấm để mở thư mục Quản lý sâu kênh ${escapeHtml(ch.name)}"
+                title="Bấm để mở thư mục chi tiết kênh ${escapeHtml(ch.name)}"
               >
                 <strong class="channel-name-text">${escapeHtml(ch.name)}</strong>
               </button>
@@ -1543,12 +1543,6 @@ function renderYoutubeChannelsBoard() {
               }
 
               <div class="channel-inline-actions">
-                <button
-                  type="button"
-                  class="btn btn-primary btn-xs"
-                  data-open-channel-deep="${escapeHtml(ch.id)}"
-                  title="Đi vào thư mục chi tiết của riêng kênh này để quản lý sâu hơn"
-                >🔍 Quản lý sâu</button>
                 <button
                   type="button"
                   class="btn btn-secondary btn-xs"
@@ -3170,7 +3164,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=20', { updateViaCache: 'none' })
+      .register('/sw.js?v=21', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
