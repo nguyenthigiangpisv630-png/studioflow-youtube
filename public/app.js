@@ -21,7 +21,12 @@ const state = {
     ytChannel: 'all',
     ytCategory: 'all',
     ytGroup: 'all',
+    ytManager: 'all',
   },
+  insightsLabelMode: 'group', // 'group' | 'category' | 'manager'
+  insightsVideoSort: 'views', // 'views' | 'outlier'
+  insightsShowAllVideos: false,
+  insightsCollapsed: false,
 };
 
 const STAGE_META = {
@@ -1028,6 +1033,7 @@ function renderYoutubeChannelsBoard() {
   const channelFilter = state.filters.ytChannel || 'all';
   const categoryFilter = state.filters.ytCategory || 'all';
   const groupFilter = state.filters.ytGroup || 'all';
+  const managerFilter = state.filters.ytManager || 'all';
 
   const filteredChannels = state.channels.filter((ch) => {
     if (channelFilter !== 'all' && ch.id !== channelFilter) return false;
@@ -1036,6 +1042,9 @@ function renderYoutubeChannelsBoard() {
     const chGroup = (ch.group || '').trim();
     if (groupFilter === '__none__' && chGroup !== '') return false;
     if (groupFilter !== 'all' && groupFilter !== '__none__' && chGroup !== groupFilter) return false;
+    const chMgr = (ch.managerEmail || ch.manager || '').trim();
+    if (managerFilter === '__none__' && chMgr !== '') return false;
+    if (managerFilter !== 'all' && managerFilter !== '__none__' && chMgr !== managerFilter) return false;
     if (!q) return true;
     return (
       (ch.name || '').toLowerCase().includes(q) ||
@@ -1049,7 +1058,7 @@ function renderYoutubeChannelsBoard() {
   });
 
   if (filteredChannels.length === 0) {
-    boardEl.innerHTML = `<p class="panel-desc" style="padding:18px;">Chưa có kênh YouTube nào khớp bộ lọc. Chọn "Tất cả Group" / "Tất cả danh mục" ở ô cửa sổ trỏ xuống phía trên để xem toàn bộ kênh.</p>`;
+    boardEl.innerHTML = `<p class="panel-desc" style="padding:18px;">Chưa có kênh YouTube nào khớp bộ lọc. Bấm nút "✕ Bỏ lọc" hoặc chọn "Tất cả Group" / "Tất cả danh mục" ở phía trên để xem toàn bộ kênh.</p>`;
     return;
   }
 
@@ -1237,9 +1246,336 @@ function renderYoutubeChannelsBoard() {
   boardEl.innerHTML = headerHtml + rowsHtml;
 }
 
+function renderYoutubeInsightsHub() {
+  const hubEl = document.getElementById('yt-insights-hub');
+  if (!hubEl) return;
+
+  if (state.channels.length === 0) {
+    hubEl.innerHTML = '';
+    return;
+  }
+
+  // 1. Tính toán Thống kê tổng hợp theo Nhãn (Group, Ngách, Quản lý) trực tiếp từ danh sách kênh + video hiện tại
+  const buildBreakdown = (getKeyFn) => {
+    const map = new Map();
+    for (const ch of state.channels) {
+      const { label, filterKey } = getKeyFn(ch);
+      const chVideos = state.videos.filter((v) => v.channelId === ch.id);
+      const sumVideoViews = chVideos.reduce((s, v) => s + (Number(v.currentViews) || 0), 0);
+      const chViews = Math.max(Number(ch.totalViews) || 0, sumVideoViews);
+      const chVideoCount = Math.max(Number(ch.totalVideos) || 0, chVideos.length);
+      const isMonetized = ch.status === 'monetized' || ch.monetization === 'enabled';
+
+      const prev = map.get(filterKey) || {
+        label,
+        filterKey,
+        channelCount: 0,
+        monetizedCount: 0,
+        totalSubscribers: 0,
+        totalViews: 0,
+        totalVideos: 0,
+      };
+      prev.channelCount += 1;
+      if (isMonetized) prev.monetizedCount += 1;
+      prev.totalSubscribers += Number(ch.subscribers) || 0;
+      prev.totalViews += chViews;
+      prev.totalVideos += chVideoCount;
+      map.set(filterKey, prev);
+    }
+    return [...map.values()].sort((a, b) => b.totalViews - a.totalViews || b.channelCount - a.channelCount);
+  };
+
+  const labelMode = state.insightsLabelMode || 'group';
+  const labelRows =
+    labelMode === 'category'
+      ? buildBreakdown((ch) => {
+          const c = String(ch.category || 'Giải trí & Nội dung số').trim();
+          return { label: c, filterKey: c };
+        })
+      : labelMode === 'manager'
+      ? buildBreakdown((ch) => {
+          const m = String(ch.managerEmail || ch.manager || '').trim();
+          return m ? { label: m, filterKey: m } : { label: 'Chưa phân công', filterKey: '__none__' };
+        })
+      : buildBreakdown((ch) => {
+          const g = String(ch.group || '').trim();
+          return g ? { label: g, filterKey: g } : { label: 'Chưa gắn Group', filterKey: '__none__' };
+        });
+
+  const grandTotalViews = Math.max(
+    labelRows.reduce((s, r) => s + r.totalViews, 0),
+    1
+  );
+
+  const activeFilterValue =
+    labelMode === 'category'
+      ? state.filters.ytCategory
+      : labelMode === 'manager'
+      ? state.filters.ytManager
+      : state.filters.ytGroup;
+
+  const hasAnyActiveFilter =
+    (state.filters.ytGroup && state.filters.ytGroup !== 'all') ||
+    (state.filters.ytCategory && state.filters.ytCategory !== 'all') ||
+    (state.filters.ytManager && state.filters.ytManager !== 'all') ||
+    (state.filters.ytChannel && state.filters.ytChannel !== 'all') ||
+    Boolean((state.filters.ytSearch || '').trim());
+
+  const labelRowsHtml = labelRows
+    .map((row) => {
+      const sharePct = Math.round((row.totalViews / grandTotalViews) * 100);
+      const isSelected = activeFilterValue === row.filterKey && activeFilterValue !== 'all';
+      const colorClass =
+        row.filterKey === '__none__' ? '' : getCategoryColorClass(row.label);
+      return `
+        <button
+          type="button"
+          class="label-stat-row ${isSelected ? 'active' : ''}"
+          data-filter-label-mode="${escapeHtml(labelMode)}"
+          data-filter-label-key="${escapeHtml(row.filterKey)}"
+          title="Bấm để lọc riêng các kênh thuộc nhãn: ${escapeHtml(row.label)}"
+        >
+          <div class="label-stat-main">
+            <span class="niche-chip ${colorClass} label-stat-chip">
+              <span class="cat-dot"></span>
+              <span>${escapeHtml(row.label)}</span>
+            </span>
+            <span class="label-stat-meta num">${row.channelCount} kênh · ${row.monetizedCount} BKT</span>
+          </div>
+          <div class="label-stat-metrics num">
+            <span class="label-stat-pill"><strong>${formatNumber(row.totalSubscribers)}</strong> SUB</span>
+            <span class="label-stat-pill"><strong>${formatNumber(row.totalVideos)}</strong> VIDEO</span>
+            <span class="label-stat-pill label-stat-pill-views">
+              <strong>${formatNumber(row.totalViews)}</strong> VIEWS
+              <small>(${sharePct}%)</small>
+            </span>
+          </div>
+          <div class="label-stat-bar-track" aria-hidden="true">
+            <div class="label-stat-bar-fill" style="width:${Math.max(sharePct, 3)}%"></div>
+          </div>
+        </button>
+      `;
+    })
+    .join('');
+
+  // 2. Bảng tổng hợp "Video Nổ View" của cả dàn kênh (tự động lọc theo Nhãn/Kênh nếu đang chọn)
+  const channelMap = new Map(state.channels.map((c) => [c.id, c]));
+  const channelAvgMap = new Map();
+  for (const ch of state.channels) {
+    const vids = state.videos.filter((v) => v.channelId === ch.id);
+    if (vids.length > 0) {
+      const sumV = vids.reduce((s, v) => s + (Number(v.currentViews) || 0), 0);
+      channelAvgMap.set(ch.id, Math.max(Math.round(sumV / vids.length), 1));
+    } else {
+      const totalV = Number(ch.totalViews) || 0;
+      const countV = Math.max(Number(ch.totalVideos) || 1, 1);
+      channelAvgMap.set(ch.id, Math.max(Math.round(totalV / countV), 1));
+    }
+  }
+
+  // Gom video từ state.videos và dự phòng từ ch.topVideos nếu kênh chưa có bản ghi rời
+  const rawVideosPool = [...state.videos];
+  const seenVideoKeys = new Set(rawVideosPool.map((v) => `${v.channelId}:${v.youtubeVideoId || v.title}`));
+  for (const ch of state.channels) {
+    for (const tv of ch.topVideos || []) {
+      const k = `${ch.id}:${tv.youtubeVideoId || tv.title}`;
+      if (!seenVideoKeys.has(k)) {
+        seenVideoKeys.add(k);
+        rawVideosPool.push({
+          ...tv,
+          channelId: ch.id,
+          currentViews: Number(tv.views ?? tv.currentViews) || 0,
+        });
+      }
+    }
+  }
+
+  const q = (state.filters.ytSearch || '').toLowerCase().trim();
+  const filteredVideos = rawVideosPool
+    .map((v) => {
+      const ch = channelMap.get(v.channelId);
+      if (!ch) return null;
+      const chCat = (ch.category || 'Giải trí & Nội dung số').trim();
+      const chGroup = (ch.group || '').trim();
+      const chMgr = (ch.managerEmail || ch.manager || '').trim();
+
+      if (state.filters.ytChannel !== 'all' && ch.id !== state.filters.ytChannel) return null;
+      if (state.filters.ytCategory !== 'all' && chCat !== state.filters.ytCategory) return null;
+      if (state.filters.ytGroup === '__none__' && chGroup !== '') return null;
+      if (
+        state.filters.ytGroup !== 'all' &&
+        state.filters.ytGroup !== '__none__' &&
+        chGroup !== state.filters.ytGroup
+      )
+        return null;
+      if (state.filters.ytManager === '__none__' && chMgr !== '') return null;
+      if (
+        state.filters.ytManager !== 'all' &&
+        state.filters.ytManager !== '__none__' &&
+        chMgr !== state.filters.ytManager
+      )
+        return null;
+      if (q) {
+        const hit =
+          (v.title || '').toLowerCase().includes(q) ||
+          (ch.name || '').toLowerCase().includes(q) ||
+          (ch.handle || '').toLowerCase().includes(q) ||
+          chGroup.toLowerCase().includes(q);
+        if (!hit) return null;
+      }
+
+      const views = Number(v.currentViews ?? v.views) || 0;
+      const avgViews = channelAvgMap.get(ch.id) || Math.max(views, 1);
+      const outlierMultiplier = Number((views / Math.max(avgViews, 1)).toFixed(1));
+      return {
+        youtubeVideoId: v.youtubeVideoId || '',
+        title: v.title || 'Video YouTube',
+        views,
+        publishedAt: v.publishedAt || '',
+        channelId: ch.id,
+        channelName: ch.name || 'Kênh YouTube',
+        channelHandle: ch.handle || '',
+        channelUrl: ch.channelUrl || '',
+        group: chGroup,
+        category: chCat,
+        outlierMultiplier,
+      };
+    })
+    .filter(Boolean);
+
+  const sortMode = state.insightsVideoSort || 'views';
+  filteredVideos.sort((a, b) =>
+    sortMode === 'outlier'
+      ? b.outlierMultiplier - a.outlierMultiplier || b.views - a.views
+      : b.views - a.views || b.outlierMultiplier - a.outlierMultiplier
+  );
+
+  const displayLimit = state.insightsShowAllVideos ? 15 : 5;
+  const topBurstVideos = filteredVideos.slice(0, displayLimit);
+
+  const burstVideosHtml =
+    topBurstVideos.length > 0
+      ? topBurstVideos
+          .map((v, idx) => {
+            const vUrl = v.youtubeVideoId
+              ? `https://www.youtube.com/watch?v=${encodeURIComponent(v.youtubeVideoId)}`
+              : v.channelUrl || '#';
+            const isHotOutlier = v.outlierMultiplier >= 1.5;
+            const outlierBadge =
+              v.outlierMultiplier >= 1.2
+                ? `<span class="outlier-badge ${isHotOutlier ? 'outlier-hot' : ''} num" title="Video này có lượng view cao gấp ${v.outlierMultiplier} lần mức trung bình của kênh ${escapeHtml(v.channelName)}">${isHotOutlier ? '🔥 ' : ''}x${v.outlierMultiplier} TB kênh</span>`
+                : '';
+            const groupTag = v.group
+              ? `<span class="burst-channel-group">${escapeHtml(v.group)}</span>`
+              : '';
+            const dateTag = v.publishedAt
+              ? `<span class="top-video-date num">${escapeHtml(v.publishedAt)}</span>`
+              : '';
+
+            return `
+              <div class="top-video-item burst-video-row top-video-rank-${idx < 3 ? idx + 1 : 'other'}">
+                <span class="top-video-rank num">#${idx + 1}</span>
+                <div class="burst-video-main">
+                  <a href="${escapeHtml(vUrl)}" target="_blank" rel="noopener" class="top-video-title" title="${escapeHtml(v.title)}">
+                    ${escapeHtml(v.title)} ↗
+                  </a>
+                  <div class="burst-video-sub">
+                    <span class="burst-channel-badge">${escapeHtml(v.channelName)}</span>
+                    ${groupTag}
+                    ${dateTag}
+                  </div>
+                </div>
+                ${outlierBadge}
+                <span class="top-video-views num">${formatNumber(v.views)} views</span>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs btn-save-key"
+                  data-save-burst-title="${escapeHtml(v.title)}"
+                  data-save-burst-url="${escapeHtml(vUrl)}"
+                  data-save-burst-channel="${escapeHtml(v.channelName)}"
+                  data-save-burst-views="${escapeHtml(String(v.views))}"
+                  data-save-burst-outlier="${escapeHtml(String(v.outlierMultiplier))}"
+                  title="Lưu chủ đề (Key) video nổ view này sang Nơi lưu nội dung để làm video ăn theo"
+                >+ Lưu Key</button>
+              </div>
+            `;
+          })
+          .join('')
+      : `<div class="channel-top-videos-empty">Chưa có video nào khớp bộ lọc — bấm <strong>Đồng bộ</strong> trên kênh để quét danh sách video.</div>`;
+
+  hubEl.innerHTML = `
+    <div class="insights-hub-bar">
+      <div class="insights-hub-title-group">
+        <span class="insights-hub-badge">⚡ THỐNG KÊ NHÃN &amp; VIDEO NỔ VIEW TOÀN HỆ THỐNG</span>
+        ${
+          hasAnyActiveFilter
+            ? `<button type="button" class="btn btn-danger-outline btn-xs" data-clear-all-yt-filters="true" title="Xóa bộ lọc để xem toàn bộ dàn kênh">✕ Bỏ lọc (Xem tất cả ${state.channels.length} kênh)</button>`
+            : `<span class="insights-hub-hint">Bấm vào từng Nhãn bên trái để lọc nhanh · Bấm "+ Lưu Key" bên phải để lưu chủ đề ăn khách</span>`
+        }
+      </div>
+      <button type="button" class="btn btn-ghost btn-xs" data-toggle-insights-collapse="true">
+        ${state.insightsCollapsed ? '▼ Mở bảng thống kê' : '▲ Thu gọn'}
+      </button>
+    </div>
+
+    ${
+      state.insightsCollapsed
+        ? ''
+        : `
+      <div class="insights-hub-grid">
+        <!-- CỘT 1: THỐNG KÊ TỔNG HỢP THEO NHÃN -->
+        <section class="insights-card">
+          <div class="insights-card-header">
+            <div>
+              <h3 class="insights-card-title">📊 Thống kê tổng hợp theo Nhãn</h3>
+              <p class="insights-card-sub">Cộng gộp Kênh, BKT, Sub &amp; Tổng Views theo từng nhóm</p>
+            </div>
+            <div class="insights-mode-tabs" role="tablist">
+              <button type="button" class="insights-tab-btn ${labelMode === 'group' ? 'active' : ''}" data-set-label-mode="group">Theo Group</button>
+              <button type="button" class="insights-tab-btn ${labelMode === 'category' ? 'active' : ''}" data-set-label-mode="category">Theo Ngách</button>
+              <button type="button" class="insights-tab-btn ${labelMode === 'manager' ? 'active' : ''}" data-set-label-mode="manager">Theo Quản lý</button>
+            </div>
+          </div>
+          <div class="label-stats-list">
+            ${labelRowsHtml}
+          </div>
+        </section>
+
+        <!-- CỘT 2: BẢNG TỔNG HỢP VIDEO NỔ VIEW CỦA CẢ DÀN KÊNH -->
+        <section class="insights-card">
+          <div class="insights-card-header">
+            <div>
+              <h3 class="insights-card-title">🔥 Bảng tổng hợp "Video Nổ View" cả dàn kênh</h3>
+              <p class="insights-card-sub">Đã gom ${formatNumber(filteredVideos.length)} video từ ${formatNumber(state.channels.length)} kênh</p>
+            </div>
+            <div class="insights-mode-tabs" role="tablist">
+              <button type="button" class="insights-tab-btn ${sortMode === 'views' ? 'active' : ''}" data-set-video-sort="views">Views cao nhất</button>
+              <button type="button" class="insights-tab-btn ${sortMode === 'outlier' ? 'active' : ''}" data-set-video-sort="outlier">Độ nổ (xTB kênh)</button>
+            </div>
+          </div>
+          <div class="channel-top-videos-list burst-videos-list">
+            ${burstVideosHtml}
+          </div>
+          ${
+            filteredVideos.length > 5
+              ? `<div class="insights-card-footer">
+                  <button type="button" class="btn btn-ghost btn-xs" data-toggle-show-all-burst="true">
+                    ${state.insightsShowAllVideos ? '▲ Thu gọn về Top 5' : `▼ Xem thêm Top ${Math.min(filteredVideos.length, 15)} video nổ view`}
+                  </button>
+                </div>`
+              : ''
+          }
+        </section>
+      </div>
+    `
+    }
+  `;
+}
+
 function renderYoutubeTab() {
   renderGroupDropdown();
   renderCategoryDropdown();
+  renderYoutubeInsightsHub();
   renderYoutubeChannelsBoard();
 }
 
@@ -1404,6 +1740,106 @@ function setupEventListeners() {
         state.filters.ytCategory === targetCat && targetCat !== 'all' ? 'all' : targetCat;
       if (dropdownEl) dropdownEl.classList.remove('open');
       renderYoutubeTab();
+      return;
+    }
+
+    // Chuyển tab chiều thống kê Nhãn (Theo Group | Theo Ngách | Theo Quản lý)
+    const setLabelModeBtn = e.target.closest('[data-set-label-mode]');
+    if (setLabelModeBtn) {
+      state.insightsLabelMode = setLabelModeBtn.dataset.setLabelMode || 'group';
+      renderYoutubeInsightsHub();
+      return;
+    }
+
+    // Chuyển chế độ sắp xếp Bảng Video Nổ View (Views cao nhất | Độ nổ xTB kênh)
+    const setVideoSortBtn = e.target.closest('[data-set-video-sort]');
+    if (setVideoSortBtn) {
+      state.insightsVideoSort = setVideoSortBtn.dataset.setVideoSort || 'views';
+      renderYoutubeInsightsHub();
+      return;
+    }
+
+    // Xem thêm / Thu gọn danh sách Video Nổ View
+    const toggleBurstBtn = e.target.closest('[data-toggle-show-all-burst]');
+    if (toggleBurstBtn) {
+      state.insightsShowAllVideos = !state.insightsShowAllVideos;
+      renderYoutubeInsightsHub();
+      return;
+    }
+
+    // Thu gọn / Mở rộng toàn bộ khu vực Thống kê Nhãn & Video Nổ View
+    const toggleCollapseBtn = e.target.closest('[data-toggle-insights-collapse]');
+    if (toggleCollapseBtn) {
+      state.insightsCollapsed = !state.insightsCollapsed;
+      renderYoutubeInsightsHub();
+      return;
+    }
+
+    // Bấm vào 1 hàng Nhãn (Group / Ngách / Quản lý) trong bảng thống kê để lọc nhanh danh sách kênh
+    const filterLabelBtn = e.target.closest('[data-filter-label-key]');
+    if (filterLabelBtn) {
+      const mode = filterLabelBtn.dataset.filterLabelMode || 'group';
+      const key = filterLabelBtn.dataset.filterLabelKey || 'all';
+      if (mode === 'category') {
+        state.filters.ytCategory = state.filters.ytCategory === key ? 'all' : key;
+      } else if (mode === 'manager') {
+        state.filters.ytManager = state.filters.ytManager === key ? 'all' : key;
+      } else {
+        state.filters.ytGroup = state.filters.ytGroup === key ? 'all' : key;
+      }
+      renderYoutubeTab();
+      return;
+    }
+
+    // Bấm nút "✕ Bỏ lọc" để xóa tất cả bộ lọc kênh YouTube
+    const clearAllFiltersBtn = e.target.closest('[data-clear-all-yt-filters]');
+    if (clearAllFiltersBtn) {
+      state.filters.ytGroup = 'all';
+      state.filters.ytCategory = 'all';
+      state.filters.ytManager = 'all';
+      state.filters.ytChannel = 'all';
+      state.filters.ytSearch = '';
+      const searchEl = document.getElementById('yt-search');
+      if (searchEl) searchEl.value = '';
+      const chSelectEl = document.getElementById('yt-channel-filter');
+      if (chSelectEl) chSelectEl.value = 'all';
+      renderYoutubeTab();
+      return;
+    }
+
+    // Bấm nút "+ Lưu Key" trên Bảng Video Nổ View để lưu chủ đề ăn khách sang Nơi lưu nội dung
+    const saveBurstBtn = e.target.closest('[data-save-burst-title]');
+    if (saveBurstBtn) {
+      const title = saveBurstBtn.dataset.saveBurstTitle || 'Video Nổ View';
+      const url = saveBurstBtn.dataset.saveBurstUrl || '';
+      const channelName = saveBurstBtn.dataset.saveBurstChannel || '';
+      const views = Number(saveBurstBtn.dataset.saveBurstViews) || 0;
+      const outlier = saveBurstBtn.dataset.saveBurstOutlier || '1';
+      const origText = saveBurstBtn.textContent;
+      saveBurstBtn.disabled = true;
+      saveBurstBtn.textContent = 'Đang lưu...';
+      try {
+        const created = await apiRequest('/api/contents', {
+          method: 'POST',
+          body: JSON.stringify({
+            title: `[Key Nổ View] ${title}`,
+            type: 'outline',
+            author: channelName || 'StudioFlow',
+            assetUrl: url,
+            tags: `Key nổ view, ${channelName}, x${outlier} TB kênh`,
+            status: 'approved',
+            body: `🔥 KEY VIDEO NỔ VIEW TRÊN DÀN KÊNH\n- Tiêu đề gốc: ${title}\n- Kênh: ${channelName}\n- Lượt xem thực tế: ${formatNumber(views)} views (Độ nổ: gấp x${outlier} lần trung bình kênh)\n- Link video gốc: ${url}\n\n💡 Gợi ý triển khai:\n1. Phân tích Hook 30s đầu và cấu trúc tiêu đề/thumbnail của video này.\n2. Nhân bản chủ đề (Clone Key) hoặc cắt Shorts cho các kênh cùng ngách.`,
+          }),
+        });
+        state.selectedContentId = created.id;
+        await loadOverview();
+        saveBurstBtn.textContent = '✓ Đã lưu Key';
+        showBanner(`Đã lưu Key "${title}" vào Nơi lưu nội dung!`);
+      } catch (err) {
+        showBanner(err.message, true);
+        saveBurstBtn.disabled = false;
+        saveBurstBtn.textContent = origText;
+      }
       return;
     }
 
@@ -2001,7 +2437,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=12', { updateViaCache: 'none' })
+      .register('/sw.js?v=13', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

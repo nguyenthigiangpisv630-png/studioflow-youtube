@@ -467,4 +467,84 @@ test('Exact YouTube Views on Sync: đồng bộ kênh hoặc đồng bộ hằng
   }
 });
 
+test('Label Aggregation & Cross-Channel Top Videos Leaderboard (YouTubeLabs Insights): thống kê theo Nhãn (Group, Ngách, Quản lý) và Bảng tổng hợp Video Nổ View của cả dàn kênh', () => {
+  const { store, cleanup } = createTempStore(false);
+  try {
+    const ch1 = store.createChannel({
+      name: '1970s Show',
+      handle: '@1970sShow',
+      channelUrl: 'https://www.youtube.com/@1970sShow',
+      group: 'Team US',
+      category: 'Giải trí & Nội dung số',
+      managerEmail: 'duc@team.vn',
+      status: 'monetized',
+      subscribers: 49,
+      totalVideos: 2,
+      totalViews: 27587,
+    });
+    const ch2 = store.createChannel({
+      name: 'FOOD 75',
+      handle: '@FOOD75-h2q',
+      channelUrl: 'https://www.youtube.com/@FOOD75-h2q',
+      group: 'Team US',
+      category: 'Ẩm thực & Đời sống',
+      managerEmail: 'linh@team.vn',
+      status: 'active',
+      subscribers: 4,
+      totalVideos: 2,
+      totalViews: 737,
+    });
+
+    store.createVideo({
+      title: 'How Tall Was John Wayne',
+      youtubeVideoId: 'vid_jw',
+      channelId: ch1.id,
+      publishedAt: '2026-09-29',
+      initialViews: 23524,
+    });
+    store.createVideo({
+      title: 'Stephen Fry & 13 British TV Stars',
+      youtubeVideoId: 'vid_sf',
+      channelId: ch1.id,
+      publishedAt: '2026-10-04',
+      initialViews: 4063,
+    });
+    store.createVideo({
+      title: "6 Tables Randy 'Macho Man' Savage Sat At",
+      youtubeVideoId: 'vid_mm',
+      channelId: ch2.id,
+      publishedAt: '2026-10-05',
+      initialViews: 444,
+    });
+    store.createVideo({
+      title: '10 Wild Foods Andre the Giant Used',
+      youtubeVideoId: 'vid_ag',
+      channelId: ch2.id,
+      publishedAt: '2026-10-01',
+      initialViews: 293,
+    });
+
+    const summary = store.getDashboardSummary();
+    assert.ok(summary.youtube.labelStats, 'Phải có thống kê tổng hợp theo Nhãn (labelStats)');
+    const teamUsStat = summary.youtube.labelStats.byGroup.find((g) => g.label === 'Team US');
+    assert.ok(teamUsStat, 'Phải có thống kê cho nhãn Group "Team US"');
+    assert.equal(teamUsStat.channelCount, 2);
+    assert.equal(teamUsStat.monetizedCount, 1);
+    assert.equal(teamUsStat.totalSubscribers, 53);
+    assert.equal(teamUsStat.totalViews, 28324);
+    assert.equal(teamUsStat.totalVideos, 4);
+
+    assert.ok(Array.isArray(summary.youtube.topVideosLeaderboard), 'Phải có bảng tổng hợp Video Nổ View của cả dàn kênh');
+    assert.equal(summary.youtube.topVideosLeaderboard.length, 4);
+    assert.equal(summary.youtube.topVideosLeaderboard[0].youtubeVideoId, 'vid_jw');
+    assert.equal(summary.youtube.topVideosLeaderboard[0].views, 23524);
+    assert.equal(summary.youtube.topVideosLeaderboard[0].channelName, '1970s Show');
+    assert.equal(summary.youtube.topVideosLeaderboard[0].group, 'Team US');
+    assert.ok(summary.youtube.topVideosLeaderboard[0].outlierMultiplier > 1.5, 'Phải tính hệ số nổ view (outlierMultiplier) so với trung bình kênh');
+  } finally {
+    cleanup();
+  }
+});
+
+
 

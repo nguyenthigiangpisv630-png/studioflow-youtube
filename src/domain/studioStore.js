@@ -1736,6 +1736,93 @@ export class StudioStore {
       return sum + (match ? match.dailyViewsDelta || 0 : 0);
     }, 0);
 
+    // 1. Thống kê tổng hợp theo Nhãn (Group, Ngách/Category, Người quản lý) — cảm hứng từ YouTubeLabs asset_label_generator
+    const channels = this.state.channels || [];
+    const buildLabelBreakdown = (getKeyFn) => {
+      const map = new Map();
+      for (const ch of channels) {
+        const { label, filterKey } = getKeyFn(ch);
+        const chVideos = videos.filter((v) => v.channelId === ch.id);
+        const sumVideoViews = chVideos.reduce((s, v) => s + (Number(v.currentViews) || 0), 0);
+        const chViews = Math.max(Number(ch.totalViews) || 0, sumVideoViews);
+        const chVideoCount = Math.max(Number(ch.totalVideos) || 0, chVideos.length);
+        const isMonetized = ch.status === 'monetized' || ch.monetization === 'enabled';
+
+        const prev = map.get(filterKey) || {
+          label,
+          filterKey,
+          channelCount: 0,
+          monetizedCount: 0,
+          totalSubscribers: 0,
+          totalViews: 0,
+          totalVideos: 0,
+        };
+        prev.channelCount += 1;
+        if (isMonetized) prev.monetizedCount += 1;
+        prev.totalSubscribers += Number(ch.subscribers) || 0;
+        prev.totalViews += chViews;
+        prev.totalVideos += chVideoCount;
+        map.set(filterKey, prev);
+      }
+      return [...map.values()].sort((a, b) => b.totalViews - a.totalViews || b.channelCount - a.channelCount);
+    };
+
+    const labelStats = {
+      byGroup: buildLabelBreakdown((ch) => {
+        const g = String(ch.group || '').trim();
+        return g ? { label: g, filterKey: g } : { label: 'Chưa gắn Group', filterKey: '__none__' };
+      }),
+      byCategory: buildLabelBreakdown((ch) => {
+        const c = String(ch.category || 'Giải trí & Nội dung số').trim();
+        return { label: c, filterKey: c };
+      }),
+      byManager: buildLabelBreakdown((ch) => {
+        const m = String(ch.managerEmail || ch.manager || '').trim();
+        return m ? { label: m, filterKey: m } : { label: 'Chưa phân công', filterKey: '__none__' };
+      }),
+    };
+
+    // 2. Bảng tổng hợp "Video Nổ View" của cả dàn kênh — cảm hứng từ YouTubeLabs ai_video_recap_for_channels
+    const channelMap = new Map(channels.map((c) => [c.id, c]));
+    const channelAvgViewsMap = new Map();
+    for (const ch of channels) {
+      const chVids = videos.filter((v) => v.channelId === ch.id);
+      if (chVids.length > 0) {
+        const sumV = chVids.reduce((s, v) => s + (Number(v.currentViews) || 0), 0);
+        channelAvgViewsMap.set(ch.id, Math.max(Math.round(sumV / chVids.length), 1));
+      } else {
+        const totalV = Number(ch.totalViews) || 0;
+        const countV = Math.max(Number(ch.totalVideos) || 1, 1);
+        channelAvgViewsMap.set(ch.id, Math.max(Math.round(totalV / countV), 1));
+      }
+    }
+
+    const topVideosLeaderboard = [...videos]
+      .map((v) => {
+        const ch = channelMap.get(v.channelId) || {};
+        const vViews = Number(v.currentViews ?? v.views) || 0;
+        const avgViews = channelAvgViewsMap.get(v.channelId) || Math.max(vViews, 1);
+        const outlierMultiplier = Number((vViews / Math.max(avgViews, 1)).toFixed(2));
+        return {
+          id: v.id,
+          youtubeVideoId: v.youtubeVideoId || '',
+          title: v.title,
+          views: vViews,
+          publishedAt: v.publishedAt || '',
+          channelId: v.channelId,
+          channelName: ch.name || 'Kênh YouTube',
+          channelHandle: ch.handle || '',
+          channelUrl: ch.channelUrl || '',
+          group: String(ch.group || '').trim(),
+          category: String(ch.category || 'Giải trí & Nội dung số').trim(),
+          manager: String(ch.managerEmail || ch.manager || '').trim(),
+          channelAvgViews: avgViews,
+          outlierMultiplier,
+        };
+      })
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 25);
+
     return {
       meta: {
         lastDailySyncDate: this.state.meta.lastDailySyncDate || targetDate,
@@ -1771,6 +1858,8 @@ export class StudioStore {
         totalComments,
         todayViewsDelta,
         dailyTrend,
+        labelStats,
+        topVideosLeaderboard,
       },
     };
   }
