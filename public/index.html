@@ -9,7 +9,7 @@
   <title>StudioFlow — Quản Lý Kênh YouTube &amp; Kho Nội Dung (Mệnh Kim)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=13" />
+  <link rel="stylesheet" href="/styles.css?v=14" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -37,6 +37,16 @@
               </svg>
               <span>Quản lý Kênh YouTube</span>
               <span class="nav-count" id="nav-count-youtube">0</span>
+            </button>
+
+            <button type="button" class="nav-btn" data-tab="insights">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+              <span>Thống kê &amp; Nổ View</span>
+              <span class="nav-count" id="nav-count-insights">0</span>
             </button>
 
             <button type="button" class="nav-btn" data-tab="contents">
@@ -146,11 +156,15 @@
             <datalist id="yt-groups-datalist"></datalist>
           </div>
 
-          <!-- BẢNG THỐNG KÊ THEO NHÃN & BẢNG TỔNG HỢP VIDEO NỔ VIEW CỦA CẢ DÀN KÊNH -->
-          <div id="yt-insights-hub" class="yt-insights-hub"></div>
-
           <!-- BẢNG KÊNH HÀNG NGANG TỐI GIẢN -->
           <div id="yt-channels-board" class="channels-grid"></div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- PHÂN HỆ MỚI: BẢNG THỐNG KÊ THEO NHÃN & VIDEO NỔ VIEW CẢ DÀN KÊNH -->
+        <!-- =============================================================== -->
+        <section class="tab-panel" id="panel-insights">
+          <div id="yt-insights-hub" class="yt-insights-hub"></div>
         </section>
 
         <!-- =============================================================== -->
@@ -283,6 +297,14 @@
           </svg>
           <span>Quản lý YouTube</span>
         </button>
+        <button type="button" class="m-nav-btn" data-tab="insights">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          <span>Thống kê &amp; Nổ View</span>
+        </button>
         <button type="button" class="m-nav-btn" data-tab="contents">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -389,7 +411,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=13"></script>
+  <script type="module" src="/app.js?v=14"></script>
 </body>
 </html>
 

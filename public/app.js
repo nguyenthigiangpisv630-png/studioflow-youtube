@@ -59,6 +59,10 @@ const TAB_TITLES = {
     title: 'Nơi lưu nội dung (Content Vault)',
     subtitle: 'Lưu trữ tập trung kịch bản toàn văn, dàn ý, bộ từ khóa SEO và đường dẫn kho Footage / Thumbnail',
   },
+  insights: {
+    title: 'Bảng Thống kê theo Nhãn & Video Nổ View cả dàn kênh',
+    subtitle: 'Tổng hợp hiệu suất theo Group / Ngách / Quản lý và bảng xếp hạng các video nổ đề xuất mạnh nhất',
+  },
   youtube: {
     title: 'Quản lý YouTube & Chỉ số lượt xem hằng ngày',
     subtitle: 'Theo dõi danh sách kênh hàng ngang, tình trạng kênh và biểu đồ tăng trưởng lượt xem từng ngày (+Views/ngày)',
@@ -231,6 +235,7 @@ function renderTopMetrics() {
 
   setText('nav-count-contents', s.contentVault.totalItems);
   setText('nav-count-youtube', totalChannels);
+  setText('nav-count-insights', state.videos.length);
 
   setText('stat-channels-total', `${totalChannels}`);
   setText('stat-channels-sub', `${monetizedCount} BKT`);
@@ -1450,7 +1455,7 @@ function renderYoutubeInsightsHub() {
       : b.views - a.views || b.outlierMultiplier - a.outlierMultiplier
   );
 
-  const displayLimit = state.insightsShowAllVideos ? 15 : 5;
+  const displayLimit = state.insightsShowAllVideos ? 30 : 12;
   const topBurstVideos = filteredVideos.slice(0, displayLimit);
 
   const burstVideosHtml =
@@ -1509,66 +1514,63 @@ function renderYoutubeInsightsHub() {
         <span class="insights-hub-badge">⚡ THỐNG KÊ NHÃN &amp; VIDEO NỔ VIEW TOÀN HỆ THỐNG</span>
         ${
           hasAnyActiveFilter
-            ? `<button type="button" class="btn btn-danger-outline btn-xs" data-clear-all-yt-filters="true" title="Xóa bộ lọc để xem toàn bộ dàn kênh">✕ Bỏ lọc (Xem tất cả ${state.channels.length} kênh)</button>`
-            : `<span class="insights-hub-hint">Bấm vào từng Nhãn bên trái để lọc nhanh · Bấm "+ Lưu Key" bên phải để lưu chủ đề ăn khách</span>`
+            ? `
+              <button type="button" class="btn btn-danger-outline btn-xs" data-clear-all-yt-filters="true" title="Xóa bộ lọc để xem toàn bộ dàn kênh">✕ Bỏ lọc (Xem tất cả ${state.channels.length} kênh)</button>
+              <button type="button" class="btn btn-secondary btn-xs" data-goto-tab="youtube">Mở danh sách kênh của Nhãn đang lọc →</button>
+            `
+            : `<span class="insights-hub-hint">Bấm vào từng Nhãn bên trái để lọc nhanh video · Bấm "+ Lưu Key" bên phải để lưu chủ đề ăn khách</span>`
         }
       </div>
-      <button type="button" class="btn btn-ghost btn-xs" data-toggle-insights-collapse="true">
-        ${state.insightsCollapsed ? '▼ Mở bảng thống kê' : '▲ Thu gọn'}
+      <button type="button" class="btn btn-secondary btn-xs" data-goto-tab="youtube">
+        ← Quay lại Danh sách Kênh
       </button>
     </div>
 
-    ${
-      state.insightsCollapsed
-        ? ''
-        : `
-      <div class="insights-hub-grid">
-        <!-- CỘT 1: THỐNG KÊ TỔNG HỢP THEO NHÃN -->
-        <section class="insights-card">
-          <div class="insights-card-header">
-            <div>
-              <h3 class="insights-card-title">📊 Thống kê tổng hợp theo Nhãn</h3>
-              <p class="insights-card-sub">Cộng gộp Kênh, BKT, Sub &amp; Tổng Views theo từng nhóm</p>
-            </div>
-            <div class="insights-mode-tabs" role="tablist">
-              <button type="button" class="insights-tab-btn ${labelMode === 'group' ? 'active' : ''}" data-set-label-mode="group">Theo Group</button>
-              <button type="button" class="insights-tab-btn ${labelMode === 'category' ? 'active' : ''}" data-set-label-mode="category">Theo Ngách</button>
-              <button type="button" class="insights-tab-btn ${labelMode === 'manager' ? 'active' : ''}" data-set-label-mode="manager">Theo Quản lý</button>
-            </div>
+    <div class="insights-hub-grid">
+      <!-- CỘT 1: THỐNG KÊ TỔNG HỢP THEO NHÃN -->
+      <section class="insights-card">
+        <div class="insights-card-header">
+          <div>
+            <h3 class="insights-card-title">📊 Thống kê tổng hợp theo Nhãn</h3>
+            <p class="insights-card-sub">Cộng gộp Kênh, BKT, Sub &amp; Tổng Views theo từng nhóm</p>
           </div>
-          <div class="label-stats-list">
-            ${labelRowsHtml}
+          <div class="insights-mode-tabs" role="tablist">
+            <button type="button" class="insights-tab-btn ${labelMode === 'group' ? 'active' : ''}" data-set-label-mode="group">Theo Group</button>
+            <button type="button" class="insights-tab-btn ${labelMode === 'category' ? 'active' : ''}" data-set-label-mode="category">Theo Ngách</button>
+            <button type="button" class="insights-tab-btn ${labelMode === 'manager' ? 'active' : ''}" data-set-label-mode="manager">Theo Quản lý</button>
           </div>
-        </section>
+        </div>
+        <div class="label-stats-list">
+          ${labelRowsHtml}
+        </div>
+      </section>
 
-        <!-- CỘT 2: BẢNG TỔNG HỢP VIDEO NỔ VIEW CỦA CẢ DÀN KÊNH -->
-        <section class="insights-card">
-          <div class="insights-card-header">
-            <div>
-              <h3 class="insights-card-title">🔥 Bảng tổng hợp "Video Nổ View" cả dàn kênh</h3>
-              <p class="insights-card-sub">Đã gom ${formatNumber(filteredVideos.length)} video từ ${formatNumber(state.channels.length)} kênh</p>
-            </div>
-            <div class="insights-mode-tabs" role="tablist">
-              <button type="button" class="insights-tab-btn ${sortMode === 'views' ? 'active' : ''}" data-set-video-sort="views">Views cao nhất</button>
-              <button type="button" class="insights-tab-btn ${sortMode === 'outlier' ? 'active' : ''}" data-set-video-sort="outlier">Độ nổ (xTB kênh)</button>
-            </div>
+      <!-- CỘT 2: BẢNG TỔNG HỢP VIDEO NỔ VIEW CỦA CẢ DÀN KÊNH -->
+      <section class="insights-card">
+        <div class="insights-card-header">
+          <div>
+            <h3 class="insights-card-title">🔥 Bảng tổng hợp "Video Nổ View" cả dàn kênh</h3>
+            <p class="insights-card-sub">Đã gom ${formatNumber(filteredVideos.length)} video từ ${formatNumber(state.channels.length)} kênh</p>
           </div>
-          <div class="channel-top-videos-list burst-videos-list">
-            ${burstVideosHtml}
+          <div class="insights-mode-tabs" role="tablist">
+            <button type="button" class="insights-tab-btn ${sortMode === 'views' ? 'active' : ''}" data-set-video-sort="views">Views cao nhất</button>
+            <button type="button" class="insights-tab-btn ${sortMode === 'outlier' ? 'active' : ''}" data-set-video-sort="outlier">Độ nổ (xTB kênh)</button>
           </div>
-          ${
-            filteredVideos.length > 5
-              ? `<div class="insights-card-footer">
-                  <button type="button" class="btn btn-ghost btn-xs" data-toggle-show-all-burst="true">
-                    ${state.insightsShowAllVideos ? '▲ Thu gọn về Top 5' : `▼ Xem thêm Top ${Math.min(filteredVideos.length, 15)} video nổ view`}
-                  </button>
-                </div>`
-              : ''
-          }
-        </section>
-      </div>
-    `
-    }
+        </div>
+        <div class="channel-top-videos-list burst-videos-list">
+          ${burstVideosHtml}
+        </div>
+        ${
+          filteredVideos.length > 12
+            ? `<div class="insights-card-footer">
+                <button type="button" class="btn btn-ghost btn-xs" data-toggle-show-all-burst="true">
+                  ${state.insightsShowAllVideos ? '▲ Thu gọn về Top 12' : `▼ Xem toàn bộ ${Math.min(filteredVideos.length, 30)} video`}
+                </button>
+              </div>`
+            : ''
+        }
+      </section>
+    </div>
   `;
 }
 
@@ -2437,7 +2439,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=13', { updateViaCache: 'none' })
+      .register('/sw.js?v=14', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
