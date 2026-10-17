@@ -1178,6 +1178,75 @@ export class StudioStore {
     });
   }
 
+  listGroups() {
+    const customGroups = Array.isArray(this.state.meta?.customGroups)
+      ? this.state.meta.customGroups.map((g) => String(g || '').trim()).filter(Boolean)
+      : [];
+    const channelGroups = (this.state.channels || [])
+      .map((ch) => String(ch.group || '').trim())
+      .filter(Boolean);
+    return [...new Set([...customGroups, ...channelGroups])];
+  }
+
+  createGroup(input = {}) {
+    const name = String(input.name || '').trim();
+    if (!name) {
+      throw new Error('Vui lòng nhập tên Group cần tạo!');
+    }
+    if (!this.state.meta) this.state.meta = {};
+    if (!Array.isArray(this.state.meta.customGroups)) {
+      this.state.meta.customGroups = [];
+    }
+    const existsCaseInsensitive = this.state.meta.customGroups.some(
+      (g) => String(g || '').trim().toLowerCase() === name.toLowerCase()
+    );
+    if (!existsCaseInsensitive) {
+      this.state.meta.customGroups.push(name);
+    }
+
+    let assignedCount = 0;
+    if (Array.isArray(input.channelIds) && input.channelIds.length > 0) {
+      const idSet = new Set(input.channelIds.map((id) => String(id)));
+      for (const ch of this.state.channels || []) {
+        if (idSet.has(ch.id)) {
+          ch.group = name;
+          ch.updatedAt = new Date().toISOString();
+          assignedCount += 1;
+        }
+      }
+    }
+
+    this.#save();
+    return {
+      name,
+      assignedCount,
+      groups: this.listGroups(),
+    };
+  }
+
+  deleteGroup(groupName = '') {
+    const clean = String(groupName || '').trim();
+    if (!clean) {
+      throw new Error('Tên Group không hợp lệ');
+    }
+    if (this.state.meta && Array.isArray(this.state.meta.customGroups)) {
+      this.state.meta.customGroups = this.state.meta.customGroups.filter(
+        (g) => String(g || '').trim().toLowerCase() !== clean.toLowerCase()
+      );
+    }
+    for (const ch of this.state.channels || []) {
+      if (String(ch.group || '').trim().toLowerCase() === clean.toLowerCase()) {
+        ch.group = '';
+        ch.updatedAt = new Date().toISOString();
+      }
+    }
+    this.#save();
+    return {
+      deleted: clean,
+      groups: this.listGroups(),
+    };
+  }
+
   getChannelTopVideos(channelId, limit = 3) {
     const chVideos = (this.state.videos || []).filter((v) => v.channelId === channelId);
     if (chVideos.length === 0) {
@@ -1881,11 +1950,28 @@ export class StudioStore {
       return [...map.values()].sort((a, b) => b.totalViews - a.totalViews || b.channelCount - a.channelCount);
     };
 
+    const byGroupList = buildLabelBreakdown((ch) => {
+      const g = String(ch.group || '').trim();
+      return g ? { label: g, filterKey: g } : { label: 'Chưa gắn Group', filterKey: '__none__' };
+    });
+    const existingGroupKeys = new Set(byGroupList.map((item) => item.filterKey.toLowerCase()));
+    for (const grpName of this.listGroups()) {
+      if (!existingGroupKeys.has(grpName.toLowerCase())) {
+        existingGroupKeys.add(grpName.toLowerCase());
+        byGroupList.push({
+          label: grpName,
+          filterKey: grpName,
+          channelCount: 0,
+          monetizedCount: 0,
+          totalSubscribers: 0,
+          totalViews: 0,
+          totalVideos: 0,
+        });
+      }
+    }
+
     const labelStats = {
-      byGroup: buildLabelBreakdown((ch) => {
-        const g = String(ch.group || '').trim();
-        return g ? { label: g, filterKey: g } : { label: 'Chưa gắn Group', filterKey: '__none__' };
-      }),
+      byGroup: byGroupList,
       byCategory: buildLabelBreakdown((ch) => {
         const c = String(ch.category || 'Giải trí & Nội dung số').trim();
         return { label: c, filterKey: c };
@@ -1952,6 +2038,7 @@ export class StudioStore {
         autoSyncIntervalMinutes: 60,
         notion: this.getNotionConfig(),
         brand: this.getBrandProfile(),
+        customGroups: this.listGroups(),
       },
       crm: {
         totalDeals: deals.length,

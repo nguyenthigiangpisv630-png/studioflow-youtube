@@ -4087,5 +4087,85 @@ select:focus-visible {
   color: #6B4D04 !important;
 }
 
+.insights-header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
+.btn-create-group-trigger {
+  font-weight: 800;
+  padding: 5px 11px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.28);
+}
 
+.quick-create-group-box {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #FFFDF7 0%, #FDF8E7 100%);
+  border: 1px solid #D4AF37;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quick-create-group-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quick-create-group-input {
+  flex: 1;
+  min-width: 220px;
+  background: #FFFFFF;
+  border-color: #D4AF37;
+  font-weight: 700;
+}
+
+.quick-create-group-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-create-group-hint {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #5C4002;
+}
+
+.quick-create-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-group-ch-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0F172A;
+  cursor: pointer;
+  user-select: none;
+}
+
+.quick-group-ch-chip:hover {
+  border-color: #D4AF37;
+  background: #FFFDF7;
+}
+
+.quick-group-ch-chip small {
+  color: #64748B;
+  font-weight: 600;
+}

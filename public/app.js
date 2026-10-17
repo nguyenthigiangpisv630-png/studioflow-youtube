@@ -30,6 +30,8 @@ const state = {
   insightsVideoSort: 'views', // 'views' | 'outlier'
   insightsShowAllVideos: false,
   insightsCollapsed: false,
+  groups: [],
+  showCreateGroupBox: false,
 };
 
 const STAGE_META = {
@@ -203,6 +205,7 @@ async function loadOverview() {
   const data = await apiRequest('/api/overview');
   state.summary = data.summary;
   state.channels = data.channels || [];
+  state.groups = data.groups || data.summary?.meta?.customGroups || [];
   state.deals = data.deals || [];
   state.projects = data.projects || [];
   state.contents = data.contents || [];
@@ -965,11 +968,21 @@ function renderCategoryDropdown() {
   `;
 }
 
+function getAllGroupNames() {
+  const fromStore = Array.isArray(state.groups) ? state.groups : [];
+  const fromMeta = Array.isArray(state.summary?.meta?.customGroups) ? state.summary.meta.customGroups : [];
+  const fromChannels = state.channels.map((ch) => String(ch.group || '').trim()).filter(Boolean);
+  return [...new Set([...fromStore, ...fromMeta, ...fromChannels].map((g) => String(g || '').trim()).filter(Boolean))];
+}
+
 function renderGroupDropdown() {
   const dropdownEl = document.getElementById('yt-group-dropdown');
   const datalistEl = document.getElementById('yt-groups-datalist');
 
   const groupCounts = new Map();
+  for (const grp of getAllGroupNames()) {
+    groupCounts.set(grp, 0);
+  }
   let ungroupedCount = 0;
   state.channels.forEach((ch) => {
     const grp = String(ch.group || '').trim();
@@ -1086,12 +1099,16 @@ function renderSidebarFolderTree() {
   const treeEl = document.getElementById('sidebar-folder-tree');
   if (!treeEl) return;
 
-  if (state.channels.length === 0) {
+  const allGroups = getAllGroupNames();
+  if (state.channels.length === 0 && allGroups.length === 0) {
     treeEl.innerHTML = '';
     return;
   }
 
   const groupMap = new Map();
+  for (const grp of allGroups) {
+    groupMap.set(grp, []);
+  }
   const ungroupedChannels = [];
   for (const ch of state.channels) {
     const g = String(ch.group || '').trim();
@@ -1912,6 +1929,25 @@ function renderYoutubeInsightsHub() {
     const g = String(ch.group || '').trim();
     return g ? { label: g, filterKey: g } : { label: 'Chưa gắn Group', filterKey: '__none__' };
   });
+  const existingGroupKeys = new Set(groupFolders.map((g) => g.filterKey.toLowerCase()));
+  for (const customGrp of getAllGroupNames()) {
+    if (!existingGroupKeys.has(customGrp.toLowerCase())) {
+      existingGroupKeys.add(customGrp.toLowerCase());
+      groupFolders.push({
+        label: customGrp,
+        filterKey: customGrp,
+        channelCount: 0,
+        monetizedCount: 0,
+        totalSubscribers: 0,
+        totalViews: 0,
+        totalVideos: 0,
+        googleMonthRevenue: 0,
+        selectedMonthRevenue: 0,
+        totalYearlyRevenue: 0,
+        channels: [],
+      });
+    }
+  }
 
   const labelMode = state.insightsLabelMode || 'group';
   const labelRows =
@@ -2305,12 +2341,60 @@ function renderYoutubeInsightsHub() {
             <h3 class="insights-card-title">📊 Thống kê tổng hợp theo Nhãn</h3>
             <p class="insights-card-sub">Cộng gộp Kênh, BKT, Tiền Tháng ${activeRevMonth}, Tổng Tiền, Sub &amp; Views theo từng nhóm</p>
           </div>
-          <div class="insights-mode-tabs" role="tablist">
-            <button type="button" class="insights-tab-btn ${labelMode === 'group' ? 'active' : ''}" data-set-label-mode="group">Theo Group</button>
-            <button type="button" class="insights-tab-btn ${labelMode === 'category' ? 'active' : ''}" data-set-label-mode="category">Theo Ngách</button>
-            <button type="button" class="insights-tab-btn ${labelMode === 'manager' ? 'active' : ''}" data-set-label-mode="manager">Theo Quản lý</button>
+          <div class="insights-header-actions">
+            <button
+              type="button"
+              class="btn btn-primary btn-xs btn-create-group-trigger"
+              data-toggle-create-group-box="true"
+              title="Tạo thư mục Group mới ngay tại đây"
+            >${state.showCreateGroupBox ? '✕ Đóng' : '+ Tạo Group'}</button>
+            <div class="insights-mode-tabs" role="tablist">
+              <button type="button" class="insights-tab-btn ${labelMode === 'group' ? 'active' : ''}" data-set-label-mode="group">Theo Group</button>
+              <button type="button" class="insights-tab-btn ${labelMode === 'category' ? 'active' : ''}" data-set-label-mode="category">Theo Ngách</button>
+              <button type="button" class="insights-tab-btn ${labelMode === 'manager' ? 'active' : ''}" data-set-label-mode="manager">Theo Quản lý</button>
+            </div>
           </div>
         </div>
+        ${
+          state.showCreateGroupBox
+            ? `
+              <form id="form-quick-create-group" class="quick-create-group-box">
+                <div class="quick-create-group-top">
+                  <input
+                    type="text"
+                    id="input-new-group-name"
+                    class="input-control quick-create-group-input"
+                    placeholder="📁 Nhập tên Group mới (VD: KÊNH AI US, NHÓM PHIM, TEAM 1...)"
+                    required
+                  />
+                  <button type="submit" class="btn btn-primary btn-sm">✓ Lưu Group</button>
+                  <button type="button" class="btn btn-ghost btn-sm" data-close-create-group-box="true">Hủy</button>
+                </div>
+                ${
+                  state.channels.length > 0
+                    ? `
+                      <div class="quick-create-group-channels">
+                        <span class="quick-create-group-hint">Chọn nhanh kênh đưa vào Group này (tùy chọn):</span>
+                        <div class="quick-create-group-chips">
+                          ${state.channels
+                            .map(
+                              (ch) => `
+                                <label class="quick-group-ch-chip">
+                                  <input type="checkbox" name="groupChannelIds" value="${escapeHtml(ch.id)}" />
+                                  <span>📺 ${escapeHtml(ch.name)}${ch.group ? ` <small>(${escapeHtml(ch.group)})</small>` : ''}</span>
+                                </label>
+                              `
+                            )
+                            .join('')}
+                        </div>
+                      </div>
+                    `
+                    : ''
+                }
+              </form>
+            `
+            : ''
+        }
         <div class="label-stats-list">
           ${labelRowsHtml}
         </div>
@@ -2896,6 +2980,75 @@ function setupEventListeners() {
       state.selectedContentId = selectContentCard.dataset.selectContent;
       renderContentsTab();
       return;
+    }
+
+    // Bấm nút "+ Tạo Group" ngay trong khung Thống kê tổng hợp theo Nhãn
+    const toggleCreateGroupBtn = e.target.closest('[data-toggle-create-group-box]');
+    if (toggleCreateGroupBtn) {
+      state.showCreateGroupBox = !state.showCreateGroupBox;
+      state.insightsLabelMode = 'group';
+      renderYoutubeInsightsHub();
+      if (state.showCreateGroupBox) {
+        setTimeout(() => {
+          document.getElementById('input-new-group-name')?.focus();
+        }, 40);
+      }
+      return;
+    }
+
+    // Đóng khung Tạo Group nhanh
+    const closeCreateGroupBtn = e.target.closest('[data-close-create-group-box]');
+    if (closeCreateGroupBtn) {
+      state.showCreateGroupBox = false;
+      renderYoutubeInsightsHub();
+      return;
+    }
+  });
+
+  // Lưu Group mới ngay từ khung Thống kê tổng hợp theo Nhãn
+  document.body.addEventListener('submit', async (e) => {
+    const quickGroupForm = e.target.closest('#form-quick-create-group');
+    if (!quickGroupForm) return;
+    e.preventDefault();
+
+    const nameInput = document.getElementById('input-new-group-name');
+    const groupName = String(nameInput?.value || '').trim();
+    if (!groupName) {
+      showBanner('Vui lòng nhập tên Group cần tạo!', true);
+      return;
+    }
+
+    const checkedBoxes = quickGroupForm.querySelectorAll('input[name="groupChannelIds"]:checked');
+    const channelIds = Array.from(checkedBoxes).map((cb) => cb.value);
+
+    const submitBtn = quickGroupForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Đang lưu...';
+    }
+
+    try {
+      const res = await apiRequest('/api/youtube/groups', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: groupName,
+          channelIds,
+        }),
+      });
+      state.showCreateGroupBox = false;
+      state.insightsLabelMode = 'group';
+      await loadOverview();
+      showBanner(
+        res.assignedCount > 0
+          ? `Đã tạo Group "${res.name}" và gán ${res.assignedCount} kênh vào Group!`
+          : `Đã tạo Group "${res.name}" thành công!`
+      );
+    } catch (err) {
+      showBanner(err.message, true);
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✓ Lưu Group';
+      }
     }
   });
 
@@ -4107,7 +4260,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=30', { updateViaCache: 'none' })
+      .register('/sw.js?v=31', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

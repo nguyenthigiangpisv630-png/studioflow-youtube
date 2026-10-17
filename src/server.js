@@ -155,6 +155,7 @@ export function createAppServer({
         return sendJson(res, 200, {
           summary: store.getDashboardSummary(),
           channels: store.listChannels(),
+          groups: store.listGroups(),
           deals: store.listDeals(),
           projects: store.listProjects(),
           contents: store.listContentItems(),
@@ -321,7 +322,24 @@ export function createAppServer({
         return sendJson(res, 200, deleted);
       }
 
-      // 4. YOUTUBE CHANNELS, VIDEOS & DAILY METRICS
+      // 4. YOUTUBE CHANNELS, GROUPS, VIDEOS & DAILY METRICS
+      if (pathname === '/api/youtube/groups' && method === 'GET') {
+        return sendJson(res, 200, store.listGroups());
+      }
+
+      if (pathname === '/api/youtube/groups' && method === 'POST') {
+        const body = await readJsonBody(req);
+        const created = store.createGroup(body);
+        return sendJson(res, 201, created);
+      }
+
+      const groupItemMatch = pathname.match(/^\/api\/youtube\/groups\/([^/]+)$/);
+      if (groupItemMatch && method === 'DELETE') {
+        const groupName = decodeURIComponent(groupItemMatch[1]);
+        const deleted = store.deleteGroup(groupName);
+        return sendJson(res, 200, deleted);
+      }
+
       if (pathname === '/api/youtube/channels' && method === 'GET') {
         return sendJson(res, 200, store.listChannels());
       }
