@@ -2002,6 +2002,7 @@ function renderSingleChannelDeepView(ch, boardEl) {
               type="text"
               list="yt-groups-datalist"
               class="inline-group-input"
+              style="${calcAutoInputChStyle(chGroup, 16, 6)}"
               data-channel-group="${escapeHtml(ch.id)}"
               value="${escapeHtml(chGroup)}"
               placeholder="Chọn / nhập Group..."
@@ -2129,6 +2130,13 @@ function renderSingleChannelDeepView(ch, boardEl) {
   `;
 }
 
+function calcAutoInputChStyle(text = '', minCh = 15, extraCh = 6) {
+  const raw = String(text || '').trim();
+  const len = raw.length;
+  const chWidth = Math.max(minCh, Math.ceil(len * 1.22) + extraCh);
+  return `width:${chWidth}ch;min-width:${minCh}ch;`;
+}
+
 function renderChannelGaPill(ch, isDeep = false) {
   const isUnlocked = state.unlockedGaChannels && state.unlockedGaChannels.has(ch.id);
   const gaValue = String(ch.adsenseAccount || '').trim();
@@ -2141,6 +2149,7 @@ function renderChannelGaPill(ch, isDeep = false) {
         <input
           type="text"
           class="inline-meta-input ga-input-unlocked"
+          style="${calcAutoInputChStyle(gaValue, 16, 4)}"
           data-channel-ga="${escapeHtml(ch.id)}"
           value="${escapeHtml(gaValue)}"
           placeholder="Tên / Mail Gà..."
@@ -2372,6 +2381,7 @@ function renderYoutubeChannelsBoard() {
                       type="text"
                       list="yt-groups-datalist"
                       class="inline-group-input"
+                      style="${calcAutoInputChStyle(chGroup, 16, 6)}"
                       data-channel-group="${escapeHtml(ch.id)}"
                       value="${escapeHtml(chGroup)}"
                       placeholder="Chọn Group..."
@@ -2383,6 +2393,7 @@ function renderYoutubeChannelsBoard() {
                     <input
                       type="text"
                       class="inline-meta-input"
+                      style="${calcAutoInputChStyle(managerMailValue, 15, 4)}"
                       data-channel-manager-mail="${escapeHtml(ch.id)}"
                       value="${escapeHtml(managerMailValue)}"
                       placeholder="Tên / Gmail..."
@@ -3967,6 +3978,22 @@ function setupEventListeners() {
 
   // Tự động cộng tổng ngay tức thì khi gõ vào bất kỳ ô Tháng 1 -> Tháng 12 nào & lọc tìm kiếm video trong kênh
   document.body.addEventListener('input', (e) => {
+    const autoGroupInput = e.target.closest('.inline-group-input');
+    if (autoGroupInput) {
+      const len = String(autoGroupInput.value || '').trim().length;
+      const chWidth = Math.max(16, Math.ceil(len * 1.22) + 6);
+      autoGroupInput.style.width = `${chWidth}ch`;
+      autoGroupInput.style.minWidth = '16ch';
+    }
+
+    const autoMetaInput = e.target.closest('[data-channel-manager-mail], [data-channel-ga]');
+    if (autoMetaInput) {
+      const len = String(autoMetaInput.value || '').trim().length;
+      const chWidth = Math.max(15, Math.ceil(len * 1.22) + 4);
+      autoMetaInput.style.width = `${chWidth}ch`;
+      autoMetaInput.style.minWidth = '15ch';
+    }
+
     const revInput = e.target.closest('[data-channel-rev-id]');
     if (revInput) {
       const chId = revInput.dataset.channelRevId;
@@ -5384,7 +5411,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=47', { updateViaCache: 'none' })
+      .register('/sw.js?v=48', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
