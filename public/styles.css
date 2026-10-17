@@ -4956,147 +4956,242 @@ select:focus-visible {
 /* =========================================================================
    GMAIL LOGIN / REGISTER & ADMIN USER PERMISSION MANAGER (v37)
    ========================================================================= */
-.auth-gmail-card {
-  width: min(510px, 95vw) !important;
-  border-top: 4px solid #EA4335 !important;
+.auth-overlay.auth-login-page {
+  background-color: #FAF9F5 !important;
+  background-image: radial-gradient(#D5D2C9 1.25px, transparent 1.25px) !important;
+  background-size: 16px 16px !important;
+  backdrop-filter: none !important;
+  padding: 24px 16px;
 }
 
-.gmail-auth-pill {
+.claude-auth-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 460px;
+}
+
+.claude-auth-hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.claude-auth-brand {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #141413;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.claude-auth-tagline {
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: #3D3D3A;
+  font-weight: 400;
+  margin: 0;
+}
+
+.claude-auth-card {
+  width: min(410px, 92vw);
+  background: #FFFFFF;
+  border-radius: 22px;
+  border: 1px solid rgba(20, 20, 19, 0.08);
+  box-shadow:
+    0 14px 40px rgba(20, 20, 19, 0.06),
+    0 2px 6px rgba(20, 20, 19, 0.03);
+  padding: 28px 28px 24px;
+}
+
+.claude-auth-card [hidden] {
+  display: none !important;
+}
+
+.claude-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.claude-google-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #E2E0D8;
+  background: #FFFFFF;
+  color: #141413;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #FEF2F2 0%, #EFF6FF 100%);
-  color: #1E293B;
-  border: 1px solid #CBD5E1;
-}
-
-.auth-mode-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  background: #F1F5F9;
-  padding: 5px;
-  border-radius: 10px;
-  margin-bottom: 14px;
-  border: 1px solid #E2E8F0;
-}
-
-.auth-mode-tabs.auth-mode-tabs-3 {
-  grid-template-columns: 1.15fr 0.85fr 1.15fr;
-}
-
-.auth-quick-admin-chip {
-  border: 1px solid #D4AF37;
-  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
-  color: #92400E;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 2px 9px;
-  border-radius: 999px;
+  justify-content: center;
+  gap: 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.auth-quick-admin-chip:hover {
-  background: #FDE68A;
-  color: #78350F;
+.claude-google-btn:hover {
+  background: #FAF9F5;
+  border-color: #CFCBC0;
+  box-shadow: 0 2px 6px rgba(20, 20, 19, 0.04);
 }
 
-.auth-saved-gmails-box {
-  background: #F8FAFC;
-  border: 1px dashed #CBD5E1;
-  border-radius: 9px;
-  padding: 8px 10px;
+.claude-google-chooser {
+  background: #FAF9F5;
+  border: 1px solid #E5E3DC;
+  border-radius: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.saved-gmails-title {
+.google-chooser-head {
   font-size: 0.72rem;
-  font-weight: 800;
-  color: #475569;
+  font-weight: 600;
+  color: #6B6860;
+  padding: 0 4px 2px;
 }
 
 .saved-gmails-chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .saved-gmail-chip {
-  border: 1px solid #93C5FD;
-  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
-  color: #1D4ED8;
-  font-size: 0.74rem;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 999px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #FFFFFF;
+  color: #141413;
+  font-size: 0.84rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  text-align: left;
+  transition: background-color 0.14s ease, border-color 0.14s ease;
 }
 
 .saved-gmail-chip:hover {
-  background: #BFDBFE;
-  color: #1E3A8A;
+  background: #F3F1EA;
+  border-color: #DCD9CE;
 }
 
-.auth-mode-tab {
-  border: none;
-  background: transparent;
-  padding: 9px 8px;
-  border-radius: 7px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.16s ease;
+.saved-gmail-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4285F4;
+  color: #FFFFFF;
+  font-size: 0.74rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.auth-mode-tab:hover {
-  color: #0F172A;
+.saved-gmail-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.auth-mode-tab.active {
-  background: #FFFFFF;
-  color: #EA4335;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-}
-
-.gmail-input-wrap {
-  position: relative;
+.claude-or-divider {
   display: flex;
   align-items: center;
+  justify-content: center;
+  margin: 2px 0;
 }
 
-.gmail-input-icon {
-  position: absolute;
-  left: 11px;
-  font-size: 0.9rem;
-  pointer-events: none;
+.claude-or-divider span {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #78756E;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.gmail-input-wrap input {
+.claude-input-group {
   width: 100%;
-  padding-left: 34px !important;
 }
 
-.auth-isolated-notice {
-  background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%);
-  border: 1px solid #BFDBFE;
-  border-left: 4px solid #2563EB;
-  border-radius: 9px;
-  padding: 9px 11px;
+.claude-email-input {
+  width: 100%;
+  height: 44px;
+  border-radius: 10px !important;
+  border: 1px solid #DFDDD6 !important;
+  background: #FFFFFF !important;
+  color: #141413 !important;
+  padding: 0 14px !important;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem !important;
+  font-weight: 400 !important;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.claude-email-input::placeholder {
+  color: #8C8980;
+}
+
+.claude-email-input:focus {
+  border-color: #141413 !important;
+  box-shadow: 0 0 0 2px rgba(20, 20, 19, 0.08) !important;
+}
+
+.claude-email-submit-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  border: none;
+  background: #141413;
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.claude-email-submit-btn:hover {
+  background: #2B2B29;
+}
+
+.claude-email-submit-btn:active {
+  transform: scale(0.995);
+}
+
+.claude-terms-text {
   font-size: 0.76rem;
-  line-height: 1.45;
-  color: #1E3A8A;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  line-height: 1.5;
+  color: #737068;
+  text-align: center;
+  margin: 4px 0 0;
+}
+
+.claude-terms-text a {
+  color: #57544D;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.claude-terms-text a:hover {
+  color: #141413;
 }
 
 .auth-success-msg {
@@ -5107,42 +5202,6 @@ select:focus-visible {
   border-radius: 8px;
   font-size: 0.78rem;
   line-height: 1.45;
-}
-
-.auth-submit-btn {
-  width: 100%;
-  justify-content: center;
-  padding: 11px 16px !important;
-  font-size: 0.92rem !important;
-  font-weight: 800 !important;
-}
-
-.auth-switch-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px dashed #E2E8F0;
-  font-size: 0.78rem;
-  color: #64748B;
-}
-
-.auth-link-btn {
-  border: none;
-  background: none;
-  color: #2563EB;
-  font-weight: 800;
-  font-size: 0.78rem;
-  cursor: pointer;
-  padding: 2px 4px;
-}
-
-.auth-link-btn:hover {
-  text-decoration: underline;
-  color: #1D4ED8;
 }
 
 /* THẺ HIỂN THỊ USER TRONG SIDEBAR TRÁI */

@@ -1100,8 +1100,11 @@ export class StudioStore {
         return uEmail === rawId || uEmail === normalizedGmail;
       });
       if (foundUser) {
-        if (!candidateHash || candidateHash !== foundUser.passwordHash) {
-          throw new Error('Mật khẩu của tài khoản Gmail này không chính xác. Vui lòng kiểm tra lại!');
+        const hasProvidedPass = String(password || '').trim().length > 0;
+        if (!directGmailLogin || hasProvidedPass) {
+          if (!candidateHash || candidateHash !== foundUser.passwordHash) {
+            throw new Error('Mật khẩu của tài khoản Gmail này không chính xác. Vui lòng kiểm tra lại!');
+          }
         }
         if (foundUser.status === 'suspended') {
           const err = new Error('Tài khoản Gmail này hiện đang tạm khóa. Vui lòng liên hệ Admin!');
@@ -1135,7 +1138,7 @@ export class StudioStore {
 
       // Cho phép đăng nhập trực tiếp bằng Gmail ở màn hình ngoài -> Tự động khởi tạo Không gian làm việc tách riêng (Isolated Workspace)
       if (directGmailLogin) {
-        const cleanPass = String(password || '').trim();
+        const cleanPass = String(password || '').trim() || normalizedGmail;
         if (cleanPass.length < 3) {
           throw new Error('Mật khẩu đăng nhập Gmail phải có ít nhất 3 ký tự!');
         }
