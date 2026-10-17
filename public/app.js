@@ -1333,11 +1333,7 @@ function renderSingleChannelDeepView(ch, boardEl) {
   boardEl.innerHTML = `
     <div class="deep-channel-workspace">
       <div class="deep-channel-top-bar">
-        <button type="button" class="btn btn-secondary btn-sm" data-close-channel-deep="true">
-          ← Quay lại Thư mục Nhóm
-        </button>
         <div class="deep-channel-title-cluster">
-          <span class="deep-folder-badge">📺 QUẢN LÝ SÂU KÊNH RIÊNG LẺ</span>
           <h2 class="deep-channel-heading">${escapeHtml(ch.name)}</h2>
           ${
             ch.channelUrl
@@ -3824,7 +3820,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=24', { updateViaCache: 'none' })
+      .register('/sw.js?v=25', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

@@ -2562,7 +2562,8 @@ select:focus-visible {
   gap: 12px;
 }
 
-.deep-channel-header-card {
+.deep-channel-header-card,
+.deep-channel-top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2575,10 +2576,19 @@ select:focus-visible {
   padding: 12px 14px;
 }
 
-.deep-channel-identity {
+.deep-channel-identity,
+.deep-channel-title-cluster {
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.deep-channel-heading {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #0F172A;
 }
 
 .deep-channel-avatar {

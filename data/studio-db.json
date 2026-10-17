@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastDailySyncDate": "2026-10-17",
-    "lastDailySyncAt": "2026-10-17T01:29:00.917Z",
+    "lastDailySyncAt": "2026-10-17T01:42:06.609Z",
     "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b"
   },
   "channels": [
@@ -21,7 +21,7 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-17T01:29:00.421Z",
+      "updatedAt": "2026-10-17T01:42:06.182Z",
       "group": "KÊNH ÂM THỰC",
       "watchHours": 0,
       "realtimeViews48h": 0,
@@ -79,7 +79,7 @@
       "name": "1970s Show",
       "handle": "@1970sShow",
       "channelUrl": "https://www.youtube.com/@1970sShow",
-      "subscribers": 51,
+      "subscribers": 52,
       "totalVideos": 14,
       "firstVideoDate": "2026-09-29",
       "category": "Giải trí & Nội dung số",
@@ -89,8 +89,8 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-17T01:29:00.910Z",
-      "totalViews": 35143,
+      "updatedAt": "2026-10-17T01:42:06.607Z",
+      "totalViews": 34321,
       "watchHours": 2200,
       "group": "NGƯỜI NỔI TIẾNG",
       "realtimeViews48h": 0,
