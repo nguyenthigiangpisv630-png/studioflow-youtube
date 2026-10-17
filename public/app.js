@@ -216,6 +216,26 @@ async function loadOverview() {
   }
 
   renderAll();
+
+  // Tự động kiểm tra & cập nhật chỉ số video theo ngày (nếu bước sang ngày mới theo lịch Google)
+  const now = new Date();
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+    now.getDate()
+  ).padStart(2, '0')}`;
+  const lastSyncDate = state.summary?.meta?.lastDailySyncDate || '';
+  if (
+    state.channels.length > 0 &&
+    lastSyncDate !== todayIso &&
+    state.autoDailySyncedDate !== todayIso
+  ) {
+    state.autoDailySyncedDate = todayIso;
+    apiRequest('/api/youtube/sync-daily', {
+      method: 'POST',
+      body: JSON.stringify({ date: todayIso }),
+    })
+      .then(() => loadOverview())
+      .catch(() => {});
+  }
 }
 
 function renderAll() {
@@ -2157,12 +2177,21 @@ function renderYoutubeInsightsHub() {
       : b.views - a.views || b.outlierMultiplier - a.outlierMultiplier
   );
 
-  const topOutlierVideo = [...filteredVideos].sort(
-    (a, b) => b.outlierMultiplier - a.outlierMultiplier || b.views - a.views
-  )[0];
+  // Chỉ hiển thị những video đạt từ 10.000 views trở lên trên Bảng tổng hợp "Video Nổ View" cả dàn kênh
+  const MIN_BURST_VIEWS = 10000;
+  const burstVideosOver10k = filteredVideos.filter((v) => v.views >= MIN_BURST_VIEWS);
 
-  const displayLimit = state.insightsShowAllVideos ? 30 : 10;
-  const topBurstVideos = filteredVideos.slice(0, displayLimit);
+  const topOutlierVideo = [
+    ...(burstVideosOver10k.length > 0 ? burstVideosOver10k : filteredVideos),
+  ].sort((a, b) => b.outlierMultiplier - a.outlierMultiplier || b.views - a.views)[0];
+
+  const displayLimit = state.insightsShowAllVideos ? 50 : 10;
+  const topBurstVideos = burstVideosOver10k.slice(0, displayLimit);
+
+  const lastSyncIso = state.summary?.meta?.lastDailySyncAt;
+  const lastSyncTimeLabel = lastSyncIso
+    ? new Date(lastSyncIso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+    : 'Hôm nay';
 
   const burstVideosHtml =
     topBurstVideos.length > 0
@@ -2212,7 +2241,7 @@ function renderYoutubeInsightsHub() {
             `;
           })
           .join('')
-      : `<div class="channel-top-videos-empty">Chưa có video nào khớp bộ lọc — bấm <strong>Đồng bộ</strong> trên kênh để quét danh sách video.</div>`;
+      : `<div class="channel-top-videos-empty">Chưa có video nào đạt trên <strong>10.000 views</strong> khớp bộ lọc — hệ thống đang tự động cập nhật theo ngày để lọc các video nổ ≥ 10K views.</div>`;
 
   hubEl.innerHTML = `
     <!-- PHẦN 1: TÓM TẮT PHÂN TÍCH & DOANH THU TOÀN HỆ THỐNG (EXECUTIVE OVERVIEW) -->
@@ -2362,12 +2391,14 @@ function renderYoutubeInsightsHub() {
         </div>
       </section>
 
-      <!-- CỘT 2: BẢNG TỔNG HỢP VIDEO NỔ VIEW CỦA CẢ DÀN KÊNH -->
+      <!-- CỘT 2: BẢNG TỔNG HỢP VIDEO NỔ VIEW CỦA CẢ DÀN KÊNH (CHỈ HIỂN THỊ VIDEO TRÊN 10K VIEWS) -->
       <section class="insights-card">
         <div class="insights-card-header">
           <div>
-            <h3 class="insights-card-title">🔥 Bảng tổng hợp "Video Nổ View" cả dàn kênh</h3>
-            <p class="insights-card-sub">Đã gom ${formatNumber(filteredVideos.length)} video từ ${formatNumber(state.channels.length)} kênh</p>
+            <h3 class="insights-card-title">🔥 Bảng tổng hợp "Video Nổ View" cả dàn kênh (Trên 10K Views)</h3>
+            <p class="insights-card-sub">
+              Chỉ hiển thị <strong>${formatNumber(burstVideosOver10k.length)} video trên 10.000 views</strong> (từ ${formatNumber(filteredVideos.length)} video của ${formatNumber(state.channels.length)} kênh) · 🔄 Auto update theo ngày (${escapeHtml(googleDateStr)} · ${escapeHtml(lastSyncTimeLabel)})
+            </p>
           </div>
           <div class="insights-mode-tabs" role="tablist">
             <button type="button" class="insights-tab-btn ${sortMode === 'views' ? 'active' : ''}" data-set-video-sort="views">Views cao nhất</button>
@@ -2378,10 +2409,10 @@ function renderYoutubeInsightsHub() {
           ${burstVideosHtml}
         </div>
         ${
-          filteredVideos.length > 10
+          burstVideosOver10k.length > 10
             ? `<div class="insights-card-footer">
                 <button type="button" class="btn btn-ghost btn-xs" data-toggle-show-all-burst="true">
-                  ${state.insightsShowAllVideos ? '▲ Thu gọn về Top 10' : `▼ Xem toàn bộ ${Math.min(filteredVideos.length, 30)} video`}
+                  ${state.insightsShowAllVideos ? '▲ Thu gọn về Top 10' : `▼ Xem toàn bộ ${burstVideosOver10k.length} video trên 10K views`}
                 </button>
               </div>`
             : ''
@@ -4151,7 +4182,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=27', { updateViaCache: 'none' })
+      .register('/sw.js?v=28', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
@@ -4178,4 +4209,12 @@ document.getElementById('btn-install-pwa')?.addEventListener('click', async () =
 
 setupEventListeners();
 loadOverview().catch((err) => showBanner(err.message, true));
+
+// Tự động làm mới dữ liệu nền mỗi 5 phút để cập nhật danh sách video trên 10K views & chỉ số theo ngày
+setInterval(() => {
+  const activeTag = document.activeElement?.tagName;
+  if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
+  loadOverview().catch(() => {});
+}, 5 * 60 * 1000);
+
 

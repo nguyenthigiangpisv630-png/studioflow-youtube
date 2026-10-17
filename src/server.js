@@ -72,13 +72,14 @@ export function createAppServer({
           ? new Date(summary.meta.lastDailySyncAt).getTime()
           : 0;
         const elapsedMs = Date.now() - (Number.isFinite(lastSyncAt) ? lastSyncAt : 0);
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+          now.getDate()
+        ).padStart(2, '0')}`;
+        const isNewDay = summary.meta?.lastDailySyncDate !== today;
 
-        if (elapsedMs >= HOURLY_INTERVAL_MS) {
+        if (isNewDay || elapsedMs >= HOURLY_INTERVAL_MS) {
           isSyncing = true;
-          const now = new Date();
-          const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
-            now.getDate()
-          ).padStart(2, '0')}`;
           await store.syncAllVideosDailyMetrics({ date: today });
         }
       } catch {
