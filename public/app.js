@@ -4273,7 +4273,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=35', { updateViaCache: 'none' })
+      .register('/sw.js?v=36', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

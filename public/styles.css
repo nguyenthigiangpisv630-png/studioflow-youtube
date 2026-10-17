@@ -4226,7 +4226,7 @@ select:focus-visible {
 
 .sidebar-expand-tab {
   position: fixed;
-  top: 12px;
+  bottom: 20px;
   left: 0;
   z-index: 80;
   display: inline-flex;
@@ -4707,12 +4707,6 @@ select:focus-visible {
 /* ============================================================================
    BẢNG MÀU RỰC RỠ BẮT MẮT CHO 6 THẺ CHỈ SỐ KPI & THANH TIÊU ĐỀ TRANG CHỦ (v35)
    ============================================================================ */
-@media (min-width: 769px) {
-  .app-shell.sidebar-collapsed .main-content {
-    padding-left: 76px;
-  }
-}
-
 .deep-kpi-card {
   position: relative;
   overflow: hidden;
