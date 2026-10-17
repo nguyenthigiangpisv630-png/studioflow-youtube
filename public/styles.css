@@ -3717,4 +3717,379 @@ select:focus-visible {
   }
 }
 
+/* ============================================================================
+   TRANG CHỦ: BẢNG TỔNG KẾT TIỀN THÁNG NÀY THEO LỊCH GOOGLE, TIỀN NHÓM & TOÀN BỘ (v26)
+   ============================================================================ */
+.home-exec-grid-6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+@media (max-width: 1280px) {
+  .home-exec-grid-6 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .home-exec-grid-6 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.home-revenue-command-card {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-top: 3px solid #D4AF37;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.home-rev-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.home-rev-title-cluster {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-rev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0B0F19 0%, #1E293B 100%);
+  border: 1px solid #D4AF37;
+  color: #FBF0B9;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.home-rev-calendar-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.home-rev-month-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.home-rev-month-btn {
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
+  color: #334155;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.71rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.home-rev-month-btn:hover {
+  border-color: #D4AF37;
+  background: #FFFDF7;
+}
+
+.home-rev-month-btn.is-google-month {
+  border-color: #10B981;
+  color: #065F46;
+  background: #ECFDF5;
+}
+
+.home-rev-month-btn.active {
+  background: linear-gradient(135deg, #0B0F19 0%, #1E293B 100%);
+  border-color: #D4AF37;
+  color: #FBF0B9;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25);
+}
+
+.home-rev-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 960px) {
+  .home-rev-summary-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.home-rev-summary-box {
+  border-radius: 10px;
+  padding: 11px 14px;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.home-rev-box-highlight {
+  background: linear-gradient(135deg, #FFFDF7 0%, #FDF8E7 100%);
+  border-color: #D4AF37;
+}
+
+.home-rev-box-grand {
+  background: linear-gradient(135deg, #0B0F19 0%, #161F33 100%);
+  border-color: #D4AF37;
+  color: #F8FAFC;
+}
+
+.home-rev-box-label {
+  font-size: 0.69rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+
+.home-rev-box-grand .home-rev-box-label {
+  color: #CBD5E1;
+}
+
+.home-rev-box-value {
+  font-size: 1.24rem;
+  font-weight: 900;
+  color: #0F172A;
+}
+
+.home-rev-box-value small {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748B;
+}
+
+.home-rev-gold-text {
+  color: #FBF0B9 !important;
+}
+
+.home-rev-box-sub {
+  font-size: 0.72rem;
+  color: #64748B;
+}
+
+.home-rev-box-grand .home-rev-box-sub {
+  color: #94A3B8;
+}
+
+.home-rev-box-grand .home-rev-box-sub strong {
+  color: #FBF0B9;
+}
+
+.home-rev-tables-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .home-rev-tables-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.home-rev-subcard {
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  background: #FCFDFE;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.home-rev-subcard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 9px 12px;
+  background: #F1F5F9;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.home-rev-subcard-head h4 {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #0F172A;
+}
+
+.home-rev-subcard-head span {
+  font-size: 0.72rem;
+  color: #475569;
+}
+
+.home-rev-table-body {
+  display: flex;
+  flex-direction: column;
+  divide-y: 1px solid #E2E8F0;
+}
+
+.home-rev-table-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #EEF2F6;
+}
+
+.home-rev-table-row:last-child {
+  border-bottom: none;
+}
+
+.home-rev-row-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.home-rev-row-sub {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748B;
+}
+
+.home-rev-ch-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #0F172A;
+  cursor: pointer;
+  text-align: left;
+}
+
+.home-rev-ch-link:hover {
+  color: #9A7418;
+  text-decoration: underline;
+}
+
+.home-rev-mini-group {
+  font-size: 0.66rem !important;
+  padding: 1px 7px !important;
+}
+
+.home-rev-row-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-rev-col-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 96px;
+}
+
+.home-rev-col-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748B;
+  text-transform: uppercase;
+}
+
+.home-rev-col-val {
+  font-size: 0.86rem;
+  font-weight: 900;
+  color: #0F172A;
+}
+
+.home-rev-gold-num {
+  color: #785304;
+  background: #FDF8E7;
+  border: 1px solid #E5C158;
+  padding: 1px 7px;
+  border-radius: 5px;
+}
+
+.home-ch-rev-input {
+  width: 105px;
+  padding: 4px 7px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0F172A;
+  background: #FFFFFF;
+  text-align: right;
+}
+
+.home-ch-rev-input:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background: #FFFDF7;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+.home-rev-table-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, #FDF8E7 0%, #FFFDF7 100%);
+  border-top: 1px solid #D4AF37;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #475569;
+}
+
+.home-rev-table-foot strong {
+  color: #5C4002;
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.home-rev-foot-sep {
+  margin: 0 6px;
+  color: #CBD5E1;
+}
+
+.label-stat-pill-rev {
+  background: #ECFDF5 !important;
+  border-color: #6EE7B7 !important;
+  color: #065F46 !important;
+}
+
+.label-stat-pill-rev-total {
+  background: #FDF8E7 !important;
+  border-color: #D4AF37 !important;
+  color: #6B4D04 !important;
+}
+
+
 

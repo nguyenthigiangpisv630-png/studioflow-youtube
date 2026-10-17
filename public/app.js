@@ -1830,7 +1830,18 @@ function renderYoutubeInsightsHub() {
     return;
   }
 
-  // 1. Tính toán Thống kê tổng hợp theo Nhãn (Group, Ngách, Quản lý) + danh sách kênh con trong mỗi thư mục
+  // 0. Lịch Google thời gian thực (Tháng hiện tại theo lịch của Google)
+  const googleNow = new Date();
+  const googleMonth = googleNow.getMonth() + 1; // 1..12
+  const googleYear = googleNow.getFullYear();
+  const googleDateStr = googleNow.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+  const activeRevMonth = Number(state.homeRevenueMonth) || googleMonth;
+
+  // 1. Tính toán Thống kê tổng hợp theo Nhãn (Group, Ngách, Quản lý) + Doanh thu Tháng này & Cả năm
   const buildBreakdown = (getKeyFn) => {
     const map = new Map();
     for (const ch of state.channels) {
@@ -1841,6 +1852,11 @@ function renderYoutubeInsightsHub() {
       const chVideoCount = Math.max(Number(ch.totalVideos) || 0, chVideos.length);
       const isMonetized = ch.status === 'monetized' || ch.monetization === 'enabled';
 
+      const monthlyMap = getChannelMonthlyRevenueMap(ch);
+      const chGoogleMonthRev = Number(monthlyMap[String(googleMonth)]) || 0;
+      const chSelectedMonthRev = Number(monthlyMap[String(activeRevMonth)]) || 0;
+      const chYearlyRev = sumChannelMonthlyRevenue(monthlyMap);
+
       const prev = map.get(filterKey) || {
         label,
         filterKey,
@@ -1849,6 +1865,9 @@ function renderYoutubeInsightsHub() {
         totalSubscribers: 0,
         totalViews: 0,
         totalVideos: 0,
+        googleMonthRevenue: 0,
+        selectedMonthRevenue: 0,
+        totalYearlyRevenue: 0,
         channels: [],
       };
       prev.channelCount += 1;
@@ -1856,12 +1875,18 @@ function renderYoutubeInsightsHub() {
       prev.totalSubscribers += Number(ch.subscribers) || 0;
       prev.totalViews += chViews;
       prev.totalVideos += chVideoCount;
+      prev.googleMonthRevenue = Math.round((prev.googleMonthRevenue + chGoogleMonthRev) * 100) / 100;
+      prev.selectedMonthRevenue = Math.round((prev.selectedMonthRevenue + chSelectedMonthRev) * 100) / 100;
+      prev.totalYearlyRevenue = Math.round((prev.totalYearlyRevenue + chYearlyRev) * 100) / 100;
       prev.channels.push({
         id: ch.id,
         name: ch.name,
         handle: ch.handle || '',
         views: chViews,
         subscribers: Number(ch.subscribers) || 0,
+        googleMonthRevenue: chGoogleMonthRev,
+        selectedMonthRevenue: chSelectedMonthRev,
+        totalYearlyRevenue: chYearlyRev,
       });
       map.set(filterKey, prev);
     }
@@ -1894,6 +1919,12 @@ function renderYoutubeInsightsHub() {
   const grandTotalSubs = groupFolders.reduce((s, r) => s + r.totalSubscribers, 0);
   const grandTotalVideos = groupFolders.reduce((s, r) => s + r.totalVideos, 0);
   const grandMonetized = groupFolders.reduce((s, r) => s + r.monetizedCount, 0);
+  const grandGoogleMonthRevenue =
+    Math.round(groupFolders.reduce((s, r) => s + r.googleMonthRevenue, 0) * 100) / 100;
+  const grandSelectedMonthRevenue =
+    Math.round(groupFolders.reduce((s, r) => s + r.selectedMonthRevenue, 0) * 100) / 100;
+  const grandTotalYearlyRevenue =
+    Math.round(groupFolders.reduce((s, r) => s + r.totalYearlyRevenue, 0) * 100) / 100;
 
   const activeFilterValue =
     labelMode === 'category'
@@ -1931,6 +1962,12 @@ function renderYoutubeInsightsHub() {
             <span class="label-stat-meta num">${row.channelCount} kênh · ${row.monetizedCount} BKT</span>
           </div>
           <div class="label-stat-metrics num">
+            <span class="label-stat-pill label-stat-pill-rev">
+              💰 T${activeRevMonth}: <strong data-label-rev-month="${escapeHtml(`${labelMode}:${row.filterKey}`)}">${formatRevenueAmount(row.selectedMonthRevenue)}</strong>
+            </span>
+            <span class="label-stat-pill label-stat-pill-rev-total">
+              ∑ Tiền: <strong data-label-rev-year="${escapeHtml(`${labelMode}:${row.filterKey}`)}">${formatRevenueAmount(row.totalYearlyRevenue)}</strong>
+            </span>
             <span class="label-stat-pill"><strong>${formatNumber(row.totalSubscribers)}</strong> SUB</span>
             <span class="label-stat-pill"><strong>${formatNumber(row.totalVideos)}</strong> VIDEO</span>
             <span class="label-stat-pill label-stat-pill-views">
@@ -1942,6 +1979,94 @@ function renderYoutubeInsightsHub() {
             <div class="label-stat-bar-fill" style="width:${Math.max(sharePct, 3)}%"></div>
           </div>
         </button>
+      `;
+    })
+    .join('');
+
+  // Dữ liệu Bảng Tổng Kết Tiền Theo Nhóm & Theo Kênh (ngoài Trang chủ)
+  const monthTabsHtml = Array.from({ length: 12 }, (_, i) => {
+    const m = i + 1;
+    const isGoogleCurrent = m === googleMonth;
+    const isSelected = m === activeRevMonth;
+    return `
+      <button
+        type="button"
+        class="home-rev-month-btn ${isSelected ? 'active' : ''} ${isGoogleCurrent ? 'is-google-month' : ''} num"
+        data-select-home-rev-month="${m}"
+        title="${isGoogleCurrent ? `Tháng hiện tại theo lịch Google (Tháng ${m}/${googleYear})` : `Xem tổng kết tiền Tháng ${m}/${googleYear}`}"
+      >
+        ${isGoogleCurrent ? '📅 ' : ''}T${m}${isGoogleCurrent ? ' (Tháng này)' : ''}
+      </button>
+    `;
+  }).join('');
+
+  const groupRevenueRowsHtml = groupFolders
+    .map((grp) => {
+      const colorClass = grp.filterKey === '__none__' ? '' : getCategoryColorClass(grp.label);
+      return `
+        <div class="home-rev-table-row">
+          <div class="home-rev-row-left">
+            <span class="niche-chip ${colorClass} label-stat-chip">
+              <span class="cat-dot"></span>
+              <span>${escapeHtml(grp.label)}</span>
+            </span>
+            <span class="home-rev-row-sub num">${grp.channelCount} kênh</span>
+          </div>
+          <div class="home-rev-row-right num">
+            <div class="home-rev-col-cell">
+              <span class="home-rev-col-label">Tiền Tháng ${activeRevMonth}</span>
+              <strong class="home-rev-col-val" data-home-grp-month="${escapeHtml(grp.filterKey)}">${formatRevenueAmount(grp.selectedMonthRevenue)}</strong>
+            </div>
+            <div class="home-rev-col-cell home-rev-col-total">
+              <span class="home-rev-col-label">Tổng tiền Nhóm (12T)</span>
+              <strong class="home-rev-col-val home-rev-gold-num" data-home-grp-year="${escapeHtml(grp.filterKey)}">${formatRevenueAmount(grp.totalYearlyRevenue)}</strong>
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  const channelRevenueRowsHtml = state.channels
+    .map((ch) => {
+      const monthlyMap = getChannelMonthlyRevenueMap(ch);
+      const chMonthVal = Number(monthlyMap[String(activeRevMonth)]) || 0;
+      const chYearVal = sumChannelMonthlyRevenue(monthlyMap);
+      const chGroup = String(ch.group || '').trim() || 'Chưa gắn Group';
+      const groupColorClass = ch.group ? getCategoryColorClass(chGroup) : '';
+      return `
+        <div class="home-rev-table-row">
+          <div class="home-rev-row-left">
+            <button
+              type="button"
+              class="home-rev-ch-link"
+              data-open-channel-deep="${escapeHtml(ch.id)}"
+              title="Bấm để mở Quản lý sâu & Bảng doanh thu 12 tháng của kênh ${escapeHtml(ch.name)}"
+            >
+              📺 ${escapeHtml(ch.name)}
+            </button>
+            <span class="niche-chip ${groupColorClass} home-rev-mini-group">${escapeHtml(chGroup)}</span>
+          </div>
+          <div class="home-rev-row-right num">
+            <label class="home-rev-col-cell home-rev-input-wrap" title="Nhập nhanh doanh thu Tháng ${activeRevMonth} của kênh ${escapeHtml(ch.name)}">
+              <span class="home-rev-col-label">Tiền Tháng ${activeRevMonth}</span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                class="home-ch-rev-input num"
+                data-home-ch-rev-id="${escapeHtml(ch.id)}"
+                data-home-ch-rev-month="${activeRevMonth}"
+                value="${chMonthVal > 0 ? chMonthVal : ''}"
+                placeholder="0"
+              />
+            </label>
+            <div class="home-rev-col-cell home-rev-col-total">
+              <span class="home-rev-col-label">Tổng tiền Kênh (12T)</span>
+              <strong class="home-rev-col-val home-rev-gold-num" id="home-ch-year-rev-${escapeHtml(ch.id)}">${formatRevenueAmount(chYearVal)}</strong>
+            </div>
+          </div>
+        </div>
       `;
     })
     .join('');
@@ -2095,14 +2220,24 @@ function renderYoutubeInsightsHub() {
       : `<div class="channel-top-videos-empty">Chưa có video nào khớp bộ lọc — bấm <strong>Đồng bộ</strong> trên kênh để quét danh sách video.</div>`;
 
   hubEl.innerHTML = `
-    <!-- PHẦN 1: TÓM TẮT PHÂN TÍCH TOÀN HỆ THỐNG (EXECUTIVE OVERVIEW) -->
-    <div class="home-exec-grid num">
+    <!-- PHẦN 1: TÓM TẮT PHÂN TÍCH & DOANH THU TOÀN HỆ THỐNG (EXECUTIVE OVERVIEW) -->
+    <div class="home-exec-grid home-exec-grid-6 num">
       <div class="deep-kpi-card">
         <span class="deep-kpi-label">HỆ THỐNG KÊNH &amp; NHÓM</span>
         <strong class="deep-kpi-val">${formatNumber(state.channels.length)} kênh</strong>
         <span class="deep-kpi-sub">${grandMonetized} kênh Đã BKT · ${groupFolders.length} thư mục Nhóm</span>
       </div>
       <div class="deep-kpi-card deep-kpi-gold">
+        <span class="deep-kpi-label">TIỀN THÁNG NÀY (LỊCH GOOGLE T${googleMonth})</span>
+        <strong class="deep-kpi-val" id="home-kpi-google-month-rev">${formatRevenueAmount(grandGoogleMonthRevenue)}</strong>
+        <span class="deep-kpi-sub">📅 Lịch Google: ${escapeHtml(googleDateStr)}</span>
+      </div>
+      <div class="deep-kpi-card deep-kpi-gold">
+        <span class="deep-kpi-label">TỔNG TIỀN TOÀN BỘ (12 THÁNG)</span>
+        <strong class="deep-kpi-val" id="home-kpi-grand-total-rev">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong>
+        <span class="deep-kpi-sub">Tổng tiền tất cả các kênh &amp; các nhóm</span>
+      </div>
+      <div class="deep-kpi-card">
         <span class="deep-kpi-label">TỔNG LƯỢT XEM THỰC TẾ</span>
         <strong class="deep-kpi-val">${formatNumber(grandTotalViews)}</strong>
         <span class="deep-kpi-sub">TB ${formatNumber(Math.round(grandTotalViews / Math.max(state.channels.length, 1)))} views / kênh</span>
@@ -2122,6 +2257,81 @@ function renderYoutubeInsightsHub() {
         </span>
       </div>
     </div>
+
+    <!-- PHẦN 1.5: BẢNG TỔNG KẾT TIỀN THEO LỊCH GOOGLE (THÁNG NÀY · TIỀN CÁC NHÓM · TIỀN CÁC KÊNH · TỔNG TOÀN BỘ) -->
+    <section class="home-revenue-command-card">
+      <div class="home-rev-header">
+        <div class="home-rev-title-cluster">
+          <span class="home-rev-badge">💰 TỔNG KẾT TIỀN TOÀN BỘ HỆ THỐNG THEO LỊCH GOOGLE</span>
+          <span class="home-rev-calendar-pill num">
+            📅 Hôm nay: <strong>${escapeHtml(googleDateStr)}</strong> · Tháng hiện tại của Google: <strong>Tháng ${googleMonth}/${googleYear}</strong>
+          </span>
+        </div>
+        <div class="home-rev-month-bar" role="tablist" aria-label="Chọn tháng xem doanh thu">
+          ${monthTabsHtml}
+        </div>
+      </div>
+
+      <!-- 3 Ô Tổng hợp Tiền: Tiền Tháng đang xem · Tiền Các Nhóm · Tổng Tiền Toàn Bộ -->
+      <div class="home-rev-summary-strip num">
+        <div class="home-rev-summary-box home-rev-box-highlight">
+          <span class="home-rev-box-label">
+            ${activeRevMonth === googleMonth ? `💰 TỔNG TIỀN THÁNG NÀY (THÁNG ${activeRevMonth}/${googleYear} - LỊCH GOOGLE)` : `💰 TỔNG TIỀN THÁNG ${activeRevMonth}/${googleYear} (ĐANG XEM)`}
+          </span>
+          <strong class="home-rev-box-value" id="home-strip-selected-month-rev">${formatRevenueAmount(grandSelectedMonthRevenue)}</strong>
+          <span class="home-rev-box-sub">Cộng tự động từ ${state.channels.length} kênh trong Tháng ${activeRevMonth}</span>
+        </div>
+        <div class="home-rev-summary-box">
+          <span class="home-rev-box-label">📁 TỔNG TIỀN CỦA CÁC NHÓM (${groupFolders.length} NHÓM)</span>
+          <strong class="home-rev-box-value" id="home-strip-groups-rev">${formatRevenueAmount(grandSelectedMonthRevenue)} <small>(Tháng ${activeRevMonth})</small></strong>
+          <span class="home-rev-box-sub">Tổng lũy kế các nhóm cả năm: <strong id="home-strip-groups-year-rev">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong></span>
+        </div>
+        <div class="home-rev-summary-box home-rev-box-grand">
+          <span class="home-rev-box-label">🏆 TỔNG TIỀN TOÀN BỘ (TẤT CẢ KÊNH &amp; NHÓM · 12 THÁNG)</span>
+          <strong class="home-rev-box-value home-rev-gold-text" id="home-strip-grand-total-rev">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong>
+          <span class="home-rev-box-sub">Tháng hiện tại Google (T${googleMonth}): <strong id="home-strip-google-month-sub">${formatRevenueAmount(grandGoogleMonthRevenue)}</strong></span>
+        </div>
+      </div>
+
+      <!-- Bảng 2 Cột: Cột 1 = Tiền của các Nhóm | Cột 2 = Tổng tiền của các Kênh (nhập nhanh tại chỗ) -->
+      <div class="home-rev-tables-grid">
+        <div class="home-rev-subcard">
+          <div class="home-rev-subcard-head">
+            <h4>📁 Tiền của các Nhóm (${groupFolders.length} nhóm)</h4>
+            <span class="num">Tháng ${activeRevMonth} &amp; Cả năm</span>
+          </div>
+          <div class="home-rev-table-body">
+            ${groupRevenueRowsHtml}
+          </div>
+          <div class="home-rev-table-foot num">
+            <span>TỔNG TIỀN CÁC NHÓM:</span>
+            <div>
+              <span>T${activeRevMonth}: <strong id="home-foot-grp-month">${formatRevenueAmount(grandSelectedMonthRevenue)}</strong></span>
+              <span class="home-rev-foot-sep">·</span>
+              <span>Toàn bộ: <strong id="home-foot-grp-year">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-rev-subcard">
+          <div class="home-rev-subcard-head">
+            <h4>📺 Tổng tiền của các Kênh (${state.channels.length} kênh)</h4>
+            <span>Có thể nhập nhanh tiền <strong>Tháng ${activeRevMonth}</strong> tại đây (tự động lưu &amp; cộng tổng)</span>
+          </div>
+          <div class="home-rev-table-body">
+            ${channelRevenueRowsHtml}
+          </div>
+          <div class="home-rev-table-foot num">
+            <span>TỔNG TIỀN TOÀN BỘ CÁC KÊNH:</span>
+            <div>
+              <span>T${activeRevMonth}: <strong id="home-foot-ch-month">${formatRevenueAmount(grandSelectedMonthRevenue)}</strong></span>
+              <span class="home-rev-foot-sep">·</span>
+              <span>Toàn bộ 12T: <strong id="home-foot-ch-year">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- PHẦN 2: BẢNG THỐNG KÊ THEO NHÃN & BẢNG VIDEO NỔ VIEW CẢ DÀN KÊNH -->
     <div class="insights-hub-bar">
@@ -2144,7 +2354,7 @@ function renderYoutubeInsightsHub() {
         <div class="insights-card-header">
           <div>
             <h3 class="insights-card-title">📊 Thống kê tổng hợp theo Nhãn</h3>
-            <p class="insights-card-sub">Cộng gộp Kênh, BKT, Sub &amp; Tổng Views theo từng nhóm</p>
+            <p class="insights-card-sub">Cộng gộp Kênh, BKT, Tiền Tháng ${activeRevMonth}, Tổng Tiền, Sub &amp; Views theo từng nhóm</p>
           </div>
           <div class="insights-mode-tabs" role="tablist">
             <button type="button" class="insights-tab-btn ${labelMode === 'group' ? 'active' : ''}" data-set-label-mode="group">Theo Group</button>
@@ -2488,6 +2698,17 @@ function setupEventListeners() {
       return;
     }
 
+    // Chọn tháng xem doanh thu trên Trang chủ (mặc định là tháng hiện tại theo lịch Google)
+    const selectHomeRevMonthBtn = e.target.closest('[data-select-home-rev-month]');
+    if (selectHomeRevMonthBtn) {
+      const m = Number(selectHomeRevMonthBtn.dataset.selectHomeRevMonth);
+      if (m >= 1 && m <= 12) {
+        state.homeRevenueMonth = m;
+        renderYoutubeInsightsHub();
+      }
+      return;
+    }
+
     // Chuyển chế độ sắp xếp Bảng Video Nổ View (Views cao nhất | Độ nổ xTB kênh)
     const setVideoSortBtn = e.target.closest('[data-set-video-sort]');
     if (setVideoSortBtn) {
@@ -2773,9 +2994,81 @@ function setupEventListeners() {
         localCh.monthlyRevenue = updated.monthlyRevenue || monthlyRevenue;
         localCh.totalYearlyRevenue = updated.totalYearlyRevenue ?? total;
       }
+      renderYoutubeInsightsHub();
+      renderBrandIdentityTab();
       showBanner(`Đã lưu bảng doanh thu kênh "${updated.name}" — Tổng cộng 12 tháng: ${formatRevenueAmount(total)}!`);
     } catch (err) {
       showBanner(err.message, true);
+    }
+  }
+
+  function recalculateHomePageRevenueLive() {
+    const googleMonth = new Date().getMonth() + 1;
+    const activeRevMonth = Number(state.homeRevenueMonth) || googleMonth;
+
+    let grandGoogleMonthRev = 0;
+    let grandSelectedMonthRev = 0;
+    let grandTotalYearRev = 0;
+    const groupTotals = new Map();
+
+    for (const ch of state.channels) {
+      const monthlyMap = getChannelMonthlyRevenueMap(ch);
+      const chGoogleM = Number(monthlyMap[String(googleMonth)]) || 0;
+      const chSelectedM = Number(monthlyMap[String(activeRevMonth)]) || 0;
+      const chYear = sumChannelMonthlyRevenue(monthlyMap);
+      ch.totalYearlyRevenue = chYear;
+
+      grandGoogleMonthRev += chGoogleM;
+      grandSelectedMonthRev += chSelectedM;
+      grandTotalYearRev += chYear;
+
+      const chYearEl = document.getElementById(`home-ch-year-rev-${ch.id}`);
+      if (chYearEl) chYearEl.textContent = formatRevenueAmount(chYear);
+
+      const grpKey = String(ch.group || '').trim() || '__none__';
+      const prevGrp = groupTotals.get(grpKey) || { month: 0, year: 0 };
+      prevGrp.month = Math.round((prevGrp.month + chSelectedM) * 100) / 100;
+      prevGrp.year = Math.round((prevGrp.year + chYear) * 100) / 100;
+      groupTotals.set(grpKey, prevGrp);
+    }
+
+    grandGoogleMonthRev = Math.round(grandGoogleMonthRev * 100) / 100;
+    grandSelectedMonthRev = Math.round(grandSelectedMonthRev * 100) / 100;
+    grandTotalYearRev = Math.round(grandTotalYearRev * 100) / 100;
+
+    for (const [grpKey, vals] of groupTotals.entries()) {
+      document.querySelectorAll(`[data-home-grp-month="${CSS.escape(grpKey)}"]`).forEach((el) => {
+        el.textContent = formatRevenueAmount(vals.month);
+      });
+      document.querySelectorAll(`[data-home-grp-year="${CSS.escape(grpKey)}"]`).forEach((el) => {
+        el.textContent = formatRevenueAmount(vals.year);
+      });
+      document.querySelectorAll(`[data-label-rev-month="group:${CSS.escape(grpKey)}"]`).forEach((el) => {
+        el.textContent = formatRevenueAmount(vals.month);
+      });
+      document.querySelectorAll(`[data-label-rev-year="group:${CSS.escape(grpKey)}"]`).forEach((el) => {
+        el.textContent = formatRevenueAmount(vals.year);
+      });
+    }
+
+    const setTxt = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+    setTxt('home-kpi-google-month-rev', formatRevenueAmount(grandGoogleMonthRev));
+    setTxt('home-kpi-grand-total-rev', formatRevenueAmount(grandTotalYearRev));
+    setTxt('home-strip-selected-month-rev', formatRevenueAmount(grandSelectedMonthRev));
+    setTxt('home-strip-groups-year-rev', formatRevenueAmount(grandTotalYearRev));
+    setTxt('home-strip-grand-total-rev', formatRevenueAmount(grandTotalYearRev));
+    setTxt('home-strip-google-month-sub', formatRevenueAmount(grandGoogleMonthRev));
+    setTxt('home-foot-grp-month', formatRevenueAmount(grandSelectedMonthRev));
+    setTxt('home-foot-grp-year', formatRevenueAmount(grandTotalYearRev));
+    setTxt('home-foot-ch-month', formatRevenueAmount(grandSelectedMonthRev));
+    setTxt('home-foot-ch-year', formatRevenueAmount(grandTotalYearRev));
+
+    const stripGroupsEl = document.getElementById('home-strip-groups-rev');
+    if (stripGroupsEl) {
+      stripGroupsEl.innerHTML = `${formatRevenueAmount(grandSelectedMonthRev)} <small>(Tháng ${activeRevMonth})</small>`;
     }
   }
 
@@ -2785,6 +3078,23 @@ function setupEventListeners() {
     if (revInput) {
       const chId = revInput.dataset.channelRevId;
       readChannelMonthlyRevenueFromDom(chId);
+      return;
+    }
+
+    // Nhập nhanh tiền tháng ngay ngoài Trang chủ -> tự động cộng tổng tiền Tháng này, tiền Nhóm & tiền Toàn bộ tức thì
+    const homeRevInput = e.target.closest('[data-home-ch-rev-id]');
+    if (homeRevInput) {
+      const chId = homeRevInput.dataset.homeChRevId;
+      const month = Number(homeRevInput.dataset.homeChRevMonth) || new Date().getMonth() + 1;
+      const rawVal = parseFloat(String(homeRevInput.value || '0').replace(/,/g, ''));
+      const cleanVal = Number.isFinite(rawVal) && rawVal >= 0 ? Math.round(rawVal * 100) / 100 : 0;
+      const localCh = state.channels.find((c) => c.id === chId);
+      if (localCh) {
+        const monthlyMap = getChannelMonthlyRevenueMap(localCh);
+        monthlyMap[String(month)] = cleanVal;
+        localCh.monthlyRevenue = monthlyMap;
+        recalculateHomePageRevenueLive();
+      }
       return;
     }
 
@@ -2802,6 +3112,32 @@ function setupEventListeners() {
 
   // Thay đổi trực tiếp trạng thái BKT, Group, Ngày đầu đăng video, Giờ xem Studio, hoặc Người / Mail quản lý kênh
   document.body.addEventListener('change', async (e) => {
+    // Lưu tự động khi sửa tiền tháng của kênh ngay ngoài Trang chủ
+    const homeRevInput = e.target.closest('[data-home-ch-rev-id]');
+    if (homeRevInput) {
+      const chId = homeRevInput.dataset.homeChRevId;
+      const month = Number(homeRevInput.dataset.homeChRevMonth) || new Date().getMonth() + 1;
+      const localCh = state.channels.find((c) => c.id === chId);
+      if (localCh) {
+        const monthlyRevenue = getChannelMonthlyRevenueMap(localCh);
+        try {
+          const updated = await apiRequest(`/api/youtube/channels/${encodeURIComponent(chId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ monthlyRevenue }),
+          });
+          localCh.monthlyRevenue = updated.monthlyRevenue || monthlyRevenue;
+          localCh.totalYearlyRevenue = updated.totalYearlyRevenue ?? sumChannelMonthlyRevenue(monthlyRevenue);
+          recalculateHomePageRevenueLive();
+          renderBrandIdentityTab();
+          showBanner(
+            `Đã lưu tiền Tháng ${month} của kênh "${updated.name}" — Tổng tiền kênh: ${formatRevenueAmount(localCh.totalYearlyRevenue)}!`
+          );
+        } catch (err) {
+          showBanner(err.message, true);
+        }
+      }
+      return;
+    }
     const bktSelect = e.target.closest('[data-channel-bkt-select]');
     if (bktSelect) {
       const chId = bktSelect.dataset.channelBktSelect;
@@ -3820,7 +4156,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=25', { updateViaCache: 'none' })
+      .register('/sw.js?v=26', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
