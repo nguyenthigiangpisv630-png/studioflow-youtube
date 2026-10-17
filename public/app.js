@@ -2282,81 +2282,6 @@ function renderYoutubeInsightsHub() {
       </div>
     </div>
 
-    <!-- PHẦN 1.5: BẢNG TỔNG KẾT TIỀN THEO LỊCH GOOGLE (THÁNG NÀY · TIỀN CÁC NHÓM · TIỀN CÁC KÊNH · TỔNG TOÀN BỘ) -->
-    <section class="home-revenue-command-card">
-      <div class="home-rev-header">
-        <div class="home-rev-title-cluster">
-          <span class="home-rev-badge">💰 TỔNG KẾT TIỀN TOÀN BỘ HỆ THỐNG THEO LỊCH GOOGLE</span>
-          <span class="home-rev-calendar-pill num">
-            📅 Hôm nay: <strong>${escapeHtml(googleDateStr)}</strong> · Tháng hiện tại của Google: <strong>Tháng ${googleMonth}/${googleYear}</strong>
-          </span>
-        </div>
-        <div class="home-rev-month-bar" role="tablist" aria-label="Chọn tháng xem doanh thu">
-          ${monthTabsHtml}
-        </div>
-      </div>
-
-      <!-- 3 Ô Tổng hợp Tiền: Tiền Tháng đang xem · Tiền Các Nhóm · Tổng Tiền Toàn Bộ -->
-      <div class="home-rev-summary-strip num">
-        <div class="home-rev-summary-box home-rev-box-highlight">
-          <span class="home-rev-box-label">
-            ${activeRevMonth === googleMonth ? `💰 TỔNG TIỀN THÁNG NÀY (THÁNG ${activeRevMonth}/${googleYear} - LỊCH GOOGLE)` : `💰 TỔNG TIỀN THÁNG ${activeRevMonth}/${googleYear} (ĐANG XEM)`}
-          </span>
-          <strong class="home-rev-box-value" id="home-strip-selected-month-rev">${formatRevenueAmount(grandSelectedMonthRevenue)}</strong>
-          <span class="home-rev-box-sub">Cộng tự động từ ${state.channels.length} kênh trong Tháng ${activeRevMonth}</span>
-        </div>
-        <div class="home-rev-summary-box">
-          <span class="home-rev-box-label">📁 TỔNG TIỀN CỦA CÁC NHÓM (${groupFolders.length} NHÓM)</span>
-          <strong class="home-rev-box-value" id="home-strip-groups-rev">${formatRevenueAmount(grandSelectedMonthRevenue)} <small>(Tháng ${activeRevMonth})</small></strong>
-          <span class="home-rev-box-sub">Tổng lũy kế các nhóm cả năm: <strong id="home-strip-groups-year-rev">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong></span>
-        </div>
-        <div class="home-rev-summary-box home-rev-box-grand">
-          <span class="home-rev-box-label">🏆 TỔNG TIỀN TOÀN BỘ (TẤT CẢ KÊNH &amp; NHÓM · 12 THÁNG)</span>
-          <strong class="home-rev-box-value home-rev-gold-text" id="home-strip-grand-total-rev">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong>
-          <span class="home-rev-box-sub">Tháng hiện tại Google (T${googleMonth}): <strong id="home-strip-google-month-sub">${formatRevenueAmount(grandGoogleMonthRevenue)}</strong></span>
-        </div>
-      </div>
-
-      <!-- Bảng 2 Cột: Cột 1 = Tiền của các Nhóm | Cột 2 = Tổng tiền của các Kênh (nhập nhanh tại chỗ) -->
-      <div class="home-rev-tables-grid">
-        <div class="home-rev-subcard">
-          <div class="home-rev-subcard-head">
-            <h4>📁 Tiền của các Nhóm (${groupFolders.length} nhóm)</h4>
-            <span class="num">Tháng ${activeRevMonth} &amp; Cả năm</span>
-          </div>
-          <div class="home-rev-table-body">
-            ${groupRevenueRowsHtml}
-          </div>
-          <div class="home-rev-table-foot num">
-            <span>TỔNG TIỀN CÁC NHÓM:</span>
-            <div>
-              <span>T${activeRevMonth}: <strong id="home-foot-grp-month">${formatRevenueAmount(grandSelectedMonthRevenue)}</strong></span>
-              <span class="home-rev-foot-sep">·</span>
-              <span>Toàn bộ: <strong id="home-foot-grp-year">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="home-rev-subcard">
-          <div class="home-rev-subcard-head">
-            <h4>📺 Tổng tiền của các Kênh (${state.channels.length} kênh)</h4>
-            <span>Có thể nhập nhanh tiền <strong>Tháng ${activeRevMonth}</strong> tại đây (tự động lưu &amp; cộng tổng)</span>
-          </div>
-          <div class="home-rev-table-body">
-            ${channelRevenueRowsHtml}
-          </div>
-          <div class="home-rev-table-foot num">
-            <span>TỔNG TIỀN TOÀN BỘ CÁC KÊNH:</span>
-            <div>
-              <span>T${activeRevMonth}: <strong id="home-foot-ch-month">${formatRevenueAmount(grandSelectedMonthRevenue)}</strong></span>
-              <span class="home-rev-foot-sep">·</span>
-              <span>Toàn bộ 12T: <strong id="home-foot-ch-year">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- PHẦN 2: BẢNG THỐNG KÊ THEO NHÃN & BẢNG VIDEO NỔ VIEW CẢ DÀN KÊNH -->
     <div class="insights-hub-bar">
       <div class="insights-hub-title-group">
@@ -4182,7 +4107,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=29', { updateViaCache: 'none' })
+      .register('/sw.js?v=30', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
