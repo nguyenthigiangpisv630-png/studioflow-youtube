@@ -4832,3 +4832,489 @@ select:focus-visible {
   color: #E2E8F0 !important;
 }
 
+/* =========================================================================
+   GMAIL LOGIN / REGISTER & ADMIN USER PERMISSION MANAGER (v37)
+   ========================================================================= */
+.auth-gmail-card {
+  width: min(510px, 95vw) !important;
+  border-top: 4px solid #EA4335 !important;
+}
+
+.gmail-auth-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #FEF2F2 0%, #EFF6FF 100%);
+  color: #1E293B;
+  border: 1px solid #CBD5E1;
+}
+
+.auth-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: #F1F5F9;
+  padding: 5px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  border: 1px solid #E2E8F0;
+}
+
+.auth-mode-tab {
+  border: none;
+  background: transparent;
+  padding: 9px 10px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.auth-mode-tab:hover {
+  color: #0F172A;
+}
+
+.auth-mode-tab.active {
+  background: #FFFFFF;
+  color: #EA4335;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.gmail-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.gmail-input-icon {
+  position: absolute;
+  left: 11px;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+.gmail-input-wrap input {
+  width: 100%;
+  padding-left: 34px !important;
+}
+
+.auth-isolated-notice {
+  background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%);
+  border: 1px solid #BFDBFE;
+  border-left: 4px solid #2563EB;
+  border-radius: 9px;
+  padding: 9px 11px;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #1E3A8A;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.auth-success-msg {
+  background: #ECFDF5;
+  border: 1px solid #6EE7B7;
+  color: #065F46;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 11px 16px !important;
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+}
+
+.auth-switch-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed #E2E8F0;
+  font-size: 0.78rem;
+  color: #64748B;
+}
+
+.auth-link-btn {
+  border: none;
+  background: none;
+  color: #2563EB;
+  font-weight: 800;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.auth-link-btn:hover {
+  text-decoration: underline;
+  color: #1D4ED8;
+}
+
+/* THẺ HIỂN THỊ USER TRONG SIDEBAR TRÁI */
+.sidebar-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  margin-bottom: 6px;
+}
+
+.sidebar-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FBF0B9 0%, #D4AF37 100%);
+  color: #0F172A;
+  font-weight: 900;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-user-avatar.is-member {
+  background: linear-gradient(135deg, #60A5FA 0%, #2563EB 100%);
+  color: #FFFFFF;
+}
+
+.sidebar-user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.sidebar-user-meta strong {
+  font-size: 0.76rem;
+  color: #F8FAFC;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-user-meta span {
+  font-size: 0.66rem;
+  color: #FDE68A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-users-mgr-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.65) 0%, rgba(15, 23, 42, 0.9) 100%);
+  color: #E0F2FE;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.sidebar-users-mgr-btn:hover {
+  border-color: #38BDF8;
+  background: rgba(30, 64, 175, 0.85);
+  color: #FFFFFF;
+}
+
+.pending-users-badge {
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 0.68rem;
+  font-weight: 900;
+  padding: 1px 7px;
+  border-radius: 999px;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+/* HỘP THOẠI QUẢN LÝ USER & CẤP QUYỀN DÀNH CHO ADMIN */
+.users-manager-card {
+  width: min(920px, 96vw) !important;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 18px 20px !important;
+}
+
+.users-manager-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E2E8F0;
+  margin-bottom: 12px;
+}
+
+.admin-create-user-bar {
+  background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.admin-create-user-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1E3A8A;
+  margin-bottom: 8px;
+}
+
+.admin-create-user-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr 0.9fr 1.4fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.users-manager-list {
+  overflow-y: auto;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.users-summary-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.users-stat-chip {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+}
+
+.users-stat-chip.is-pending {
+  background: #FFFBEB;
+  color: #B45309;
+  border-color: #FCD34D;
+}
+
+.users-stat-chip.is-approved {
+  background: #ECFDF5;
+  color: #047857;
+  border-color: #6EE7B7;
+}
+
+.users-stat-chip.is-suspended {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border-color: #FCA5A5;
+}
+
+.users-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-mgr-card {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.user-mgr-card.is-pending-card {
+  border: 2px solid #F59E0B;
+  background: #FFFDF7;
+}
+
+.user-mgr-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #E2E8F0;
+  margin-bottom: 10px;
+}
+
+.user-mgr-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-mgr-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #EA4335 0%, #2563EB 100%);
+  color: #FFFFFF;
+  font-weight: 900;
+  font-size: 0.92rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-mgr-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.user-mgr-email-chip {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #1D4ED8;
+  background: #EFF6FF;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #BFDBFE;
+}
+
+.user-status-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.user-status-badge.status-pending {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #F59E0B;
+}
+
+.user-status-badge.status-approved {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #10B981;
+}
+
+.user-status-badge.status-suspended {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #EF4444;
+}
+
+.user-mgr-sub-row {
+  font-size: 0.74rem;
+  color: #64748B;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+
+.user-mgr-note {
+  color: #B45309;
+  font-weight: 700;
+}
+
+.user-mgr-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-delete-btn {
+  color: #DC2626 !important;
+}
+
+.user-perm-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.user-perm-section-label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #334155;
+  margin: 8px 0 5px;
+}
+
+.user-perm-checks-row,
+.user-assign-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.user-perm-check,
+.user-assign-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #1E293B;
+  cursor: pointer;
+}
+
+.user-perm-check:hover,
+.user-assign-pill:hover {
+  border-color: #2563EB;
+  background: #EFF6FF;
+}
+
+.user-perm-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.users-empty-box {
+  text-align: center;
+  padding: 28px 16px;
+  background: #F8FAFC;
+  border: 1px dashed #CBD5E1;
+  border-radius: 10px;
+  color: #475569;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 768px) {
+  .admin-create-user-grid {
+    grid-template-columns: 1fr;
+  }
+  .user-perm-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+

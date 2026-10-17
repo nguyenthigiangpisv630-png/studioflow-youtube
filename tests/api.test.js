@@ -237,3 +237,97 @@ test('POST /api/auth/password đặt mật khẩu khóa Web, chặn 401 khi chư
   });
 });
 
+test('POST /api/auth/register đăng ký Gmail mới, chờ Admin cấp quyền và tách riêng không gian làm việc (isolated workspace)', async () => {
+  await withTestServer(async ({ baseUrl }) => {
+    // 1. User mới đăng ký bằng Gmail
+    const regRes = await fetch(`${baseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Minh Quân YT',
+        email: 'minhquan.yt@gmail.com',
+        password: '123456',
+        note: 'Xin dùng không gian riêng cho team US',
+      }),
+    });
+    assert.equal(regRes.status, 201);
+    const regBody = await regRes.json();
+    assert.equal(regBody.user.email, 'minhquan.yt@gmail.com');
+    assert.equal(regBody.user.status, 'pending');
+    assert.equal(regBody.user.scopeMode, 'isolated');
+
+    // 2. Khi chưa được Admin duyệt -> đăng nhập trả về 403
+    const pendingLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'minhquan.yt@gmail.com',
+        password: '123456',
+      }),
+    });
+    assert.equal(pendingLoginRes.status, 403);
+
+    // 3. Admin duyệt cấp quyền cho User Gmail này
+    const approveRes = await fetch(`${baseUrl}/api/users/${regBody.user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: 'approved',
+        scopeMode: 'isolated',
+      }),
+    });
+    assert.equal(approveRes.status, 200);
+    const approveBody = await approveRes.json();
+    assert.equal(approveBody.user.status, 'approved');
+
+    // 4. User Gmail đăng nhập thành công -> nhận token riêng
+    const userLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'minhquan.yt@gmail.com',
+        password: '123456',
+      }),
+    });
+    assert.equal(userLoginRes.status, 200);
+    const userLoginBody = await userLoginRes.json();
+    assert.ok(userLoginBody.token);
+    assert.equal(userLoginBody.user.role, 'member');
+
+    // 5. Kiểm tra không gian tách riêng: User mới chưa tạo kênh nào nên danh sách kênh = 0 (không thấy kênh của Admin)
+    const userOverviewBefore = await (
+      await fetch(`${baseUrl}/api/overview`, {
+        headers: { 'X-Studio-Token': userLoginBody.token },
+      })
+    ).json();
+    assert.equal(userOverviewBefore.channels.length, 0);
+    assert.equal(userOverviewBefore.contents.length, 0);
+
+    // 6. User tự tạo 1 kênh riêng trong không gian của mình -> User nhìn thấy đúng 1 kênh đó
+    const userCreateChRes = await fetch(`${baseUrl}/api/youtube/channels`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Studio-Token': userLoginBody.token,
+      },
+      body: JSON.stringify({
+        name: 'Kênh Riêng Minh Quân US',
+        handle: '@MinhQuanUS',
+        subscribers: 12000,
+      }),
+    });
+    assert.equal(userCreateChRes.status, 201);
+    const userCh = await userCreateChRes.json();
+    assert.equal(userCh.ownerEmail, 'minhquan.yt@gmail.com');
+
+    const userOverviewAfter = await (
+      await fetch(`${baseUrl}/api/overview`, {
+        headers: { 'X-Studio-Token': userLoginBody.token },
+      })
+    ).json();
+    assert.equal(userOverviewAfter.channels.length, 1);
+    assert.equal(userOverviewAfter.channels[0].name, 'Kênh Riêng Minh Quân US');
+  });
+});
+
+

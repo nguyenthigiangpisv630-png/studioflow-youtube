@@ -121,8 +121,14 @@ export function createAppServer({
 
       if (pathname === '/api/auth/login' && method === 'POST') {
         const body = await readJsonBody(req);
-        const result = store.verifyPassword(body.password || '');
+        const result = store.verifyPassword(body.password || '', body.email || body.username || '');
         return sendJson(res, 200, result);
+      }
+
+      if (pathname === '/api/auth/register' && method === 'POST') {
+        const body = await readJsonBody(req);
+        const created = store.registerGmailUser({ ...body, autoApprove: false });
+        return sendJson(res, 201, created);
       }
 
       if (pathname === '/api/auth/password' && method === 'POST') {
@@ -137,30 +143,85 @@ export function createAppServer({
         return sendJson(res, 200, result);
       }
 
+      const authStatus = store.getAuthStatus(clientToken);
       if (pathname.startsWith('/api/') && pathname !== '/api/health') {
-        const authStatus = store.getAuthStatus(clientToken);
         if (authStatus.passwordEnabled && !authStatus.authenticated) {
           return sendJson(res, 401, {
-            error: 'Web đã được khóa bảo mật. Vui lòng nhập mật khẩu của anh để tiếp tục!',
+            error: 'Web đã được khóa bảo mật. Vui lòng đăng nhập bằng Gmail hoặc tài khoản quản trị!',
             requiresAuth: true,
           });
         }
       }
+      const currentUser = authStatus.user || null;
 
       // =======================================================================
       // API ROUTES
       // =======================================================================
 
       if (pathname === '/api/overview' && method === 'GET') {
+        const isAdmin = !currentUser || currentUser.role === 'admin';
         return sendJson(res, 200, {
-          summary: store.getDashboardSummary(),
-          channels: store.listChannels(),
-          groups: store.listGroups(),
+          currentUser,
+          users: isAdmin ? store.listUsers() : [],
+          summary: store.getDashboardSummary(undefined, currentUser),
+          channels: store.listChannels(currentUser),
+          groups: store.listGroups(currentUser),
           deals: store.listDeals(),
           projects: store.listProjects(),
-          contents: store.listContentItems(),
-          videos: store.listVideos(),
+          contents: store.listContentItems({}, currentUser),
+          videos: store.listVideos({}, currentUser),
         });
+      }
+
+      // 0. ADMIN USER MANAGEMENT & PERMISSIONS
+      if (pathname === '/api/users' && method === 'GET') {
+        if (currentUser && currentUser.role !== 'admin') {
+          return sendJson(res, 403, { error: 'Chỉ Admin mới có quyền xem danh sách User!' });
+        }
+        return sendJson(res, 200, {
+          users: store.listUsers(),
+          allGroups: store.listGroups(null),
+          allChannels: store.listChannels(null).map((c) => ({
+            id: c.id,
+            name: c.name,
+            handle: c.handle,
+            group: c.group,
+            ownerUserId: c.ownerUserId,
+            ownerEmail: c.ownerEmail,
+          })),
+        });
+      }
+
+      if (pathname === '/api/users' && method === 'POST') {
+        if (currentUser && currentUser.role !== 'admin') {
+          return sendJson(res, 403, { error: 'Chỉ Admin mới có quyền tạo và cấp quyền User!' });
+        }
+        const body = await readJsonBody(req);
+        const created = store.registerGmailUser({
+          ...body,
+          autoApprove: body.autoApprove !== false,
+        });
+        return sendJson(res, 201, created);
+      }
+
+      const userItemMatch = pathname.match(/^\/api\/users\/([^/]+)$/);
+      if (userItemMatch && method === 'PATCH') {
+        if (currentUser && currentUser.role !== 'admin') {
+          return sendJson(res, 403, { error: 'Chỉ Admin mới có quyền phân quyền User!' });
+        }
+        const userId = decodeURIComponent(userItemMatch[1]);
+        const body = await readJsonBody(req);
+        const updated = store.updateUserPermissions(userId, body);
+        return sendJson(res, 200, { ok: true, user: updated, ...updated });
+      }
+
+      if (userItemMatch && method === 'DELETE') {
+        if (currentUser && currentUser.role !== 'admin') {
+          return sendJson(res, 403, { error: 'Chỉ Admin mới có quyền xóa User!' });
+        }
+        const userId = decodeURIComponent(userItemMatch[1]);
+        const deleted = store.deleteUser(userId);
+        return sendJson(res, 200, deleted);
       }
 
       if (pathname === '/api/brand' && method === 'GET') {
@@ -254,11 +315,14 @@ export function createAppServer({
         return sendJson(
           res,
           200,
-          store.listContentItems({
-            type: url.searchParams.get('type') || undefined,
-            projectId: url.searchParams.get('projectId') || undefined,
-            search: url.searchParams.get('search') || undefined,
-          })
+          store.listContentItems(
+            {
+              type: url.searchParams.get('type') || undefined,
+              projectId: url.searchParams.get('projectId') || undefined,
+              search: url.searchParams.get('search') || undefined,
+            },
+            currentUser
+          )
         );
       }
 
@@ -274,7 +338,7 @@ export function createAppServer({
 
       if (pathname === '/api/contents' && method === 'POST') {
         const body = await readJsonBody(req);
-        const created = store.createContentItem(body);
+        const created = store.createContentItem(body, currentUser);
         if (store.hasNotionAutoSync()) {
           try {
             const synced = await store.syncContentItemWithNotion(created.id);
@@ -301,7 +365,7 @@ export function createAppServer({
       if (contentItemMatch && method === 'PATCH') {
         const contentId = decodeURIComponent(contentItemMatch[1]);
         const body = await readJsonBody(req);
-        const updated = store.updateContentItem(contentId, body);
+        const updated = store.updateContentItem(contentId, body, currentUser);
         if (store.hasNotionAutoSync()) {
           try {
             const synced = await store.syncContentItemWithNotion(updated.id);
@@ -318,35 +382,35 @@ export function createAppServer({
       }
       if (contentItemMatch && method === 'DELETE') {
         const contentId = decodeURIComponent(contentItemMatch[1]);
-        const deleted = store.deleteContentItem(contentId);
+        const deleted = store.deleteContentItem(contentId, currentUser);
         return sendJson(res, 200, deleted);
       }
 
       // 4. YOUTUBE CHANNELS, GROUPS, VIDEOS & DAILY METRICS
       if (pathname === '/api/youtube/groups' && method === 'GET') {
-        return sendJson(res, 200, store.listGroups());
+        return sendJson(res, 200, store.listGroups(currentUser));
       }
 
       if (pathname === '/api/youtube/groups' && method === 'POST') {
         const body = await readJsonBody(req);
-        const created = store.createGroup(body);
+        const created = store.createGroup(body, currentUser);
         return sendJson(res, 201, created);
       }
 
       const groupItemMatch = pathname.match(/^\/api\/youtube\/groups\/([^/]+)$/);
       if (groupItemMatch && method === 'DELETE') {
         const groupName = decodeURIComponent(groupItemMatch[1]);
-        const deleted = store.deleteGroup(groupName);
+        const deleted = store.deleteGroup(groupName, currentUser);
         return sendJson(res, 200, deleted);
       }
 
       if (pathname === '/api/youtube/channels' && method === 'GET') {
-        return sendJson(res, 200, store.listChannels());
+        return sendJson(res, 200, store.listChannels(currentUser));
       }
 
       if (pathname === '/api/youtube/channels' && method === 'POST') {
         const body = await readJsonBody(req);
-        const created = await store.createChannelAndSync(body);
+        const created = await store.createChannelAndSync(body, {}, currentUser);
         return sendJson(res, 201, created);
       }
 
@@ -367,12 +431,12 @@ export function createAppServer({
       if (channelItemMatch && method === 'PATCH') {
         const channelId = decodeURIComponent(channelItemMatch[1]);
         const body = await readJsonBody(req);
-        const updated = store.updateChannel(channelId, body);
+        const updated = store.updateChannel(channelId, body, currentUser);
         return sendJson(res, 200, updated);
       }
       if (channelItemMatch && method === 'DELETE') {
         const channelId = decodeURIComponent(channelItemMatch[1]);
-        const deleted = store.deleteChannel(channelId);
+        const deleted = store.deleteChannel(channelId, currentUser);
         return sendJson(res, 200, deleted);
       }
 
@@ -380,11 +444,14 @@ export function createAppServer({
         return sendJson(
           res,
           200,
-          store.listVideos({
-            channelId: url.searchParams.get('channelId') || undefined,
-            projectId: url.searchParams.get('projectId') || undefined,
-            search: url.searchParams.get('search') || undefined,
-          })
+          store.listVideos(
+            {
+              channelId: url.searchParams.get('channelId') || undefined,
+              projectId: url.searchParams.get('projectId') || undefined,
+              search: url.searchParams.get('search') || undefined,
+            },
+            currentUser
+          )
         );
       }
 
@@ -430,7 +497,7 @@ export function createAppServer({
 
       sendJson(res, 404, { error: 'Không tìm thấy đường dẫn yêu cầu' });
     } catch (err) {
-      sendJson(res, 400, { error: err.message || 'Lỗi xử lý yêu cầu' });
+      sendJson(res, err.statusCode || 400, { error: err.message || 'Lỗi xử lý yêu cầu' });
     }
   });
 

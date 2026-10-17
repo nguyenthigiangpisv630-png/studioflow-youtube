@@ -150,12 +150,40 @@ function sumMonthlyRevenue(monthlyRevenue = {}) {
   return Math.round(total * 100) / 100;
 }
 
+function sanitizeUser(u) {
+  if (!u) return null;
+  return {
+    id: u.id,
+    name: u.name || u.email || 'Thành viên',
+    email: String(u.email || '').trim().toLowerCase(),
+    role: u.role === 'admin' ? 'admin' : 'member',
+    status: ['pending', 'approved', 'suspended'].includes(u.status) ? u.status : 'pending',
+    scopeMode: ['isolated', 'assigned', 'all'].includes(u.scopeMode) ? u.scopeMode : 'isolated',
+    allowedGroups: Array.isArray(u.allowedGroups) ? u.allowedGroups.map((g) => String(g).trim()).filter(Boolean) : [],
+    allowedChannelIds: Array.isArray(u.allowedChannelIds) ? u.allowedChannelIds.map((id) => String(id).trim()).filter(Boolean) : [],
+    customGroups: Array.isArray(u.customGroups) ? u.customGroups.map((g) => String(g).trim()).filter(Boolean) : [],
+    permissions: {
+      canCreateChannel: u.permissions?.canCreateChannel !== false,
+      canEditChannel: u.permissions?.canEditChannel !== false,
+      canDeleteChannel: Boolean(u.permissions?.canDeleteChannel),
+      canViewRevenue: u.permissions?.canViewRevenue !== false,
+      canEditRevenue: u.permissions?.canEditRevenue !== false,
+      canUseVault: u.permissions?.canUseVault !== false,
+    },
+    note: String(u.note || '').trim(),
+    createdAt: u.createdAt || '',
+    approvedAt: u.approvedAt || null,
+  };
+}
+
 function normalizeChannel(ch) {
   ch.status = ch.status && VALID_CHANNEL_STATUSES.includes(ch.status) ? ch.status : 'monetized';
   ch.monetization = ch.monetization && VALID_MONETIZATION.includes(ch.monetization) ? ch.monetization : 'enabled';
   ch.group = ch.group ?? '';
   ch.manager = ch.manager ?? '';
   ch.managerEmail = ch.managerEmail ?? '';
+  ch.ownerUserId = ch.ownerUserId ?? '';
+  ch.ownerEmail = ch.ownerEmail ?? '';
   ch.adsenseAccount = ch.adsenseAccount ?? ch.gaConnected ?? '';
   ch.firstVideoDate = ch.firstVideoDate ?? '';
   ch.totalVideos = Number(ch.totalVideos) || 0;
@@ -556,6 +584,7 @@ MẪU MÔ TẢ VIDEO:
       lastDailySyncDate: '2026-10-16',
       lastDailySyncAt: '2026-10-16T08:00:00.000Z',
     },
+    users: [],
     channels,
     deals,
     projects,
@@ -576,6 +605,7 @@ export class StudioStore {
       try {
         const raw = fs.readFileSync(this.filePath, 'utf8');
         const parsed = JSON.parse(raw);
+        parsed.users = Array.isArray(parsed.users) ? parsed.users : [];
         (parsed.channels || []).forEach(normalizeChannel);
         (parsed.videos || []).forEach(recalculateVideoHistory);
         (parsed.projects || []).forEach(recalculateProjectProgress);
@@ -589,6 +619,7 @@ export class StudioStore {
       ? buildSeedData()
       : {
           meta: { lastDailySyncDate: null, lastDailySyncAt: null },
+          users: [],
           channels: [
             normalizeChannel({
               id: 'ch-main',
@@ -857,8 +888,11 @@ export class StudioStore {
   // 3. CONTENT VAULT (KHO LƯU TRỮ NỘI DUNG: KỊCH BẢN, SEO, FOOTAGE, THUMBNAIL)
   // ===========================================================================
 
-  listContentItems(filter = {}) {
+  listContentItems(filter = {}, user = null) {
     let list = [...this.state.contents];
+    if (user && user.role !== 'admin' && user.scopeMode !== 'all') {
+      list = list.filter((c) => c.ownerUserId === user.id);
+    }
     if (filter.type && filter.type !== 'all') {
       list = list.filter((c) => c.type === filter.type);
     }
@@ -878,7 +912,10 @@ export class StudioStore {
     return list;
   }
 
-  createContentItem(input = {}) {
+  createContentItem(input = {}, user = null) {
+    if (user && user.role !== 'admin' && user.permissions?.canUseVault === false) {
+      throw new Error('Tài khoản của bạn chưa được Admin cấp quyền sử dụng Kho nội dung!');
+    }
     const title = String(input.title || '').trim();
     if (!title) {
       throw new Error('Tiêu đề nội dung (title) là bắt buộc');
@@ -898,7 +935,9 @@ export class StudioStore {
       type,
       projectId: input.projectId || null,
       status: input.status || 'draft',
-      author: String(input.author || 'Content Team').trim(),
+      author: String(input.author || user?.name || user?.email || 'Content Team').trim(),
+      ownerUserId: user && user.role !== 'admin' ? user.id : String(input.ownerUserId || ''),
+      ownerEmail: user && user.role !== 'admin' ? user.email : String(input.ownerEmail || ''),
       assetUrl: String(input.assetUrl || '').trim(),
       notionUrl: String(input.notionUrl || '').trim(),
       notionPageId: String(input.notionPageId || '').trim(),
@@ -913,10 +952,13 @@ export class StudioStore {
     return item;
   }
 
-  updateContentItem(id, patch = {}) {
+  updateContentItem(id, patch = {}, user = null) {
     const item = this.state.contents.find((c) => c.id === id);
     if (!item) {
       throw new Error(`Không tìm thấy Nội dung lưu trữ với mã: ${id}`);
+    }
+    if (user && user.role !== 'admin' && user.scopeMode !== 'all' && item.ownerUserId && item.ownerUserId !== user.id) {
+      throw new Error('Bạn không có quyền chỉnh sửa nội dung này!');
     }
     if (patch.title !== undefined) item.title = String(patch.title).trim();
     if (patch.type !== undefined && VALID_CONTENT_TYPES.includes(patch.type)) item.type = patch.type;
@@ -952,31 +994,147 @@ export class StudioStore {
     return String(this.state.meta?.authPasswordHash || '').trim();
   }
 
+  getAdminUserProfile() {
+    const adminEmail = String(this.state.meta?.adminEmail || 'admin@gmail.com').trim().toLowerCase();
+    return {
+      id: 'admin',
+      name: 'Admin Quản Trị',
+      email: adminEmail,
+      role: 'admin',
+      status: 'approved',
+      scopeMode: 'all',
+      allowedGroups: [],
+      allowedChannelIds: [],
+      customGroups: [],
+      permissions: {
+        canCreateChannel: true,
+        canEditChannel: true,
+        canDeleteChannel: true,
+        canViewRevenue: true,
+        canEditRevenue: true,
+        canUseVault: true,
+      },
+    };
+  }
+
+  resolveUserFromToken(token = '') {
+    const cleanToken = String(token || '').trim();
+    const requiredHash = this.getRequiredPasswordHash();
+    if (cleanToken) {
+      const matchedUser = (this.state.users || []).find(
+        (u) => u.sessionToken && u.sessionToken === cleanToken
+      );
+      if (matchedUser) {
+        if (matchedUser.status !== 'approved') {
+          return { valid: false, status: matchedUser.status };
+        }
+        return {
+          valid: true,
+          isAdmin: matchedUser.role === 'admin',
+          user: sanitizeUser(matchedUser),
+        };
+      }
+      if (requiredHash && cleanToken === requiredHash) {
+        return {
+          valid: true,
+          isAdmin: true,
+          user: this.getAdminUserProfile(),
+        };
+      }
+    }
+    if (!requiredHash) {
+      return {
+        valid: true,
+        isAdmin: true,
+        user: this.getAdminUserProfile(),
+      };
+    }
+    return { valid: false };
+  }
+
   getAuthStatus(token = '') {
     const requiredHash = this.getRequiredPasswordHash();
+    const resolved = this.resolveUserFromToken(token);
     if (!requiredHash) {
       return {
         passwordEnabled: false,
         authenticated: true,
+        user: resolved.user || this.getAdminUserProfile(),
       };
     }
-    const cleanToken = String(token || '').trim();
     return {
       passwordEnabled: true,
-      authenticated: Boolean(cleanToken && cleanToken === requiredHash),
+      authenticated: Boolean(resolved.valid),
+      user: resolved.valid ? resolved.user : null,
     };
   }
 
-  verifyPassword(password = '') {
+  verifyPassword(password = '', emailOrUsername = '') {
     const requiredHash = this.getRequiredPasswordHash();
+    const rawId = String(emailOrUsername || '').trim().toLowerCase();
+    const adminEmail = String(this.state.meta?.adminEmail || '').trim().toLowerCase();
+    const candidateHash = hashPassword(password);
+
+    // 1. Kiểm tra nếu người dùng đăng nhập bằng Gmail đã đăng ký trong danh sách Users
+    if (rawId && rawId !== 'admin' && (!adminEmail || rawId !== adminEmail)) {
+      const foundUser = (this.state.users || []).find(
+        (u) => String(u.email || '').trim().toLowerCase() === rawId
+      );
+      if (foundUser) {
+        if (!candidateHash || candidateHash !== foundUser.passwordHash) {
+          throw new Error('Mật khẩu hoặc địa chỉ Gmail không chính xác. Vui lòng kiểm tra lại!');
+        }
+        if (foundUser.status === 'pending') {
+          const err = new Error(
+            'Tài khoản Gmail của bạn đã đăng ký thành công nhưng đang chờ Admin phê duyệt & cấp quyền!'
+          );
+          err.statusCode = 403;
+          throw err;
+        }
+        if (foundUser.status === 'suspended') {
+          const err = new Error('Tài khoản Gmail này hiện đang tạm khóa. Vui lòng liên hệ Admin!');
+          err.statusCode = 403;
+          throw err;
+        }
+        if (!foundUser.sessionToken) {
+          foundUser.sessionToken = `usr_tok_${crypto.randomUUID().replace(/-/g, '')}`;
+          this.#save();
+        }
+        return {
+          ok: true,
+          passwordEnabled: true,
+          token: foundUser.sessionToken,
+          user: sanitizeUser(foundUser),
+        };
+      }
+
+      // Nếu nhập Gmail của Admin kèm đúng mật khẩu Admin gốc -> lưu làm Gmail Admin & cho vào
+      if (requiredHash && candidateHash === requiredHash && rawId.includes('@')) {
+        if (!this.state.meta) this.state.meta = {};
+        this.state.meta.adminEmail = rawId;
+        this.#save();
+        return {
+          ok: true,
+          passwordEnabled: true,
+          token: requiredHash,
+          user: this.getAdminUserProfile(),
+        };
+      }
+
+      throw new Error(
+        'Tài khoản Gmail này chưa đăng ký hoặc mật khẩu không đúng. Hãy bấm sang tab "Đăng ký Gmail" nếu bạn là thành viên mới!'
+      );
+    }
+
+    // 2. Đăng nhập tài khoản Admin gốc
     if (!requiredHash) {
       return {
         ok: true,
         passwordEnabled: false,
         token: '',
+        user: this.getAdminUserProfile(),
       };
     }
-    const candidateHash = hashPassword(password);
     if (!candidateHash || candidateHash !== requiredHash) {
       throw new Error('Mật khẩu không chính xác. Vui lòng kiểm tra lại!');
     }
@@ -984,7 +1142,216 @@ export class StudioStore {
       ok: true,
       passwordEnabled: true,
       token: requiredHash,
+      user: this.getAdminUserProfile(),
     };
+  }
+
+  registerGmailUser(input = {}) {
+    if (!Array.isArray(this.state.users)) {
+      this.state.users = [];
+    }
+    const rawEmail = String(input.email || '').trim().toLowerCase();
+    const rawName = String(input.name || '').trim();
+    const rawPassword = String(input.password || '').trim();
+    const rawNote = String(input.note || '').trim();
+
+    if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+      throw new Error('Vui lòng nhập địa chỉ Gmail hợp lệ (ví dụ: tenban@gmail.com)!');
+    }
+    if (!rawPassword || rawPassword.length < 3) {
+      throw new Error('Mật khẩu đăng ký phải có ít nhất 3 ký tự!');
+    }
+    const existing = this.state.users.find(
+      (u) => String(u.email || '').trim().toLowerCase() === rawEmail
+    );
+    if (existing) {
+      throw new Error('Địa chỉ Gmail này đã được đăng ký! Vui lòng đăng nhập hoặc chờ Admin cấp quyền.');
+    }
+
+    const autoApprove = Boolean(input.autoApprove);
+    const scopeMode = ['isolated', 'assigned', 'all'].includes(input.scopeMode)
+      ? input.scopeMode
+      : 'isolated';
+
+    const newUser = {
+      id: `usr-${crypto.randomUUID().slice(0, 8)}`,
+      name: rawName || rawEmail.split('@')[0],
+      email: rawEmail,
+      passwordHash: hashPassword(rawPassword),
+      sessionToken: `usr_tok_${crypto.randomUUID().replace(/-/g, '')}`,
+      role: input.role === 'admin' ? 'admin' : 'member',
+      status: autoApprove ? 'approved' : 'pending',
+      scopeMode,
+      allowedGroups: Array.isArray(input.allowedGroups)
+        ? input.allowedGroups.map((g) => String(g).trim()).filter(Boolean)
+        : [],
+      allowedChannelIds: Array.isArray(input.allowedChannelIds)
+        ? input.allowedChannelIds.map((id) => String(id).trim()).filter(Boolean)
+        : [],
+      customGroups: [],
+      permissions: {
+        canCreateChannel: input.permissions?.canCreateChannel !== false,
+        canEditChannel: input.permissions?.canEditChannel !== false,
+        canDeleteChannel: Boolean(input.permissions?.canDeleteChannel),
+        canViewRevenue: input.permissions?.canViewRevenue !== false,
+        canEditRevenue: input.permissions?.canEditRevenue !== false,
+        canUseVault: input.permissions?.canUseVault !== false,
+      },
+      note: rawNote,
+      createdAt: new Date().toISOString(),
+      approvedAt: autoApprove ? new Date().toISOString() : null,
+    };
+
+    this.state.users.unshift(newUser);
+    this.#save();
+
+    return {
+      ok: true,
+      status: newUser.status,
+      message: autoApprove
+        ? `Đã tạo và cấp quyền cho tài khoản Gmail ${newUser.email}!`
+        : 'Đăng ký Gmail thành công! Tài khoản đang chờ Admin phê duyệt và cấp quyền sử dụng riêng.',
+      user: sanitizeUser(newUser),
+    };
+  }
+
+  listUsers() {
+    if (!Array.isArray(this.state.users)) return [];
+    return this.state.users.map((u) => {
+      const clean = sanitizeUser(u);
+      const ownedChannels = (this.state.channels || []).filter((ch) => ch.ownerUserId === u.id);
+      const accessibleChannels = (this.state.channels || []).filter((ch) =>
+        this.canUserAccessChannel(clean, ch)
+      );
+      return {
+        ...clean,
+        ownedChannelsCount: ownedChannels.length,
+        accessibleChannelsCount: accessibleChannels.length,
+      };
+    });
+  }
+
+  updateUserPermissions(userId, patch = {}) {
+    if (!Array.isArray(this.state.users)) this.state.users = [];
+    const user = this.state.users.find((u) => u.id === userId);
+    if (!user) {
+      throw new Error(`Không tìm thấy User với mã: ${userId}`);
+    }
+    if (patch.name !== undefined) {
+      user.name = String(patch.name).trim() || user.name;
+    }
+    if (patch.email !== undefined) {
+      const nextEmail = String(patch.email).trim().toLowerCase();
+      if (nextEmail && nextEmail.includes('@')) {
+        user.email = nextEmail;
+      }
+    }
+    if (patch.status !== undefined && ['pending', 'approved', 'suspended'].includes(patch.status)) {
+      user.status = patch.status;
+      if (patch.status === 'approved' && !user.approvedAt) {
+        user.approvedAt = new Date().toISOString();
+      }
+      if (patch.status === 'suspended') {
+        user.sessionToken = `usr_tok_${crypto.randomUUID().replace(/-/g, '')}`;
+      }
+    }
+    if (patch.role !== undefined && ['admin', 'member'].includes(patch.role)) {
+      user.role = patch.role;
+    }
+    if (patch.scopeMode !== undefined && ['isolated', 'assigned', 'all'].includes(patch.scopeMode)) {
+      user.scopeMode = patch.scopeMode;
+    }
+    if (Array.isArray(patch.allowedGroups)) {
+      user.allowedGroups = patch.allowedGroups.map((g) => String(g).trim()).filter(Boolean);
+    }
+    if (Array.isArray(patch.allowedChannelIds)) {
+      user.allowedChannelIds = patch.allowedChannelIds.map((id) => String(id).trim()).filter(Boolean);
+    }
+    if (patch.permissions && typeof patch.permissions === 'object') {
+      user.permissions = {
+        canCreateChannel:
+          patch.permissions.canCreateChannel !== undefined
+            ? Boolean(patch.permissions.canCreateChannel)
+            : user.permissions?.canCreateChannel !== false,
+        canEditChannel:
+          patch.permissions.canEditChannel !== undefined
+            ? Boolean(patch.permissions.canEditChannel)
+            : user.permissions?.canEditChannel !== false,
+        canDeleteChannel:
+          patch.permissions.canDeleteChannel !== undefined
+            ? Boolean(patch.permissions.canDeleteChannel)
+            : Boolean(user.permissions?.canDeleteChannel),
+        canViewRevenue:
+          patch.permissions.canViewRevenue !== undefined
+            ? Boolean(patch.permissions.canViewRevenue)
+            : user.permissions?.canViewRevenue !== false,
+        canEditRevenue:
+          patch.permissions.canEditRevenue !== undefined
+            ? Boolean(patch.permissions.canEditRevenue)
+            : user.permissions?.canEditRevenue !== false,
+        canUseVault:
+          patch.permissions.canUseVault !== undefined
+            ? Boolean(patch.permissions.canUseVault)
+            : user.permissions?.canUseVault !== false,
+      };
+    }
+    if (patch.newPassword !== undefined && String(patch.newPassword).trim() !== '') {
+      const nextPass = String(patch.newPassword).trim();
+      if (nextPass.length < 3) {
+        throw new Error('Mật khẩu cấp mới cho User phải có ít nhất 3 ký tự!');
+      }
+      user.passwordHash = hashPassword(nextPass);
+      user.sessionToken = `usr_tok_${crypto.randomUUID().replace(/-/g, '')}`;
+    }
+    if (patch.note !== undefined) {
+      user.note = String(patch.note).trim();
+    }
+    this.#save();
+    return sanitizeUser(user);
+  }
+
+  deleteUser(userId) {
+    if (!Array.isArray(this.state.users)) return { deletedUserId: userId };
+    const idx = this.state.users.findIndex((u) => u.id === userId);
+    if (idx === -1) {
+      throw new Error(`Không tìm thấy User với mã: ${userId}`);
+    }
+    const [removed] = this.state.users.splice(idx, 1);
+    this.#save();
+    return {
+      deletedUserId: removed.id,
+      deletedEmail: removed.email,
+    };
+  }
+
+  canUserAccessChannel(user, ch) {
+    if (!user || user.role === 'admin' || user.scopeMode === 'all') {
+      return true;
+    }
+    if (!ch) return false;
+    // 1. Kênh do chính User này tạo trong không gian tách riêng (isolated)
+    if (user.scopeMode === 'isolated' && ch.ownerUserId && ch.ownerUserId === user.id) {
+      return true;
+    }
+    // 2. Kênh được Admin tích chọn cấp quyền trực tiếp
+    if (Array.isArray(user.allowedChannelIds) && user.allowedChannelIds.includes(ch.id)) {
+      return true;
+    }
+    // 3. Kênh nằm trong Group được Admin cấp quyền cho User
+    const chGroup = String(ch.group || '').trim().toLowerCase();
+    if (
+      chGroup &&
+      Array.isArray(user.allowedGroups) &&
+      user.allowedGroups.some((g) => String(g).trim().toLowerCase() === chGroup)
+    ) {
+      return true;
+    }
+    // 4. Kênh có Mail QL trùng với Gmail đăng ký của User (nếu ở chế độ assigned hoặc isolated)
+    const chMail = String(ch.managerEmail || '').trim().toLowerCase();
+    if (chMail && user.email && chMail === String(user.email).trim().toLowerCase()) {
+      return true;
+    }
+    return false;
   }
 
   verifyGaPassword(password = '') {
@@ -1019,6 +1386,26 @@ export class StudioStore {
 
   updatePassword(input = {}, currentAuthToken = '') {
     if (!this.state.meta) this.state.meta = {};
+    // Nếu là User thành viên tự đổi mật khẩu của chính mình
+    const resolved = this.resolveUserFromToken(currentAuthToken);
+    if (resolved.valid && resolved.user && resolved.user.id !== 'admin') {
+      const targetUser = (this.state.users || []).find((u) => u.id === resolved.user.id);
+      if (targetUser) {
+        const newPassword = String(input.newPassword || '').trim();
+        if (!newPassword || newPassword.length < 3) {
+          throw new Error('Mật khẩu mới phải có ít nhất 3 ký tự!');
+        }
+        targetUser.passwordHash = hashPassword(newPassword);
+        targetUser.sessionToken = `usr_tok_${crypto.randomUUID().replace(/-/g, '')}`;
+        this.#save();
+        return {
+          passwordEnabled: true,
+          token: targetUser.sessionToken,
+          user: sanitizeUser(targetUser),
+        };
+      }
+    }
+
     const requiredHash = this.getRequiredPasswordHash();
     const providedCurrentPass = String(input.currentPassword || '').trim();
     const isAlreadyAuthed = Boolean(requiredHash && currentAuthToken === requiredHash);
@@ -1168,47 +1555,90 @@ export class StudioStore {
   // 4. YOUTUBE MANAGEMENT & DAILY VIEWS TRACKER (CHỈ SỐ CẬP NHẬT HẰNG NGÀY)
   // ===========================================================================
 
-  listChannels() {
-    return this.state.channels.map((ch) => {
+  listChannels(user = null) {
+    const visible = (this.state.channels || []).filter((ch) => this.canUserAccessChannel(user, ch));
+    const canSeeRev = !user || user.role === 'admin' || user.permissions?.canViewRevenue !== false;
+    return visible.map((ch) => {
       const topVideos = this.getChannelTopVideos(ch.id, 3);
       if (topVideos.length > 0) {
         ch.topVideos = topVideos;
+      }
+      if (!canSeeRev) {
+        return {
+          ...ch,
+          monthlyRevenue: normalizeMonthlyRevenue({}),
+          totalYearlyRevenue: 0,
+        };
       }
       return ch;
     });
   }
 
-  listGroups() {
+  listGroups(user = null) {
+    if (user && user.role !== 'admin' && user.scopeMode !== 'all') {
+      const uRecord = (this.state.users || []).find((u) => u.id === user.id) || user;
+      const userCustom = Array.isArray(uRecord.customGroups)
+        ? uRecord.customGroups.map((g) => String(g || '').trim()).filter(Boolean)
+        : [];
+      const userAllowed = Array.isArray(uRecord.allowedGroups)
+        ? uRecord.allowedGroups.map((g) => String(g || '').trim()).filter(Boolean)
+        : [];
+      const visibleChannelGroups = this.listChannels(user)
+        .map((ch) => String(ch.group || '').trim())
+        .filter(Boolean);
+      return [...new Set([...userCustom, ...userAllowed, ...visibleChannelGroups])];
+    }
+
     const customGroups = Array.isArray(this.state.meta?.customGroups)
       ? this.state.meta.customGroups.map((g) => String(g || '').trim()).filter(Boolean)
       : [];
+    const userGroups = (this.state.users || []).flatMap((u) =>
+      Array.isArray(u.customGroups) ? u.customGroups.map((g) => String(g || '').trim()).filter(Boolean) : []
+    );
     const channelGroups = (this.state.channels || [])
       .map((ch) => String(ch.group || '').trim())
       .filter(Boolean);
-    return [...new Set([...customGroups, ...channelGroups])];
+    return [...new Set([...customGroups, ...userGroups, ...channelGroups])];
   }
 
-  createGroup(input = {}) {
+  createGroup(input = {}, user = null) {
+    if (user && user.role !== 'admin' && user.permissions?.canCreateChannel === false) {
+      throw new Error('Tài khoản của bạn chưa được Admin cấp quyền tạo Group mới!');
+    }
     const name = String(input.name || '').trim();
     if (!name) {
       throw new Error('Vui lòng nhập tên Group cần tạo!');
     }
-    if (!this.state.meta) this.state.meta = {};
-    if (!Array.isArray(this.state.meta.customGroups)) {
-      this.state.meta.customGroups = [];
-    }
-    const existsCaseInsensitive = this.state.meta.customGroups.some(
-      (g) => String(g || '').trim().toLowerCase() === name.toLowerCase()
-    );
-    if (!existsCaseInsensitive) {
-      this.state.meta.customGroups.push(name);
+
+    if (user && user.role !== 'admin' && user.scopeMode !== 'all') {
+      const uRecord = (this.state.users || []).find((u) => u.id === user.id);
+      if (uRecord) {
+        if (!Array.isArray(uRecord.customGroups)) uRecord.customGroups = [];
+        const existsUserGrp = uRecord.customGroups.some(
+          (g) => String(g || '').trim().toLowerCase() === name.toLowerCase()
+        );
+        if (!existsUserGrp) {
+          uRecord.customGroups.push(name);
+        }
+      }
+    } else {
+      if (!this.state.meta) this.state.meta = {};
+      if (!Array.isArray(this.state.meta.customGroups)) {
+        this.state.meta.customGroups = [];
+      }
+      const existsCaseInsensitive = this.state.meta.customGroups.some(
+        (g) => String(g || '').trim().toLowerCase() === name.toLowerCase()
+      );
+      if (!existsCaseInsensitive) {
+        this.state.meta.customGroups.push(name);
+      }
     }
 
     let assignedCount = 0;
     if (Array.isArray(input.channelIds) && input.channelIds.length > 0) {
       const idSet = new Set(input.channelIds.map((id) => String(id)));
       for (const ch of this.state.channels || []) {
-        if (idSet.has(ch.id)) {
+        if (idSet.has(ch.id) && this.canUserAccessChannel(user, ch)) {
           ch.group = name;
           ch.updatedAt = new Date().toISOString();
           assignedCount += 1;
@@ -1220,15 +1650,38 @@ export class StudioStore {
     return {
       name,
       assignedCount,
-      groups: this.listGroups(),
+      groups: this.listGroups(user),
     };
   }
 
-  deleteGroup(groupName = '') {
+  deleteGroup(groupName = '', user = null) {
     const clean = String(groupName || '').trim();
     if (!clean) {
       throw new Error('Tên Group không hợp lệ');
     }
+    if (user && user.role !== 'admin' && user.scopeMode !== 'all') {
+      const uRecord = (this.state.users || []).find((u) => u.id === user.id);
+      if (uRecord && Array.isArray(uRecord.customGroups)) {
+        uRecord.customGroups = uRecord.customGroups.filter(
+          (g) => String(g || '').trim().toLowerCase() !== clean.toLowerCase()
+        );
+      }
+      for (const ch of this.state.channels || []) {
+        if (
+          this.canUserAccessChannel(user, ch) &&
+          String(ch.group || '').trim().toLowerCase() === clean.toLowerCase()
+        ) {
+          ch.group = '';
+          ch.updatedAt = new Date().toISOString();
+        }
+      }
+      this.#save();
+      return {
+        deleted: clean,
+        groups: this.listGroups(user),
+      };
+    }
+
     if (this.state.meta && Array.isArray(this.state.meta.customGroups)) {
       this.state.meta.customGroups = this.state.meta.customGroups.filter(
         (g) => String(g || '').trim().toLowerCase() !== clean.toLowerCase()
@@ -1243,7 +1696,7 @@ export class StudioStore {
     this.#save();
     return {
       deleted: clean,
-      groups: this.listGroups(),
+      groups: this.listGroups(user),
     };
   }
 
@@ -1267,7 +1720,10 @@ export class StudioStore {
       }));
   }
 
-  createChannel(input = {}) {
+  createChannel(input = {}, user = null) {
+    if (user && user.role !== 'admin' && user.permissions?.canCreateChannel === false) {
+      throw new Error('Tài khoản của bạn chưa được Admin cấp quyền thêm kênh mới!');
+    }
     let rawName = String(input.name || '').trim();
     let rawHandle = String(input.handle || '').trim();
     const rawUrl = String(input.channelUrl || '').trim();
@@ -1310,41 +1766,50 @@ export class StudioStore {
         ? 'enabled'
         : 'pending';
 
-    const existingChannel = this.state.channels.find(
-      (c) => (c.handle || '').toLowerCase() === handle.toLowerCase()
-    );
+    const isMemberIsolated = Boolean(user && user.role !== 'admin' && user.scopeMode !== 'all');
+    const existingChannel = this.state.channels.find((c) => {
+      if ((c.handle || '').toLowerCase() !== handle.toLowerCase()) return false;
+      if (isMemberIsolated) {
+        return c.ownerUserId === user.id || this.canUserAccessChannel(user, c);
+      }
+      return true;
+    });
     if (existingChannel) {
-      return this.updateChannel(existingChannel.id, {
-        name: rawName || existingChannel.name,
-        handle,
-        channelUrl: rawUrl || existingChannel.channelUrl || `https://www.youtube.com/${handle}`,
-        subscribers:
-          input.subscribers !== undefined && Number(input.subscribers) > 0
-            ? Number(input.subscribers)
-            : existingChannel.subscribers,
-        totalVideos:
-          input.totalVideos !== undefined && Number(input.totalVideos) > 0
-            ? Number(input.totalVideos)
-            : existingChannel.totalVideos,
-        totalViews:
-          input.totalViews !== undefined && Number(input.totalViews) > 0
-            ? Number(input.totalViews)
-            : existingChannel.totalViews,
-        firstVideoDate: input.firstVideoDate || existingChannel.firstVideoDate,
-        category: input.category || existingChannel.category,
-        group: input.group !== undefined ? input.group : existingChannel.group,
-        manager: input.manager !== undefined ? input.manager : existingChannel.manager,
-        managerEmail: input.managerEmail !== undefined ? input.managerEmail : existingChannel.managerEmail,
-        adsenseAccount:
-          input.adsenseAccount !== undefined
-            ? input.adsenseAccount
-            : input.gaConnected !== undefined
-            ? input.gaConnected
-            : existingChannel.adsenseAccount,
-        status: input.status || existingChannel.status,
-        monetization: input.monetization || existingChannel.monetization,
-        statusNote: input.statusNote || existingChannel.statusNote,
-      });
+      return this.updateChannel(
+        existingChannel.id,
+        {
+          name: rawName || existingChannel.name,
+          handle,
+          channelUrl: rawUrl || existingChannel.channelUrl || `https://www.youtube.com/${handle}`,
+          subscribers:
+            input.subscribers !== undefined && Number(input.subscribers) > 0
+              ? Number(input.subscribers)
+              : existingChannel.subscribers,
+          totalVideos:
+            input.totalVideos !== undefined && Number(input.totalVideos) > 0
+              ? Number(input.totalVideos)
+              : existingChannel.totalVideos,
+          totalViews:
+            input.totalViews !== undefined && Number(input.totalViews) > 0
+              ? Number(input.totalViews)
+              : existingChannel.totalViews,
+          firstVideoDate: input.firstVideoDate || existingChannel.firstVideoDate,
+          category: input.category || existingChannel.category,
+          group: input.group !== undefined ? input.group : existingChannel.group,
+          manager: input.manager !== undefined ? input.manager : existingChannel.manager,
+          managerEmail: input.managerEmail !== undefined ? input.managerEmail : existingChannel.managerEmail,
+          adsenseAccount:
+            input.adsenseAccount !== undefined
+              ? input.adsenseAccount
+              : input.gaConnected !== undefined
+              ? input.gaConnected
+              : existingChannel.adsenseAccount,
+          status: input.status || existingChannel.status,
+          monetization: input.monetization || existingChannel.monetization,
+          statusNote: input.statusNote || existingChannel.statusNote,
+        },
+        user
+      );
     }
 
     const channel = normalizeChannel({
@@ -1358,8 +1823,10 @@ export class StudioStore {
       firstVideoDate: String(input.firstVideoDate || '').trim(),
       category: String(input.category || 'Sáng tạo nội dung').trim(),
       group: String(input.group || '').trim(),
-      manager: String(input.manager || '').trim(),
-      managerEmail: String(input.managerEmail || '').trim(),
+      manager: String(input.manager || (isMemberIsolated ? user.name : '') || '').trim(),
+      managerEmail: String(input.managerEmail || (isMemberIsolated ? user.email : '') || '').trim(),
+      ownerUserId: isMemberIsolated ? user.id : String(input.ownerUserId || '').trim(),
+      ownerEmail: isMemberIsolated ? user.email : String(input.ownerEmail || '').trim(),
       adsenseAccount: String(input.adsenseAccount ?? input.gaConnected ?? '').trim(),
       status,
       monetization,
@@ -1373,7 +1840,10 @@ export class StudioStore {
     return channel;
   }
 
-  async createChannelAndSync(input = {}, options = {}) {
+  async createChannelAndSync(input = {}, options = {}, user = null) {
+    if (user && user.role !== 'admin' && user.permissions?.canCreateChannel === false) {
+      throw new Error('Tài khoản của bạn chưa được Admin cấp quyền thêm kênh mới!');
+    }
     const query = String(input.channelUrl || input.handle || input.name || '').trim();
     if (!query) {
       throw new Error('Vui lòng nhập Tên kênh, @Handle hoặc Đường dẫn (URL) kênh YouTube');
@@ -1443,7 +1913,7 @@ export class StudioStore {
       }
     }
 
-    const channel = this.createChannel(mergedInput);
+    const channel = this.createChannel(mergedInput, user);
     let importedVideosCount = 0;
 
     if (remote && Array.isArray(remote.videos)) {
@@ -1451,7 +1921,9 @@ export class StudioStore {
       // Đảo ngược để video mới nhất nằm lên đầu sau khi unshift
       for (const v of [...remote.videos].reverse()) {
         const exactViews = Math.max(0, Number(v.views) || 0);
-        const existing = this.state.videos.find((x) => x.youtubeVideoId === v.youtubeVideoId);
+        const existing = this.state.videos.find(
+          (x) => x.youtubeVideoId === v.youtubeVideoId && x.channelId === channel.id
+        );
         if (existing) {
           existing.channelId = channel.id;
           if (v.title) existing.title = v.title;
@@ -1587,10 +2059,21 @@ export class StudioStore {
     };
   }
 
-  updateChannel(id, patch = {}) {
+  updateChannel(id, patch = {}, user = null) {
     const channel = this.state.channels.find((c) => c.id === id);
     if (!channel) {
       throw new Error(`Không tìm thấy Kênh YouTube với mã: ${id}`);
+    }
+    if (user && user.role !== 'admin') {
+      if (!this.canUserAccessChannel(user, channel)) {
+        throw new Error('Bạn không có quyền truy cập hoặc chỉnh sửa kênh này!');
+      }
+      if (user.permissions?.canEditChannel === false) {
+        throw new Error('Tài khoản của bạn chưa được Admin cấp quyền chỉnh sửa kênh!');
+      }
+      if (patch.monthlyRevenue !== undefined && user.permissions?.canEditRevenue === false) {
+        throw new Error('Tài khoản của bạn chưa được Admin cấp quyền nhập/sửa doanh thu!');
+      }
     }
     if (patch.status !== undefined) {
       if (!VALID_CHANNEL_STATUSES.includes(patch.status)) {
@@ -1694,10 +2177,20 @@ export class StudioStore {
     return this.updateChannel(channel.id, patch);
   }
 
-  deleteChannel(id) {
+  deleteChannel(id, user = null) {
     const idx = this.state.channels.findIndex((c) => c.id === id);
     if (idx === -1) {
       throw new Error(`Không tìm thấy Kênh YouTube với mã: ${id}`);
+    }
+    const targetCh = this.state.channels[idx];
+    if (user && user.role !== 'admin') {
+      if (!this.canUserAccessChannel(user, targetCh)) {
+        throw new Error('Bạn không có quyền xóa kênh này!');
+      }
+      const isOwnChannel = Boolean(targetCh.ownerUserId && targetCh.ownerUserId === user.id);
+      if (!isOwnChannel && !user.permissions?.canDeleteChannel) {
+        throw new Error('Tài khoản của bạn chưa được Admin cấp quyền xóa kênh của hệ thống!');
+      }
     }
     const [removed] = this.state.channels.splice(idx, 1);
     const beforeVideos = this.state.videos.length;
@@ -1711,10 +2204,20 @@ export class StudioStore {
     };
   }
 
-  deleteContentItem(id) {
+  deleteContentItem(id, user = null) {
     const idx = this.state.contents.findIndex((c) => c.id === id);
     if (idx === -1) {
       throw new Error(`Không tìm thấy Nội dung lưu trữ với mã: ${id}`);
+    }
+    const targetItem = this.state.contents[idx];
+    if (
+      user &&
+      user.role !== 'admin' &&
+      user.scopeMode !== 'all' &&
+      targetItem.ownerUserId &&
+      targetItem.ownerUserId !== user.id
+    ) {
+      throw new Error('Bạn không có quyền xóa nội dung này!');
     }
     const [removed] = this.state.contents.splice(idx, 1);
     this.#save();
@@ -1724,8 +2227,12 @@ export class StudioStore {
     };
   }
 
-  listVideos(filter = {}) {
+  listVideos(filter = {}, user = null) {
     let list = [...this.state.videos];
+    if (user && user.role !== 'admin' && user.scopeMode !== 'all') {
+      const allowedChannelIdSet = new Set(this.listChannels(user).map((ch) => ch.id));
+      list = list.filter((v) => allowedChannelIdSet.has(v.channelId));
+    }
     if (filter.channelId && filter.channelId !== 'all') {
       list = list.filter((v) => v.channelId === filter.channelId);
     }
@@ -1886,11 +2393,12 @@ export class StudioStore {
   // 5. DASHBOARD & ANALYTICS AGGREGATION
   // ===========================================================================
 
-  getDashboardSummary(referenceDate) {
+  getDashboardSummary(referenceDate, user = null) {
     const deals = this.state.deals;
     const projects = this.state.projects;
-    const contents = this.state.contents;
-    const videos = this.state.videos;
+    const contents = this.listContentItems({}, user);
+    const channels = this.listChannels(user);
+    const videos = this.listVideos({}, user);
 
     const wonDeals = deals.filter((d) => d.stage === 'won');
     const activeDeals = deals.filter((d) => !['won', 'lost'].includes(d.stage));
@@ -1920,7 +2428,6 @@ export class StudioStore {
     }, 0);
 
     // 1. Thống kê tổng hợp theo Nhãn (Group, Ngách/Category, Người quản lý) — cảm hứng từ YouTubeLabs asset_label_generator
-    const channels = this.state.channels || [];
     const buildLabelBreakdown = (getKeyFn) => {
       const map = new Map();
       for (const ch of channels) {
@@ -1955,7 +2462,7 @@ export class StudioStore {
       return g ? { label: g, filterKey: g } : { label: 'Chưa gắn Group', filterKey: '__none__' };
     });
     const existingGroupKeys = new Set(byGroupList.map((item) => item.filterKey.toLowerCase()));
-    for (const grpName of this.listGroups()) {
+    for (const grpName of this.listGroups(user)) {
       if (!existingGroupKeys.has(grpName.toLowerCase())) {
         existingGroupKeys.add(grpName.toLowerCase());
         byGroupList.push({
@@ -2030,6 +2537,9 @@ export class StudioStore {
       channels.reduce((sum, ch) => sum + (Number(ch.totalYearlyRevenue) || 0), 0) * 100
     ) / 100;
 
+    const allUsers = Array.isArray(this.state.users) ? this.state.users : [];
+    const pendingUsersCount = allUsers.filter((u) => u.status === 'pending').length;
+
     return {
       meta: {
         lastDailySyncDate: this.state.meta.lastDailySyncDate || targetDate,
@@ -2038,7 +2548,12 @@ export class StudioStore {
         autoSyncIntervalMinutes: 60,
         notion: this.getNotionConfig(),
         brand: this.getBrandProfile(),
-        customGroups: this.listGroups(),
+        customGroups: this.listGroups(user),
+        usersSummary: {
+          totalUsers: allUsers.length,
+          pendingUsersCount,
+          approvedUsersCount: allUsers.filter((u) => u.status === 'approved').length,
+        },
       },
       crm: {
         totalDeals: deals.length,
@@ -2062,7 +2577,7 @@ export class StudioStore {
         approvedCount: contents.filter((c) => c.status === 'approved').length,
       },
       youtube: {
-        totalChannels: this.state.channels.length,
+        totalChannels: channels.length,
         totalVideos: videos.length,
         totalViews,
         totalLikes,

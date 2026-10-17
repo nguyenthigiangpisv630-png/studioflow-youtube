@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=36" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=36" />
+  <link rel="icon" href="/icon.svg?v=37" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=37" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -90,6 +90,29 @@
 
         <!-- CÔNG CỤ & NÚT CÀI ĐẶT CUỐI CỘT TRÁI -->
         <div class="sidebar-footer">
+          <!-- THÔNG TIN USER GMAIL ĐANG ĐĂNG NHẬP & CHẾ ĐỘ TÁCH RIÊNG -->
+          <div class="sidebar-user-pill" id="sidebar-current-user-pill" title="Tài khoản đang đăng nhập">
+            <span class="sidebar-user-avatar" id="sidebar-user-avatar">A</span>
+            <div class="sidebar-user-meta">
+              <strong id="sidebar-user-name">Admin</strong>
+              <span id="sidebar-user-scope">👑 Toàn quyền Admin</span>
+            </div>
+          </div>
+
+          <!-- NÚT QUẢN LÝ USER & CẤP QUYỀN (CHỈ HIỂN THỊ CHO ADMIN) -->
+          <button
+            type="button"
+            class="sidebar-users-mgr-btn"
+            id="btn-open-users-manager"
+            title="Duyệt tài khoản Gmail đăng ký mới & Cấp quyền không gian làm việc tách riêng"
+          >
+            <span class="nav-btn-left">
+              <span>👥</span>
+              <span>Quản lý User</span>
+            </span>
+            <span class="pending-users-badge" id="badge-pending-users" hidden>0</span>
+          </button>
+
           <button
             type="button"
             class="hourly-sync-pill num"
@@ -115,6 +138,16 @@
             </button>
 
             <div class="sidebar-settings-menu" id="sidebar-settings-menu" hidden>
+              <button
+                type="button"
+                class="settings-menu-item"
+                id="btn-settings-users-manager"
+                title="Quản lý User Gmail & Cấp quyền tách riêng"
+              >
+                <span>👥</span>
+                <span>Quản lý User &amp; Cấp quyền</span>
+              </button>
+
               <button
                 type="button"
                 class="settings-menu-item"
@@ -356,51 +389,219 @@
     </div>
   </div>
 
-  <!-- MÀN HÌNH ĐĂNG NHẬP HỆ THỐNG (HIỂN THỊ MẶC ĐỊNH KHI MỞ WEB — BẮT BUỘC ĐĂNG NHẬP MỚI VÀO ĐƯỢC) -->
+  <!-- MÀN HÌNH ĐĂNG NHẬP & ĐĂNG KÝ KIỂU GMAIL (BẮT BUỘC ĐĂNG NHẬP, USER MỚI SỬ DỤNG TÁCH RIÊNG & ĐƯỢC ADMIN CẤP QUYỀN) -->
   <div id="auth-lock-overlay" class="auth-overlay auth-login-page">
-    <div class="auth-card panel-box">
+    <div class="auth-card auth-gmail-card panel-box">
       <div class="auth-brand-row">
         <span class="brand-mark" style="background:transparent;border:none;padding:0;box-shadow:none;">
-          <svg viewBox="0 0 28 20" width="38" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 28 20" width="40" height="29" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="0.5" y="0.5" width="27" height="19" rx="5" fill="#FF0000" />
             <polygon points="11,5.5 19.5,10 11,14.5" fill="#FFFFFF" />
           </svg>
         </span>
         <div>
-          <h2 class="auth-title" id="login-brand-title">ACB9x</h2>
-          <p class="panel-desc" id="login-brand-sub">Hệ Điều Hành Quản Trị Mạng Lưới Kênh YouTube &amp; Tài Sản Số</p>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <h2 class="auth-title" id="login-brand-title">ACB9x</h2>
+            <span class="gmail-auth-pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z" fill="#EA4335"/>
+              </svg>
+              Gmail Workspace
+            </span>
+          </div>
+          <p class="panel-desc" id="login-brand-sub">Hệ Điều Hành Quản Trị Kênh YouTube — Mỗi Gmail sử dụng không gian tách riêng</p>
         </div>
       </div>
 
+      <!-- TAB CHUYỂN ĐỔI: ĐĂNG NHẬP GMAIL <-> ĐĂNG KÝ GMAIL MỚI -->
+      <div class="auth-mode-tabs" id="auth-mode-tabs" role="tablist">
+        <button type="button" class="auth-mode-tab active" data-auth-tab="login">
+          🔑 Đăng nhập Gmail
+        </button>
+        <button type="button" class="auth-mode-tab" data-auth-tab="register">
+          📝 Đăng ký Gmail mới
+        </button>
+      </div>
+
+      <!-- FORM 1: ĐĂNG NHẬP BẰNG GMAIL HOẶC TÀI KHOẢN ADMIN -->
       <form id="form-auth-login" class="auth-form">
         <label class="field">
-          <span>Tài khoản quản trị</span>
-          <input
-            type="text"
-            name="username"
-            id="input-auth-username"
-            value="admin"
-            placeholder="Nhập tài khoản quản trị..."
-            autocomplete="username"
-            required
-          />
+          <span>Địa chỉ Gmail hoặc Tài khoản Admin *</span>
+          <div class="gmail-input-wrap">
+            <span class="gmail-input-icon">✉️</span>
+            <input
+              type="text"
+              name="email"
+              id="input-auth-username"
+              value="admin"
+              placeholder="VD: tenban@gmail.com hoặc admin"
+              autocomplete="username"
+              required
+            />
+          </div>
         </label>
         <label class="field">
           <span>Mật khẩu đăng nhập *</span>
-          <input
-            type="password"
-            name="password"
-            id="input-auth-login-pass"
-            placeholder="Nhập mật khẩu để vào hệ thống..."
-            autocomplete="current-password"
-            required
-          />
+          <div class="gmail-input-wrap">
+            <span class="gmail-input-icon">🔒</span>
+            <input
+              type="password"
+              name="password"
+              id="input-auth-login-pass"
+              placeholder="Nhập mật khẩu tài khoản..."
+              autocomplete="current-password"
+              required
+            />
+          </div>
         </label>
         <p id="auth-login-error" class="auth-error-msg" hidden></p>
-        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px 16px;font-size:0.95rem;">
+        <p id="auth-login-success" class="auth-success-msg" hidden></p>
+        <button type="submit" class="btn btn-primary auth-submit-btn">
           🔓 Đăng nhập vào Hệ thống
         </button>
+        <div class="auth-switch-hint">
+          <span>Chưa có tài khoản trên hệ thống?</span>
+          <button type="button" class="auth-link-btn" data-switch-auth-tab="register">
+            Đăng ký bằng Gmail (Không gian tách riêng) →
+          </button>
+        </div>
       </form>
+
+      <!-- FORM 2: ĐĂNG KÝ TÀI KHOẢN GMAIL MỚI (SỬ DỤNG TÁCH RIÊNG & CHỜ ADMIN DUYỆT CẤP QUYỀN) -->
+      <form id="form-auth-register" class="auth-form" hidden>
+        <div class="auth-isolated-notice">
+          <strong>🛡️ Cơ chế Tài khoản Tách riêng &amp; Cấp quyền Admin:</strong>
+          <span>Sau khi đăng ký bằng Gmail và được <b>Admin cấp quyền</b>, anh/chị sẽ có <b>không gian làm việc độc lập riêng</b> (tự thêm kênh, tạo Group, theo dõi doanh thu &amp; kho nội dung riêng, không nhìn thấy kênh của người khác trừ khi được Admin phân quyền).</span>
+        </div>
+
+        <label class="field">
+          <span>Họ và tên / Biệt danh Team *</span>
+          <div class="gmail-input-wrap">
+            <span class="gmail-input-icon">👤</span>
+            <input
+              type="text"
+              name="name"
+              id="input-reg-name"
+              placeholder="VD: Minh Quân - Team Kênh Ngoại..."
+              autocomplete="name"
+              required
+            />
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Địa chỉ Gmail đăng ký *</span>
+          <div class="gmail-input-wrap">
+            <span class="gmail-input-icon">📧</span>
+            <input
+              type="email"
+              name="email"
+              id="input-reg-email"
+              placeholder="VD: minhquan.yt@gmail.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Mật khẩu đăng nhập (Tối thiểu 3 ký tự) *</span>
+          <div class="gmail-input-wrap">
+            <span class="gmail-input-icon">🔑</span>
+            <input
+              type="password"
+              name="password"
+              id="input-reg-pass"
+              placeholder="Tạo mật khẩu đăng nhập riêng..."
+              autocomplete="new-password"
+              required
+            />
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Ghi chú gửi Admin xin cấp quyền (Tùy chọn)</span>
+          <input
+            type="text"
+            name="note"
+            id="input-reg-note"
+            placeholder="VD: Xin sử dụng không gian kênh riêng / Xin quyền xem Group Kênh Mỹ..."
+          />
+        </label>
+
+        <p id="auth-register-error" class="auth-error-msg" hidden></p>
+        <div id="auth-register-success" class="auth-success-msg" hidden></div>
+
+        <button type="submit" class="btn btn-primary auth-submit-btn">
+          📨 Đăng ký Gmail &amp; Gửi yêu cầu Admin cấp quyền
+        </button>
+
+        <div class="auth-switch-hint">
+          <span>Đã có tài khoản được Admin duyệt?</span>
+          <button type="button" class="auth-link-btn" data-switch-auth-tab="login">
+            ← Quay lại Đăng nhập
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- HỘP THOẠI QUẢN LÝ USER GMAIL & PHÂN QUYỀN TÁCH RIÊNG (DÀNH CHO ADMIN) -->
+  <div id="users-manager-modal" class="auth-overlay" hidden>
+    <div class="auth-card users-manager-card panel-box">
+      <div class="drawer-header users-manager-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <h3 style="font-size:1.12rem;font-weight:800;color:#0F172A;margin:0;">
+              👥 Quản lý User Gmail &amp; Cấp quyền Tách riêng
+            </h3>
+            <span class="gmail-auth-pill">Admin Control</span>
+          </div>
+          <p class="panel-desc" style="margin-top:4px;">
+            Duyệt thành viên đăng ký bằng Gmail, cấu hình <strong>Không gian làm việc tách riêng (Isolated Workspace)</strong> hoặc cấp quyền truy cập từng Group / Kênh cụ thể.
+          </p>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-close-users-modal">✕ Đóng</button>
+      </div>
+
+      <!-- KHUNG TẠO NHANH TÀI KHOẢN GMAIL MỚI TỪ PHÍA ADMIN (KÍCH HOẠT NGAY) -->
+      <form id="form-admin-create-user" class="admin-create-user-bar">
+        <div class="admin-create-user-title">➕ Thêm &amp; Cấp quyền nhanh Gmail mới (Không cần chờ duyệt):</div>
+        <div class="admin-create-user-grid">
+          <input
+            type="text"
+            name="name"
+            class="input-control"
+            placeholder="Tên hiển thị (VD: Tuấn Anh)"
+            required
+          />
+          <input
+            type="email"
+            name="email"
+            class="input-control"
+            placeholder="Địa chỉ Gmail (VD: tuananh@gmail.com)"
+            required
+          />
+          <input
+            type="text"
+            name="password"
+            class="input-control"
+            placeholder="Mật khẩu (VD: 123456)"
+            required
+          />
+          <select name="scopeMode" class="select-control" title="Chế độ không gian làm việc">
+            <option value="isolated" selected>🔒 Sử dụng Tách riêng (Độc lập + Kênh được giao)</option>
+            <option value="assigned">📂 Chỉ xem Group/Kênh được Admin giao</option>
+            <option value="all">🌐 Xem toàn bộ kênh hệ thống</option>
+          </select>
+          <button type="submit" class="btn btn-primary">
+            + Tạo &amp; Cấp quyền ngay
+          </button>
+        </div>
+      </form>
+
+      <!-- DANH SÁCH USER GMAIL & BẢNG ĐIỀU KHIỂN CẤP QUYỀN CHI TIẾT -->
+      <div id="users-manager-list" class="users-manager-list"></div>
     </div>
   </div>
 
@@ -495,7 +696,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=36"></script>
+  <script type="module" src="/app.js?v=37"></script>
 </body>
 </html>
 
