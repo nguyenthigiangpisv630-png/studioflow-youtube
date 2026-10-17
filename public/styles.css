@@ -5317,4 +5317,168 @@ select:focus-visible {
   }
 }
 
+/* =========================================================================
+   GIAO DIỆN APP / ĐIỆN THOẠI: LIỆT KÊ TÊN KÊNH, BẤM VÀO SẼ TRỔ RA TOÀN BỘ THÔNG TIN (v38)
+   ========================================================================= */
+.channel-app-accordion-btn,
+.btn-app-open-deep {
+  display: none;
+}
+
+.channel-app-expand-body {
+  display: block;
+}
+
+.platform-wrapper.mode-app .channel-app-accordion-btn {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .channel-row {
+    padding: 8px 10px !important;
+  }
+
+  .channel-app-accordion-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #D5D0C5;
+    background: linear-gradient(135deg, #FFFFFF 0%, #FAF8F2 100%);
+    color: #0F172A;
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+    transition: all 0.16s ease;
+  }
+
+  .channel-row.is-app-expanded .channel-app-accordion-btn {
+    background: linear-gradient(135deg, #FFFDF5 0%, #FDF3D0 100%);
+    border-color: #D4AF37;
+    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.18);
+  }
+
+  .channel-app-acc-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+
+  .channel-app-acc-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #10B981;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  }
+
+  .channel-app-acc-dot.bkt-status-active {
+    background: #0284C7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+  }
+
+  .channel-app-acc-dot.bkt-status-warning {
+    background: #D97706;
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
+  }
+
+  .channel-app-acc-dot.bkt-status-demonetized {
+    background: #DC2626;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+  }
+
+  .channel-app-acc-name {
+    font-size: 0.96rem;
+    font-weight: 900;
+    color: #0F172A;
+    line-height: 1.25;
+  }
+
+  .channel-app-acc-group {
+    font-size: 0.66rem !important;
+    padding: 1px 7px !important;
+  }
+
+  .channel-app-acc-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .channel-app-acc-stat {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #334155;
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    padding: 2px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .channel-app-acc-stat.is-views {
+    background: #FDF8E7;
+    border-color: #E6C65B;
+    color: #78350F;
+  }
+
+  .channel-app-acc-chevron {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #5C4002;
+    background: #FDE68A;
+    border: 1px solid #D4AF37;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  /* Mặc định ẩn toàn bộ chi tiết kênh trên App/Điện thoại cho đến khi bấm vào tên kênh */
+  .channel-row:not(.is-app-expanded) .channel-app-expand-body {
+    display: none !important;
+  }
+
+  .channel-row.is-app-expanded .channel-app-expand-body {
+    display: block !important;
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px dashed #D4AF37;
+  }
+
+  /* Ẩn tên kênh lặp lại bên trong phần trổ ra vì đã có trên thanh tiêu đề */
+  .channel-app-expand-body .channel-name-btn {
+    display: none !important;
+  }
+
+  .btn-app-open-deep {
+    display: inline-flex !important;
+  }
+}
+
+/* Hỗ trợ tương tự khi người dùng bật chế độ .mode-app trên màn hình máy tính */
+.platform-wrapper.mode-app .channel-row:not(.is-app-expanded) .channel-app-expand-body {
+  display: none !important;
+}
+.platform-wrapper.mode-app .channel-row.is-app-expanded .channel-app-expand-body {
+  display: block !important;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed #D4AF37;
+}
+.platform-wrapper.mode-app .channel-app-expand-body .channel-name-btn {
+  display: none !important;
+}
+.platform-wrapper.mode-app .btn-app-open-deep {
+  display: inline-flex !important;
+}
+
+
 
