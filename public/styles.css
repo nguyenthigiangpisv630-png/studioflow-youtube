@@ -5736,3 +5736,302 @@ select:focus-visible {
   color: #0F172A !important;
   font-weight: 800 !important;
 }
+
+/* =========================================================================
+   GIAO DIỆN KÊNH THÔNG MINH, CÂN ĐỐI THEO LƯỚI & MÀU SẮC NỔI BẬT (v45)
+   ========================================================================= */
+
+/* Phối màu rực rỡ, sắc nét cho từng ô thông tin của Kênh (cả Web & App) */
+.channel-single-line .channel-handle-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border: 1px solid #60A5FA;
+  color: #1D4ED8 !important;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+/* 3 Ô Chỉ Số Chính: SUB (Đen Vàng Hoàng Kim) · VIEWS (Vàng Rực Rỡ) · VIDEO (Xanh Đại Dương) */
+.channel-single-line .hero-stat-pill.hero-stat-subs {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%) !important;
+  border: 1.5px solid #D4AF37 !important;
+  color: #FEF3C7 !important;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.16);
+}
+.channel-single-line .hero-stat-pill.hero-stat-subs .hero-stat-num {
+  color: #FDE68A !important;
+}
+.channel-single-line .hero-stat-pill.hero-stat-subs .hero-stat-label {
+  color: #E2E8F0 !important;
+}
+
+.channel-single-line .hero-stat-pill.hero-stat-views {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FDE68A 100%) !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 3px 8px rgba(245, 158, 11, 0.16);
+}
+.channel-single-line .hero-stat-pill.hero-stat-views .hero-stat-num {
+  color: #78350F !important;
+}
+.channel-single-line .hero-stat-pill.hero-stat-views .hero-stat-label {
+  color: #92400E !important;
+  font-weight: 800;
+}
+
+.channel-single-line .hero-stat-pill.hero-stat-videos {
+  background: linear-gradient(135deg, #ECFEFF 0%, #A5F3FC 100%) !important;
+  border: 1.5px solid #0891B2 !important;
+  box-shadow: 0 3px 8px rgba(8, 145, 178, 0.14);
+}
+.channel-single-line .hero-stat-pill.hero-stat-videos .hero-stat-num {
+  color: #155E75 !important;
+}
+.channel-single-line .hero-stat-pill.hero-stat-videos .hero-stat-label {
+  color: #0E7490 !important;
+  font-weight: 800;
+}
+
+/* 4 Ô Quản Trị: Group (Hồng San Hô) · Quản lý (Tím Ngọc Bích) · Gà kết nối (Xanh Lục Bảo) · Ngày đầu (Xanh Lam) */
+.channel-single-line .inline-group-pill {
+  background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%);
+  border: 1.5px solid #FB7185;
+  border-radius: 9px;
+  padding: 4px 10px;
+}
+.channel-single-line .inline-group-pill .inline-group-label {
+  color: #BE123C;
+  font-weight: 800;
+}
+.channel-single-line .inline-group-pill .inline-group-input {
+  color: #881337;
+  font-weight: 800;
+}
+
+.channel-single-line .inline-meta-field.inline-meta-mail {
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%) !important;
+  border: 1.5px solid #A78BFA !important;
+  border-radius: 9px !important;
+  padding: 4px 10px !important;
+}
+.channel-single-line .inline-meta-field.inline-meta-mail .inline-meta-label {
+  color: #5B21B6 !important;
+  font-weight: 800 !important;
+}
+.channel-single-line .inline-meta-field.inline-meta-mail .inline-meta-input {
+  color: #3B0764 !important;
+  font-weight: 800 !important;
+}
+
+.channel-single-line .inline-meta-field.inline-meta-ga {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%) !important;
+  border: 1.5px solid #34D399 !important;
+  border-radius: 9px !important;
+  padding: 4px 10px !important;
+}
+.channel-single-line .inline-meta-field.inline-meta-ga .inline-meta-label {
+  color: #065F46 !important;
+  font-weight: 800 !important;
+}
+.channel-single-line .inline-meta-field.inline-meta-ga .ga-eye-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #10B981 !important;
+  color: #047857 !important;
+  font-weight: 800 !important;
+}
+
+.channel-single-line .inline-meta-field.inline-meta-date {
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important;
+  border: 1.5px solid #60A5FA !important;
+  border-radius: 9px !important;
+  padding: 4px 10px !important;
+}
+.channel-single-line .inline-meta-field.inline-meta-date .inline-meta-label {
+  color: #1E40AF !important;
+  font-weight: 800 !important;
+}
+.channel-single-line .inline-meta-field.inline-meta-date .inline-meta-input {
+  color: #1E3A8A !important;
+  font-weight: 800 !important;
+}
+
+/* Sắp xếp Lưới Thông Minh (Smart Grid) trên giao diện App / Điện Thoại */
+@media (max-width: 768px) {
+  .channel-row.is-app-expanded {
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF7 100%) !important;
+    border: 1.5px solid #D4AF37 !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  /* KHỐI 1: Link @Handle + 3 Nút Thao Tác + Lưới 2 Cột (Group | Quản lý) + Thanh Gà Kết Nối */
+  .channel-line-row-1 {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: stretch !important;
+  }
+
+  .channel-line-row-1 .channel-handle-link,
+  .channel-line-row-1 .channel-handle-muted {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+    font-size: 0.78rem !important;
+  }
+
+  .channel-line-row-1 .channel-inline-actions {
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    grid-template-columns: 1.35fr 0.9fr 0.75fr !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .channel-line-row-1 .channel-inline-actions .btn-xs {
+    width: 100% !important;
+    padding: 7px 6px !important;
+    font-size: 0.74rem !important;
+    font-weight: 800 !important;
+    border-radius: 8px !important;
+  }
+
+  .channel-line-row-1 .inline-group-pill,
+  .channel-line-row-1 .inline-meta-mail {
+    grid-column: span 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .channel-line-row-1 .inline-meta-ga {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  /* KHỐI 2: Lưới 6 Cột Thông Minh
+     - Hàng 2A (50% / 50%): Trạng thái BKT (span 3) | Danh mục Ngách (span 3)
+     - Hàng 2B (33% / 33% / 33%): SUB (span 2) | TỔNG VIEWS (span 2) | VIDEO (span 2)
+     - Hàng 2C (100%): Ngày đầu đăng video (1 / -1) */
+  .channel-line-row-2 {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: stretch !important;
+    padding-top: 8px !important;
+  }
+
+  .channel-line-row-2 .bkt-pill-select {
+    grid-column: span 3 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 6px 8px !important;
+    font-size: 0.74rem !important;
+    font-weight: 800 !important;
+    border-radius: 9px !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .channel-line-row-2 .niche-chip {
+    grid-column: span 3 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+    padding: 6px 8px !important;
+    font-size: 0.74rem !important;
+    font-weight: 800 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .channel-line-row-2 .hero-stat-pill {
+    grid-column: span 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    padding: 7px 4px !important;
+    border-radius: 10px !important;
+    text-align: center !important;
+  }
+
+  .channel-line-row-2 .hero-stat-num {
+    font-size: 0.92rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .channel-line-row-2 .hero-stat-label {
+    font-size: 0.62rem !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .channel-line-row-2 .inline-meta-date {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 6px 12px !important;
+  }
+
+  .channel-line-row-2 .inline-meta-date .inline-meta-input[type="date"] {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    text-align: right !important;
+  }
+}
+
+/* Áp dụng tương tự khi bật chế độ .mode-app trên máy tính */
+.platform-wrapper.mode-app .channel-line-row-1 {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+.platform-wrapper.mode-app .channel-line-row-1 .channel-handle-link,
+.platform-wrapper.mode-app .channel-line-row-1 .channel-handle-muted,
+.platform-wrapper.mode-app .channel-line-row-1 .inline-meta-ga {
+  grid-column: 1 / -1 !important;
+}
+.platform-wrapper.mode-app .channel-line-row-1 .channel-inline-actions {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: 1.35fr 0.9fr 0.75fr !important;
+  gap: 6px !important;
+}
+.platform-wrapper.mode-app .channel-line-row-2 {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+.platform-wrapper.mode-app .channel-line-row-2 .bkt-pill-select,
+.platform-wrapper.mode-app .channel-line-row-2 .niche-chip {
+  grid-column: span 3 !important;
+  width: 100% !important;
+}
+.platform-wrapper.mode-app .channel-line-row-2 .hero-stat-pill {
+  grid-column: span 2 !important;
+  width: 100% !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 7px 4px !important;
+  border-radius: 10px !important;
+}
+.platform-wrapper.mode-app .channel-line-row-2 .inline-meta-date {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  justify-content: space-between !important;
+}
+

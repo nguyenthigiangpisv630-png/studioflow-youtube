@@ -2163,8 +2163,8 @@ function renderYoutubeChannelsBoard() {
                     <span class="hero-stat-label">VIDEO</span>
                   </div>
 
-                  <label class="inline-meta-field" title="Ngày đầu đăng video">
-                    <span class="inline-meta-label">Ngày đầu:</span>
+                  <label class="inline-meta-field inline-meta-date" title="Ngày đầu đăng video">
+                    <span class="inline-meta-label">📅 Ngày đầu:</span>
                     <input
                       type="date"
                       class="inline-meta-input num"
