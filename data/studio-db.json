@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastDailySyncDate": "2026-10-17",
-    "lastDailySyncAt": "2026-10-16T19:23:03.271Z",
+    "lastDailySyncAt": "2026-10-17T00:28:00.418Z",
     "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b"
   },
   "channels": [
@@ -12,7 +12,7 @@
       "channelUrl": "https://www.youtube.com/@FOOD75-h2q",
       "subscribers": 4,
       "totalVideos": 3,
-      "totalViews": 931,
+      "totalViews": 916,
       "firstVideoDate": "2026-10-01",
       "category": "Ẩm thực & Đời sống",
       "manager": "",
@@ -21,7 +21,7 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-16T19:23:02.985Z",
+      "updatedAt": "2026-10-17T00:27:59.908Z",
       "group": "KÊNH ÂM THỰC",
       "watchHours": 0,
       "realtimeViews48h": 0,
@@ -33,7 +33,7 @@
           "id": "vid-73bed26b",
           "youtubeVideoId": "d_Ft0bFYLxg",
           "title": "6 Tables Randy 'Macho Man' Savage Sat At Until His Heart Gave Out",
-          "views": 444,
+          "views": 446,
           "likes": 2,
           "comments": 2,
           "publishedAt": "2026-10-05"
@@ -51,19 +51,35 @@
           "id": "vid-0a472fab",
           "youtubeVideoId": "JrTFXCWmaaA",
           "title": "12 Wild Things Hulk Hogan Put in His Body Before His Heart Gave Out",
-          "views": 194,
+          "views": 196,
           "likes": 6,
           "comments": 2,
           "publishedAt": "2026-10-03"
         }
-      ]
+      ],
+      "adsenseAccount": "",
+      "monthlyRevenue": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0
+      },
+      "totalYearlyRevenue": 0
     },
     {
       "id": "ch-4a6e6a97",
       "name": "1970s Show",
       "handle": "@1970sShow",
       "channelUrl": "https://www.youtube.com/@1970sShow",
-      "subscribers": 49,
+      "subscribers": 51,
       "totalVideos": 14,
       "firstVideoDate": "2026-09-29",
       "category": "Giải trí & Nội dung số",
@@ -73,8 +89,8 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-16T19:23:03.263Z",
-      "totalViews": 34691,
+      "updatedAt": "2026-10-17T00:28:00.416Z",
+      "totalViews": 34321,
       "watchHours": 2200,
       "group": "NGƯỜI NỔI TIẾNG",
       "realtimeViews48h": 0,
@@ -86,8 +102,8 @@
           "id": "vid-42078c14",
           "youtubeVideoId": "UEQ5XifO7L8",
           "title": "How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked",
-          "views": 23697,
-          "likes": 100,
+          "views": 23962,
+          "likes": 101,
           "comments": 8,
           "publishedAt": "2026-09-29"
         },
@@ -104,12 +120,28 @@
           "id": "vid-790f40ec",
           "youtubeVideoId": "IJ79UvSykBE",
           "title": "12 OLD HOLLYWOOD GIANTS: #12 STOOD ABOUT 7'7\" TALL",
-          "views": 3237,
+          "views": 3239,
           "likes": 17,
           "comments": 2,
           "publishedAt": "2026-09-30"
         }
-      ]
+      ],
+      "adsenseAccount": "",
+      "monthlyRevenue": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0
+      },
+      "totalYearlyRevenue": 0
     }
   ],
   "deals": [
@@ -469,16 +501,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 1,
+          "views": 36,
           "likes": 0,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 35
         }
       ],
-      "currentViews": 1,
+      "currentViews": 36,
       "currentLikes": 0,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 35,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -500,16 +532,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 444,
+          "views": 446,
           "likes": 2,
           "comments": 2,
-          "dailyViewsDelta": 2
+          "dailyViewsDelta": 4
         }
       ],
-      "currentViews": 444,
+      "currentViews": 446,
       "currentLikes": 2,
       "currentComments": 2,
-      "dailyViewsDelta": 2,
+      "dailyViewsDelta": 4,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -531,16 +563,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 194,
+          "views": 196,
           "likes": 6,
           "comments": 2,
-          "dailyViewsDelta": 3
+          "dailyViewsDelta": 5
         }
       ],
-      "currentViews": 194,
+      "currentViews": 196,
       "currentLikes": 6,
       "currentComments": 2,
-      "dailyViewsDelta": 3,
+      "dailyViewsDelta": 5,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -686,16 +718,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 3237,
+          "views": 3239,
           "likes": 17,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 2
         }
       ],
-      "currentViews": 3237,
+      "currentViews": 3239,
       "currentLikes": 17,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 2,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -717,16 +749,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 23697,
-          "likes": 100,
+          "views": 23962,
+          "likes": 101,
           "comments": 8,
-          "dailyViewsDelta": 173
+          "dailyViewsDelta": 438
         }
       ],
-      "currentViews": 23697,
-      "currentLikes": 100,
+      "currentViews": 23962,
+      "currentLikes": 101,
       "currentComments": 8,
-      "dailyViewsDelta": 173,
+      "dailyViewsDelta": 438,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -748,16 +780,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 521,
+          "views": 526,
           "likes": 7,
           "comments": 2,
-          "dailyViewsDelta": 1
+          "dailyViewsDelta": 6
         }
       ],
-      "currentViews": 521,
+      "currentViews": 526,
       "currentLikes": 7,
       "currentComments": 2,
-      "dailyViewsDelta": 1,
+      "dailyViewsDelta": 6,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -934,16 +966,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 447,
+          "views": 448,
           "likes": 1,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 1
         }
       ],
-      "currentViews": 447,
+      "currentViews": 448,
       "currentLikes": 1,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 1,
       "lastUpdatedDate": "2026-10-17"
     },
     {

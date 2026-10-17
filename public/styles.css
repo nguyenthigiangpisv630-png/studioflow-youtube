@@ -136,16 +136,16 @@ body {
 }
 
 .left-sidebar {
-  width: 256px;
+  width: 178px;
   flex-shrink: 0;
   background: var(--bg-surface);
   border-right: 1px solid var(--border-strong);
   border-top: 3px solid var(--accent-gold);
-  padding: 14px 12px;
+  padding: 10px 8px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -156,7 +156,7 @@ body {
 .sidebar-top {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   min-height: 0;
 }
 
@@ -171,15 +171,15 @@ body {
 .brand-block {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 2px 6px 12px;
+  gap: 8px;
+  padding: 2px 4px 8px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .brand-logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 7px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
   background: var(--metal-gold-gradient);
   color: #16171B;
   display: flex;
@@ -189,8 +189,8 @@ body {
 }
 
 .brand-logo svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
 }
 
 .brand-text {
@@ -199,8 +199,8 @@ body {
 }
 
 .brand-name {
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.88rem;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--ink-primary);
   line-height: 1.2;
@@ -215,29 +215,29 @@ body {
 .left-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .nav-folder-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .nav-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
-  padding: 9px 11px;
+  padding: 7px 9px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 7px;
   background: transparent;
   color: var(--ink-secondary);
   font-family: inherit;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
   text-align: left;
   transition: all 140ms ease;
@@ -246,7 +246,7 @@ body {
 .nav-btn-left {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
