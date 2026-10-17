@@ -3898,11 +3898,11 @@ function renderBrandIdentityTab() {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   };
-  setText('sidebar-brand-name', brand.brandName || 'StudioFlow');
-  setText('top-brand-title', brand.commercialTitle || 'STUDIOFLOW ENTERPRISE OS');
+  setText('sidebar-brand-name', 'ACB9x');
+  setText('top-brand-title', 'ACB9x');
   setText('top-brand-tagline', brand.tagline || '');
   setText('top-brand-domain', brand.domain || 'tiphomart.io.vn');
-  setText('login-brand-title', brand.commercialTitle || brand.brandName || 'StudioFlow');
+  setText('login-brand-title', 'ACB9x');
   setText('login-brand-sub', `${brand.companyName || 'TIPHOMART DIGITAL MEDIA CORP'} · ${brand.edition || 'Commercial Edition'}`);
 
   const totalChannels = state.channels.length;
@@ -4260,7 +4260,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=31', { updateViaCache: 'none' })
+      .register('/sw.js?v=32', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

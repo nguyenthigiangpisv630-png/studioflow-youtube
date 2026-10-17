@@ -1,4 +1,4 @@
-const CACHE_NAME = 'studioflow-pwa-v31';
+const CACHE_NAME = 'studioflow-pwa-v32';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
