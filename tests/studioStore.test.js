@@ -604,3 +604,32 @@ test('Bảng Doanh Thu 12 Tháng (monthlyRevenue & totalYearlyRevenue): nhập d
     cleanup();
   }
 });
+
+test('Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại (getBrandProfile & updateBrandProfile): trả về cấu hình mặc định và lưu cập nhật thương hiệu', () => {
+  const { store, cleanup } = createTempStore(false);
+  try {
+    const initial = store.getBrandProfile();
+    assert.equal(initial.brandName, 'STUDIOFLOW');
+    assert.equal(initial.domain, 'tiphomart.io.vn');
+
+    const updated = store.updateBrandProfile({
+      brandName: 'TiphoMedia',
+      commercialTitle: 'TIPHOMEDIA ENTERPRISE OS',
+      companyName: 'CÔNG TY TRUYỀN THÔNG SỐ TIPHOMART',
+      hotline: '0988.777.666',
+      licenseCode: 'TM-VIP-2026',
+    });
+
+    assert.equal(updated.brandName, 'TiphoMedia');
+    assert.equal(updated.commercialTitle, 'TIPHOMEDIA ENTERPRISE OS');
+    assert.equal(updated.companyName, 'CÔNG TY TRUYỀN THÔNG SỐ TIPHOMART');
+    assert.equal(updated.hotline, '0988.777.666');
+    assert.equal(updated.licenseCode, 'TM-VIP-2026');
+
+    const summary = store.getDashboardSummary();
+    assert.equal(summary.meta.brand.brandName, 'TiphoMedia');
+  } finally {
+    cleanup();
+  }
+});
+

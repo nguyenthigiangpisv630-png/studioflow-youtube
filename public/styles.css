@@ -2934,3 +2934,777 @@ select:focus-visible {
   border-radius: 6px;
 }
 
+/* ============================================================================
+   GIAO DIỆN TƯƠNG LAI & BỘ NHẬN DIỆN THƯƠNG HIỆU THƯƠNG MẠI (v24 FUTURISTIC)
+   ============================================================================ */
+
+/* Nâng cấp cột trái nhỏ gọn (178px) sang phong cách Hắc Kim Vũ Trụ (Obsidian Cyber Gold) */
+.left-sidebar {
+  background: linear-gradient(180deg, #0B0F19 0%, #111827 60%, #0D1322 100%) !important;
+  border-right: 1px solid rgba(212, 175, 55, 0.32) !important;
+  box-shadow: 6px 0 24px rgba(11, 15, 25, 0.14);
+}
+
+.left-sidebar .brand-mark {
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2) !important;
+}
+
+.left-sidebar .brand-name {
+  color: #F8FAFC !important;
+  letter-spacing: 0.02em;
+}
+
+.left-sidebar .brand-logo {
+  background: rgba(212, 175, 55, 0.12) !important;
+  border: 1px solid rgba(212, 175, 55, 0.45) !important;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+}
+
+.left-sidebar .side-nav-item {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #CBD5E1 !important;
+}
+
+.left-sidebar .side-nav-item:hover {
+  background: rgba(212, 175, 55, 0.14) !important;
+  border-color: rgba(212, 175, 55, 0.45) !important;
+  color: #FFFFFF !important;
+}
+
+.left-sidebar .side-nav-item.active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.24) 0%, rgba(154, 116, 24, 0.16) 100%) !important;
+  border-color: #D4AF37 !important;
+  color: #FBF0B9 !important;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.18), inset 0 0 0 1px rgba(251, 240, 185, 0.15) !important;
+}
+
+.left-sidebar .side-nav-item.active .side-nav-title {
+  color: #FBF0B9 !important;
+}
+
+.left-sidebar .sidebar-footer {
+  border-top: 1px solid rgba(212, 175, 55, 0.2) !important;
+}
+
+.left-sidebar .sidebar-settings-toggle {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(212, 175, 55, 0.28) !important;
+  color: #E2E8F0 !important;
+}
+
+.left-sidebar .sidebar-settings-toggle:hover,
+.left-sidebar .sidebar-settings-wrap.open .sidebar-settings-toggle {
+  background: rgba(212, 175, 55, 0.18) !important;
+  border-color: #D4AF37 !important;
+  color: #FBF0B9 !important;
+}
+
+/* Thanh Telemetry Thương Mại Tương Lai ở đỉnh Workspace */
+.commercial-telemetry-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #0B0F19 0%, #161F33 55%, #0F172A 100%);
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  box-shadow: 0 6px 18px rgba(11, 15, 25, 0.08);
+  color: #F8FAFC;
+}
+
+.telemetry-brand-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.telemetry-cyber-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.16);
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  color: #FBF0B9;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.telemetry-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+}
+
+.telemetry-brand-title {
+  font-size: 0.84rem;
+  font-weight: 900;
+  color: #FFFFFF;
+  letter-spacing: 0.04em;
+}
+
+.telemetry-divider {
+  color: rgba(212, 175, 55, 0.5);
+  font-weight: 700;
+}
+
+.telemetry-brand-tagline {
+  font-size: 0.76rem;
+  color: #CBD5E1;
+  font-weight: 600;
+}
+
+.telemetry-brand-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.telemetry-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #E2E8F0;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.telemetry-chip-gold {
+  border-color: rgba(212, 175, 55, 0.45);
+  color: #FBF0B9;
+}
+
+.telemetry-brand-btn {
+  padding: 4px 11px;
+  border-radius: 6px;
+  border: 1px solid #D4AF37;
+  background: linear-gradient(135deg, #FBF0B9 0%, #D4AF37 100%);
+  color: #0B0F19;
+  font-size: 0.74rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.telemetry-brand-btn:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+/* ============================================================================
+   TAB 4: TRUNG TÂM BỘ NHẬN DIỆN THƯƠNG HIỆU & THÔNG TIN THƯƠNG MẠI
+   ============================================================================ */
+.brand-identity-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 18px;
+}
+
+.brand-hero-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  padding: 20px 22px;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(212, 175, 55, 0.22), transparent 42%),
+    radial-gradient(circle at 12% 85%, rgba(56, 189, 248, 0.12), transparent 40%),
+    linear-gradient(135deg, #0B0F19 0%, #131B2E 55%, #090D16 100%);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  box-shadow: 0 14px 32px rgba(11, 15, 25, 0.18);
+  color: #F8FAFC;
+}
+
+.brand-hero-top {
+  display: grid;
+  grid-template-columns: 1fr 330px;
+  gap: 18px;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .brand-hero-top {
+    grid-template-columns: 1fr;
+  }
+}
+
+.brand-hero-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.brand-hero-emblem-box {
+  width: 84px;
+  height: 84px;
+  border-radius: 18px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-hero-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.brand-cyber-pill,
+.brand-license-pill,
+.brand-domain-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.brand-cyber-pill {
+  background: rgba(212, 175, 55, 0.18);
+  border: 1px solid #D4AF37;
+  color: #FBF0B9;
+}
+
+.brand-cyber-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #D4AF37;
+  box-shadow: 0 0 8px #D4AF37;
+}
+
+.brand-license-pill {
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #6EE7B7;
+}
+
+.brand-domain-pill {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #BAE6FD;
+}
+
+.brand-hero-title {
+  margin: 0 0 6px;
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, #FFFFFF 0%, #FBF0B9 60%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-hero-tagline {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  color: #CBD5E1;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.brand-hero-company-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 0.78rem;
+  color: #94A3B8;
+}
+
+.brand-hero-company-row strong {
+  color: #FBF0B9;
+}
+
+.brand-hero-contact-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.brand-contact-header {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #D4AF37;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  padding-bottom: 5px;
+  margin-bottom: 2px;
+}
+
+.brand-contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #CBD5E1;
+}
+
+.brand-contact-row strong {
+  color: #FFFFFF;
+  font-weight: 800;
+}
+
+.brand-gold-text {
+  color: #FBF0B9 !important;
+}
+
+.brand-hero-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(212, 175, 55, 0.22);
+}
+
+@media (max-width: 900px) {
+  .brand-hero-kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.brand-kpi-cell {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.brand-kpi-cell-gold {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18) 0%, rgba(154, 116, 24, 0.1) 100%);
+  border-color: #D4AF37;
+}
+
+.brand-kpi-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #94A3B8;
+}
+
+.brand-kpi-val {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #FFFFFF;
+}
+
+.brand-kpi-sub {
+  font-size: 0.72rem;
+  color: #CBD5E1;
+}
+
+/* Section Card của Tab Thương hiệu */
+.brand-section-card {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-top: 3px solid #D4AF37;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.brand-section-eyebrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #9A7418;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.brand-section-title {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #0F172A;
+}
+
+.brand-section-desc {
+  margin: 0 0 14px;
+  font-size: 0.84rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* 3 Phiên bản Logo thương mại */
+.brand-logo-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 960px) {
+  .brand-logo-showcase-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.brand-logo-card {
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #CBD5E1;
+}
+
+.brand-logo-dark,
+.brand-logo-monogram {
+  background: linear-gradient(135deg, #0B0F19 0%, #161F33 100%);
+  border-color: rgba(212, 175, 55, 0.45);
+  color: #E2E8F0;
+}
+
+.brand-logo-light {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+  border-color: #D4AF37;
+  color: #1E293B;
+}
+
+.brand-logo-card-tag {
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+
+.brand-logo-stage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.brand-app-icon-preview {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: #0B0F19;
+  border: 1px solid #D4AF37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.22);
+}
+
+.brand-logo-caption {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+/* Bảng màu thương hiệu (Swatches) */
+.brand-subsection-title {
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #334155;
+  margin-bottom: 10px;
+}
+
+.brand-color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 1100px) {
+  .brand-color-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.brand-color-swatch {
+  text-align: left;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #F8FAFC;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.brand-color-swatch:hover {
+  transform: translateY(-2px);
+  border-color: #D4AF37;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.brand-color-preview {
+  height: 58px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 6px 8px;
+}
+
+.brand-color-hex-chip {
+  font-size: 0.7rem;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #0F172A;
+}
+
+.brand-color-info {
+  padding: 10px;
+}
+
+.brand-color-info strong {
+  display: block;
+  font-size: 0.8rem;
+  color: #0F172A;
+  margin-bottom: 2px;
+}
+
+.brand-color-rgb {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #9A7418;
+  margin-bottom: 5px;
+}
+
+.brand-color-info p {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+/* 4 Trụ cột thương mại hóa */
+.brand-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1050px) {
+  .brand-pillars-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .brand-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.brand-pillar-card {
+  background: linear-gradient(180deg, #FFFDF7 0%, #F8FAFC 100%);
+  border: 1px solid #E2E8F0;
+  border-left: 3px solid #D4AF37;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.brand-pillar-num {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #0B0F19;
+  color: #FBF0B9;
+  margin-bottom: 8px;
+}
+
+.brand-pillar-card h3 {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #0F172A;
+}
+
+.brand-pillar-card p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.48;
+}
+
+/* Form cấu hình Hồ sơ Thương hiệu */
+.brand-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.brand-field-wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+  .brand-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .brand-field-wide {
+    grid-column: span 1;
+  }
+}
+
+.brand-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.brand-field span {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.brand-field input {
+  padding: 8px 11px;
+  border: 1px solid #CBD5E1;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0F172A;
+  background: #F8FAFC;
+}
+
+.brand-field input:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background: #FFFDF7;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
+}
+
+.brand-form-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Chân trang Thương mại (Commercial Enterprise Footer) */
+.commercial-footer {
+  margin-top: 18px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #0B0F19 0%, #141C2E 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #CBD5E1;
+}
+
+.commercial-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.commercial-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.commercial-footer-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #FFFFFF;
+}
+
+.commercial-footer-license {
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  color: #FBF0B9;
+}
+
+.commercial-footer-sub {
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
+
+.commercial-footer-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.commercial-footer-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #E2E8F0;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.commercial-footer-link {
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  background: rgba(212, 175, 55, 0.15);
+  color: #FBF0B9;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.commercial-footer-link:hover {
+  background: #D4AF37;
+  color: #0B0F19;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .telemetry-brand-tagline,
+  .telemetry-divider {
+    display: none;
+  }
+}
+
+

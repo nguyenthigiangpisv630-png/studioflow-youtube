@@ -161,6 +161,16 @@ export function createAppServer({
         });
       }
 
+      if (pathname === '/api/brand' && method === 'GET') {
+        return sendJson(res, 200, store.getBrandProfile());
+      }
+
+      if (pathname === '/api/brand' && method === 'PATCH') {
+        const body = await readJsonBody(req);
+        const updated = store.updateBrandProfile(body);
+        return sendJson(res, 200, updated);
+      }
+
       // 1. CRM DEALS
       if (pathname === '/api/deals' && method === 'GET') {
         return sendJson(

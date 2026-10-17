@@ -70,6 +70,10 @@ const TAB_TITLES = {
     title: 'Quản lý YouTube & Chỉ số lượt xem hằng ngày',
     subtitle: 'Theo dõi danh sách kênh hàng ngang, tình trạng kênh và biểu đồ tăng trưởng lượt xem từng ngày (+Views/ngày)',
   },
+  brand: {
+    title: 'Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại',
+    subtitle: 'Hệ thống nhận diện Mệnh Kim Tương Lai (Futuristic Enterprise Edition), thông số bản quyền và cấu hình thương mại',
+  },
 };
 
 function formatCurrency(val) {
@@ -219,6 +223,7 @@ function renderAll() {
   renderSelectOptions();
   renderContentsTab();
   renderYoutubeTab();
+  renderBrandIdentityTab();
 }
 
 function renderTopMetrics() {
@@ -2459,6 +2464,26 @@ function setupEventListeners() {
       return;
     }
 
+    // Mở tab Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại từ thanh telemetry hoặc footer
+    const openBrandBtn = e.target.closest('[data-open-brand-tab]');
+    if (openBrandBtn) {
+      switchTab('brand');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Sao chép mã màu HEX trong Bộ Quy Chuẩn Nhận Diện Thương Hiệu
+    const copyHexBtn = e.target.closest('[data-copy-hex]');
+    if (copyHexBtn) {
+      const hex = copyHexBtn.dataset.copyHex || '#D4AF37';
+      const name = copyHexBtn.dataset.copyName || 'Màu thương hiệu';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(hex).catch(() => {});
+      }
+      showBanner(`Đã sao chép mã màu ${name}: ${hex}`);
+      return;
+    }
+
     // Chuyển tab chiều thống kê Nhãn (Theo Group | Theo Ngách | Theo Quản lý)
     const setLabelModeBtn = e.target.closest('[data-set-label-mode]');
     if (setLabelModeBtn) {
@@ -3381,7 +3406,413 @@ function setupEventListeners() {
       }
       return;
     }
+
+    if (form.id === 'form-brand-profile') {
+      e.preventDefault();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const origText = submitBtn ? submitBtn.textContent : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Đang lưu cấu hình thương hiệu...';
+      }
+      try {
+        const fd = new FormData(form);
+        const payload = Object.fromEntries(fd.entries());
+        const updated = await apiRequest('/api/brand', {
+          method: 'PATCH',
+          body: JSON.stringify(payload),
+        });
+        if (state.summary && state.summary.meta) {
+          state.summary.meta.brand = updated;
+        }
+        await loadOverview();
+        showBanner(`✨ Đã cập nhật Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại (${updated.brandName})!`);
+      } catch (err) {
+        showBanner(err.message, true);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = origText;
+        }
+      }
+      return;
+    }
   });
+}
+
+// =============================================================================
+// TAB 4: BỘ NHẬN DIỆN THƯƠNG HIỆU & THÔNG TIN THƯƠNG MẠI (FUTURISTIC BRAND KIT)
+// =============================================================================
+function renderBrandIdentityTab() {
+  const brand = state.summary?.meta?.brand || {
+    brandName: 'StudioFlow',
+    commercialTitle: 'STUDIOFLOW ENTERPRISE OS',
+    tagline: 'Hệ Điều Hành Quản Trị Mạng Lưới Kênh YouTube & Tài Sản Số Thế Hệ Mới',
+    companyName: 'TIPHOMART DIGITAL MEDIA CORP',
+    domain: 'tiphomart.io.vn',
+    hotline: '0900.888.999',
+    email: 'contact@tiphomart.io.vn',
+    address: 'Tổ hợp Công nghệ & Truyền thông Số StudioFlow Việt Nam',
+    edition: 'Mệnh Kim Futuristic · Commercial v4.0',
+    licenseCode: 'SF-ENT-2026-GOLD',
+  };
+
+  // Đồng bộ thương hiệu lên thanh điều hướng trái, thanh Telemetry đỉnh trang, màn hình khóa & chân trang
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+  setText('sidebar-brand-name', brand.brandName || 'StudioFlow');
+  setText('top-brand-title', brand.commercialTitle || 'STUDIOFLOW ENTERPRISE OS');
+  setText('top-brand-tagline', brand.tagline || '');
+  setText('top-brand-domain', brand.domain || 'tiphomart.io.vn');
+  setText('login-brand-title', brand.commercialTitle || brand.brandName || 'StudioFlow');
+  setText('login-brand-sub', `${brand.companyName || 'TIPHOMART DIGITAL MEDIA CORP'} · ${brand.edition || 'Commercial Edition'}`);
+
+  const totalChannels = state.channels.length;
+  const monetizedChannels = state.channels.filter(
+    (c) => c.monetization === 'enabled' || c.status === 'monetized'
+  ).length;
+  const totalSubs = state.channels.reduce((sum, c) => sum + (Number(c.subscribers) || 0), 0);
+  const totalViews = state.summary?.youtube?.totalViews || 0;
+  const totalVideos = state.videos.length;
+  const totalRevenue =
+    state.summary?.youtube?.totalNetworkRevenue ??
+    state.channels.reduce((sum, c) => sum + (Number(c.totalYearlyRevenue) || 0), 0);
+
+  // Chân trang thương mại (Commercial Footer)
+  const footerEl = document.getElementById('commercial-footer');
+  if (footerEl) {
+    footerEl.innerHTML = `
+      <div class="commercial-footer-inner">
+        <div class="commercial-footer-brand">
+          <div class="commercial-footer-emblem">
+            <svg width="24" height="24" viewBox="0 0 64 64" fill="none">
+              <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" stroke="#D4AF37" stroke-width="3" fill="#0B0F19"/>
+              <polygon points="26,20 44,32 26,44" fill="#D4AF37"/>
+            </svg>
+          </div>
+          <div>
+            <div class="commercial-footer-title">
+              <strong>${escapeHtml(brand.commercialTitle)}</strong>
+              <span class="commercial-footer-license">${escapeHtml(brand.licenseCode)}</span>
+            </div>
+            <div class="commercial-footer-sub">
+              © ${new Date().getFullYear()} <strong>${escapeHtml(brand.companyName)}</strong> · ${escapeHtml(brand.address)}
+            </div>
+          </div>
+        </div>
+        <div class="commercial-footer-meta">
+          <span class="commercial-footer-chip">🌐 ${escapeHtml(brand.domain)}</span>
+          <span class="commercial-footer-chip">📞 ${escapeHtml(brand.hotline)}</span>
+          <span class="commercial-footer-chip">✉️ ${escapeHtml(brand.email)}</span>
+          <button type="button" class="commercial-footer-link" data-open-brand-tab="true">✨ Hồ sơ Thương hiệu</button>
+        </div>
+      </div>
+    `;
+  }
+
+  const hubEl = document.getElementById('brand-identity-hub');
+  if (!hubEl) return;
+
+  const brandColors = [
+    {
+      name: 'Hoàng Kim Vương Giả (Imperial Cyber Gold)',
+      role: 'Màu chủ đạo thương hiệu · Biểu tượng thịnh vượng & dòng tiền Mệnh Kim',
+      hex: '#D4AF37',
+      rgb: '212, 175, 55',
+      previewBg: 'linear-gradient(135deg, #FBF0B9 0%, #D4AF37 50%, #9A7418 100%)',
+      textColor: '#0B0F19',
+    },
+    {
+      name: 'Hắc Kim Vũ Trụ (Obsidian Core)',
+      role: 'Nền buồng lái tương lai · Tạo chiều sâu công nghệ & bảo vệ thị giác',
+      hex: '#0B0F19',
+      rgb: '11, 15, 25',
+      previewBg: 'linear-gradient(135deg, #1E293B 0%, #0B0F19 100%)',
+      textColor: '#F8FAFC',
+    },
+    {
+      name: 'Bạch Kim Tinh Khiết (Platinum Titanium)',
+      role: 'Bề mặt không gian làm việc · Tối ưu độ tương phản bảng số liệu',
+      hex: '#F4F6FA',
+      rgb: '244, 246, 250',
+      previewBg: 'linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%)',
+      textColor: '#0F172A',
+    },
+    {
+      name: 'Lục Bảo Tăng Trưởng (Emerald Telemetry)',
+      role: 'Chỉ báo kênh Bật kiếm tiền (BKT), tăng trưởng +Views/ngày & doanh thu',
+      hex: '#10B981',
+      rgb: '16, 185, 129',
+      previewBg: 'linear-gradient(135deg, #34D399 0%, #059669 100%)',
+      textColor: '#064E3B',
+    },
+    {
+      name: 'Lam Quang Tương Lai (Cyber Cyan)',
+      role: 'Tín hiệu đồng bộ Auto 1h, Radar quét kênh & liên kết đám mây',
+      hex: '#38BDF8',
+      rgb: '56, 189, 248',
+      previewBg: 'linear-gradient(135deg, #7DD3FC 0%, #0284C7 100%)',
+      textColor: '#0C4A6E',
+    },
+  ];
+
+  hubEl.innerHTML = `
+    <!-- 1. HERO BANNER: BỘ NHẬN DIỆN TƯƠNG LAI & THÔNG SỐ MẠNG LƯỚI THƯƠNG MẠI -->
+    <div class="brand-hero-banner">
+      <div class="brand-hero-glow"></div>
+      <div class="brand-hero-top">
+        <div class="brand-hero-identity">
+          <div class="brand-hero-emblem-box">
+            <svg width="68" height="68" viewBox="0 0 64 64" fill="none">
+              <defs>
+                <linearGradient id="heroGoldGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FBF0B9"/>
+                  <stop offset="45%" stop-color="#D4AF37"/>
+                  <stop offset="100%" stop-color="#9A7418"/>
+                </linearGradient>
+              </defs>
+              <polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" stroke="url(#heroGoldGrad)" stroke-width="2.5" fill="rgba(11,15,25,0.9)"/>
+              <polygon points="32,10 51,21 51,43 32,54 13,43 13,21" stroke="rgba(212,175,55,0.35)" stroke-width="1" stroke-dasharray="3 2" fill="none"/>
+              <polygon points="26,20 45,32 26,44" fill="url(#heroGoldGrad)"/>
+            </svg>
+          </div>
+          <div class="brand-hero-text">
+            <div class="brand-hero-badges">
+              <span class="brand-cyber-pill"><span class="brand-cyber-dot"></span> ${escapeHtml(brand.edition)}</span>
+              <span class="brand-license-pill">MÃ BẢN QUYỀN: ${escapeHtml(brand.licenseCode)}</span>
+              <span class="brand-domain-pill">🌐 ${escapeHtml(brand.domain)}</span>
+            </div>
+            <h1 class="brand-hero-title">${escapeHtml(brand.commercialTitle)}</h1>
+            <p class="brand-hero-tagline">${escapeHtml(brand.tagline)}</p>
+            <div class="brand-hero-company-row">
+              <span>🏛️ Đơn vị sở hữu & vận hành: <strong>${escapeHtml(brand.companyName)}</strong></span>
+              <span>📍 ${escapeHtml(brand.address)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="brand-hero-contact-card">
+          <div class="brand-contact-header">THÔNG TIN LIÊN HỆ THƯƠNG MẠI</div>
+          <div class="brand-contact-row">
+            <span>Tên thương hiệu:</span>
+            <strong>${escapeHtml(brand.brandName)}</strong>
+          </div>
+          <div class="brand-contact-row">
+            <span>Tên miền chính thức:</span>
+            <strong>${escapeHtml(brand.domain)}</strong>
+          </div>
+          <div class="brand-contact-row">
+            <span>Hotline Đối tác / Mua bản quyền:</span>
+            <strong class="brand-gold-text">${escapeHtml(brand.hotline)}</strong>
+          </div>
+          <div class="brand-contact-row">
+            <span>Email Doanh nghiệp:</span>
+            <strong>${escapeHtml(brand.email)}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dải chỉ số quy mô thương mại thời gian thực -->
+      <div class="brand-hero-kpi-strip">
+        <div class="brand-kpi-cell">
+          <span class="brand-kpi-label">QUY MÔ HỆ THỐNG KÊNH</span>
+          <strong class="brand-kpi-val num">${formatNumber(totalChannels)} kênh</strong>
+          <span class="brand-kpi-sub">${formatNumber(monetizedChannels)} kênh đã Bật kiếm tiền (BKT)</span>
+        </div>
+        <div class="brand-kpi-cell">
+          <span class="brand-kpi-label">TỔNG KHÁN GIẢ ĐĂNG KÝ</span>
+          <strong class="brand-kpi-val num">${formatNumber(totalSubs)} subs</strong>
+          <span class="brand-kpi-sub">Cập nhật tự động 1 tiếng/lần</span>
+        </div>
+        <div class="brand-kpi-cell">
+          <span class="brand-kpi-label">TỔNG LƯỢT XEM TOÀN MẠNG</span>
+          <strong class="brand-kpi-val num">${formatNumber(totalViews)} views</strong>
+          <span class="brand-kpi-sub">${formatNumber(totalVideos)} video đang theo dõi radar</span>
+        </div>
+        <div class="brand-kpi-cell brand-kpi-cell-gold">
+          <span class="brand-kpi-label">TỔNG DOANH THU LŨY KẾ 12 THÁNG</span>
+          <strong class="brand-kpi-val num brand-gold-text">${formatNumber(totalRevenue)}</strong>
+          <span class="brand-kpi-sub">Tổng hợp tự động từ sổ doanh thu các kênh</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. BỘ QUY CHUẨN NHẬN DIỆN THƯƠNG HIỆU (BRAND IDENTITY SYSTEM) -->
+    <div class="brand-section-card">
+      <div class="brand-section-head">
+        <div>
+          <span class="brand-section-eyebrow">01 · BRAND IDENTITY GUIDELINES</span>
+          <h2 class="brand-section-title">Bộ Quy Chuẩn Nhận Diện Thương Hiệu — Mệnh Kim Futuristic</h2>
+          <p class="brand-section-desc">Thiết kế theo triết lý <strong>Kim Tinh Quang (Gold & Platinum Prism)</strong> kết hợp giao diện buồng lái dữ liệu tương lai, mang lại uy tín cao cấp khi trình chiếu với đối tác, nhà đầu tư và khách hàng thương mại.</p>
+        </div>
+      </div>
+
+      <!-- 3 Phiên bản Logo thương mại -->
+      <div class="brand-logo-showcase-grid">
+        <div class="brand-logo-card brand-logo-dark">
+          <span class="brand-logo-card-tag">PHIÊN BẢN CHÍNH · OBSIDIAN CYBER GOLD</span>
+          <div class="brand-logo-stage">
+            <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
+              <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" stroke="#D4AF37" stroke-width="3" fill="#0B0F19"/>
+              <polygon points="26,20 44,32 26,44" fill="#D4AF37"/>
+            </svg>
+            <div class="brand-logo-lockup-text">
+              <strong style="color:#F8FAFC;font-size:1.25rem;letter-spacing:0.06em;">${escapeHtml(brand.brandName).toUpperCase()}</strong>
+              <span style="color:#D4AF37;font-size:0.68rem;letter-spacing:0.16em;display:block;font-weight:700;">ENTERPRISE OS</span>
+            </div>
+          </div>
+          <p class="brand-logo-caption">Sử dụng trên nền tối (Sidebar, Header Telemetry, Màn hình Khóa bảo mật & Slide thuyết trình).</p>
+        </div>
+
+        <div class="brand-logo-card brand-logo-light">
+          <span class="brand-logo-card-tag">PHIÊN BẢN BẠCH KIM · PLATINUM LIGHT</span>
+          <div class="brand-logo-stage">
+            <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
+              <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" stroke="#9A7418" stroke-width="3" fill="#FFFDF7"/>
+              <polygon points="26,20 44,32 26,44" fill="#B8860B"/>
+            </svg>
+            <div class="brand-logo-lockup-text">
+              <strong style="color:#0F172A;font-size:1.25rem;letter-spacing:0.06em;">${escapeHtml(brand.brandName).toUpperCase()}</strong>
+              <span style="color:#9A7418;font-size:0.68rem;letter-spacing:0.16em;display:block;font-weight:700;">COMMERCIAL EDITION</span>
+            </div>
+          </div>
+          <p class="brand-logo-caption">Sử dụng trên báo cáo tài chính in ấn, hợp đồng thương mại, hóa đơn và nền sáng.</p>
+        </div>
+
+        <div class="brand-logo-card brand-logo-monogram">
+          <span class="brand-logo-card-tag">BIỂU TƯỢNG ỨNG DỤNG · HEXAGON PRISM ICON</span>
+          <div class="brand-logo-stage">
+            <div class="brand-app-icon-preview">
+              <svg width="46" height="46" viewBox="0 0 64 64" fill="none">
+                <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" stroke="#FBF0B9" stroke-width="3" fill="#0B0F19"/>
+                <polygon points="26,20 44,32 26,44" fill="#D4AF37"/>
+              </svg>
+            </div>
+            <div class="brand-logo-lockup-text">
+              <strong style="color:#F8FAFC;font-size:1rem;">Biểu tượng Lục Giác Kim Cương</strong>
+              <span style="color:#94A3B8;font-size:0.75rem;display:block;">Chuẩn PWA App Icon (512×512 SVG)</span>
+            </div>
+          </div>
+          <p class="brand-logo-caption">Khối lục giác tượng trưng cho mạng lưới đa kênh vững chắc; nút Play vàng kim là động cơ tăng trưởng view & doanh thu.</p>
+        </div>
+      </div>
+
+      <!-- Bảng màu chuẩn thương mại (Click để copy HEX) -->
+      <div class="brand-subsection-title">BẢNG MÀU QUY CHUẨN MỆNH KIM TƯƠNG LAI (BẤM VÀO Ô MÀU ĐỂ SAO CHÉP MÃ HEX)</div>
+      <div class="brand-color-grid">
+        ${brandColors
+          .map(
+            (c) => `
+            <button type="button" class="brand-color-swatch" data-copy-hex="${escapeHtml(c.hex)}" data-copy-name="${escapeHtml(c.name)}" title="Bấm để sao chép mã màu ${escapeHtml(c.hex)}">
+              <div class="brand-color-preview" style="background:${c.previewBg};color:${c.textColor};">
+                <span class="brand-color-hex-chip">${escapeHtml(c.hex)}</span>
+              </div>
+              <div class="brand-color-info">
+                <strong>${escapeHtml(c.name)}</strong>
+                <span class="brand-color-rgb">HEX: ${escapeHtml(c.hex)} · RGB(${escapeHtml(c.rgb)})</span>
+                <p>${escapeHtml(c.role)}</p>
+              </div>
+            </button>
+          `
+          )
+          .join('')}
+      </div>
+    </div>
+
+    <!-- 3. HỒ SƠ NĂNG LỰC SẢN PHẨM & GIÁ TRỊ THƯƠNG MẠI HÓA (COMMERCIAL VALUE PROPOSITION) -->
+    <div class="brand-section-card">
+      <div class="brand-section-head">
+        <div>
+          <span class="brand-section-eyebrow">02 · COMMERCIAL PRODUCT ARCHITECTURE</span>
+          <h2 class="brand-section-title">Thông Tin Hệ Thống & 4 Trụ Cột Thương Mại Hóa</h2>
+          <p class="brand-section-desc">Kiến trúc phần mềm được đóng gói chuẩn doanh nghiệp (Enterprise-Ready), sẵn sàng vận hành cho các hệ thống Network YouTube, MCN, Agency truyền thông hoặc chuyển giao bản quyền thương mại.</p>
+        </div>
+      </div>
+
+      <div class="brand-pillars-grid">
+        <div class="brand-pillar-card">
+          <div class="brand-pillar-num">01</div>
+          <h3>Quản Trị Đa Kênh & Phân Tầng Thư Mục</h3>
+          <p>Tự động quét chỉ số kênh từ đường dẫn hoặc <code>@handle</code>, phân nhóm theo <strong>Group / Ngách nội dung / Quản lý phụ trách</strong> và theo dõi tình trạng Bật kiếm tiền (BKT), cảnh báo gậy bản quyền trực quan.</p>
+        </div>
+        <div class="brand-pillar-card">
+          <div class="brand-pillar-num">02</div>
+          <h3>Sổ Doanh Thu 12 Tháng & Bảo Mật Gà Kết Nối</h3>
+          <p>Mỗi kênh tích hợp bảng nhập doanh thu từ <strong>Tháng 1 đến Tháng 12</strong> tự động cộng tổng lũy kế cả năm, đi kèm lớp khóa mật khẩu riêng cho thông tin nhạy cảm <strong>Gà kết nối (AdSense/GA)</strong>.</p>
+        </div>
+        <div class="brand-pillar-card">
+          <div class="brand-pillar-num">03</div>
+          <h3>Radar Săn Video Nổ View (Outlier Engine)</h3>
+          <p>Thuật toán đối chiếu lượt xem từng video với mức trung bình kênh để phát hiện sớm các chủ đề <strong>Nổ đề xuất (x2.0 đến x10+ TB kênh)</strong> và lưu thẳng vào Kho Nội Dung chỉ với 1 cú nhấp.</p>
+        </div>
+        <div class="brand-pillar-card">
+          <div class="brand-pillar-num">04</div>
+          <h3>Đồng Bộ Tự Động 1 Tiếng/Lần & Liên Kết Notion</h3>
+          <p>Cơ chế Auto-Reset & cập nhật toàn mạng lưới mỗi 60 phút, liệt kê toàn bộ video dài + Shorts của từng kênh và mở trực tiếp trang quản trị Notion riêng biệt cho từng kênh.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. TRUNG TÂM TÙY CHỈNH HỒ SƠ THƯƠNG HIỆU THƯƠNG MẠI (EDITABLE BRAND PROFILE) -->
+    <div class="brand-section-card">
+      <div class="brand-section-head">
+        <div>
+          <span class="brand-section-eyebrow">03 · COMMERCIAL CUSTOMIZATION & WHITE-LABEL</span>
+          <h2 class="brand-section-title">Cấu Hình Thông Tin Thương Hiệu & Bản Quyền Thương Mại</h2>
+          <p class="brand-section-desc">Anh có thể thay đổi Tên thương hiệu, Tên công ty, Tên miền, Hotline và Mã bản quyền ngay bên dưới để cá nhân hóa hoàn toàn hệ thống khi làm việc với khách hàng hoặc đối tác.</p>
+        </div>
+      </div>
+
+      <form id="form-brand-profile" class="brand-config-form">
+        <div class="brand-form-grid">
+          <label class="brand-field">
+            <span>Tên thương hiệu rút gọn (Hiển thị góc trái)</span>
+            <input type="text" name="brandName" value="${escapeHtml(brand.brandName)}" required placeholder="VD: StudioFlow" />
+          </label>
+          <label class="brand-field">
+            <span>Tên thương mại đầy đủ (Header & Hero Banner)</span>
+            <input type="text" name="commercialTitle" value="${escapeHtml(brand.commercialTitle)}" required placeholder="VD: STUDIOFLOW ENTERPRISE OS" />
+          </label>
+          <label class="brand-field brand-field-wide">
+            <span>Khẩu hiệu định vị thương hiệu (Tagline)</span>
+            <input type="text" name="tagline" value="${escapeHtml(brand.tagline)}" placeholder="VD: Hệ Điều Hành Quản Trị Mạng Lưới Kênh YouTube & Tài Sản Số Thế Hệ Mới" />
+          </label>
+          <label class="brand-field">
+            <span>Tên Công ty / Đơn vị sở hữu thương mại</span>
+            <input type="text" name="companyName" value="${escapeHtml(brand.companyName)}" placeholder="VD: TIPHOMART DIGITAL MEDIA CORP" />
+          </label>
+          <label class="brand-field">
+            <span>Tên miền chính thức (Domain)</span>
+            <input type="text" name="domain" value="${escapeHtml(brand.domain)}" placeholder="VD: tiphomart.io.vn" />
+          </label>
+          <label class="brand-field">
+            <span>Hotline Kinh doanh / Hỗ trợ đối tác</span>
+            <input type="text" name="hotline" value="${escapeHtml(brand.hotline)}" placeholder="VD: 0900.888.999" />
+          </label>
+          <label class="brand-field">
+            <span>Email Thương mại</span>
+            <input type="text" name="email" value="${escapeHtml(brand.email)}" placeholder="VD: contact@tiphomart.io.vn" />
+          </label>
+          <label class="brand-field">
+            <span>Phiên bản giao diện (Edition)</span>
+            <input type="text" name="edition" value="${escapeHtml(brand.edition)}" placeholder="VD: Mệnh Kim Futuristic · Commercial v4.0" />
+          </label>
+          <label class="brand-field">
+            <span>Mã chứng nhận bản quyền (License Code)</span>
+            <input type="text" name="licenseCode" value="${escapeHtml(brand.licenseCode)}" placeholder="VD: SF-ENT-2026-GOLD" />
+          </label>
+          <label class="brand-field brand-field-wide">
+            <span>Địa chỉ trụ sở / Tổ hợp vận hành</span>
+            <input type="text" name="address" value="${escapeHtml(brand.address)}" placeholder="VD: Tổ hợp Công nghệ & Truyền thông Số StudioFlow Việt Nam" />
+          </label>
+        </div>
+        <div class="brand-form-actions">
+          <button type="submit" class="btn-gold">💾 Lưu & Áp dụng Bộ Nhận Diện Thương Hiệu</button>
+        </div>
+      </form>
+    </div>
+  `;
 }
 
 // Đăng ký Service Worker cho Mobile App (PWA) & dọn cache cũ tránh lỗi hiển thị CSS
@@ -3393,7 +3824,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=23', { updateViaCache: 'none' })
+      .register('/sw.js?v=24', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
@@ -3420,3 +3851,4 @@ document.getElementById('btn-install-pwa')?.addEventListener('click', async () =
 
 setupEventListeners();
 loadOverview().catch((err) => showBanner(err.message, true));
+

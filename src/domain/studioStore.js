@@ -1053,6 +1053,52 @@ export class StudioStore {
     };
   }
 
+  getBrandProfile() {
+    const raw = this.state.meta?.brandProfile || {};
+    return {
+      brandName: String(raw.brandName || 'STUDIOFLOW').trim(),
+      commercialTitle: String(raw.commercialTitle || 'STUDIOFLOW ENTERPRISE™').trim(),
+      tagline: String(
+        raw.tagline || 'Hệ Điều Hành Quản Trị Mạng Lưới Kênh YouTube & Tài Sản Nội Dung Số Tương Lai'
+      ).trim(),
+      companyName: String(raw.companyName || 'TIPHOMART MEDIA & DIGITAL ASSETS CORP').trim(),
+      domain: String(raw.domain || 'tiphomart.io.vn').trim(),
+      hotline: String(raw.hotline || '0988.888.999').trim(),
+      email: String(raw.email || 'commercial@tiphomart.io.vn').trim(),
+      address: String(
+        raw.address || 'Trung Tâm Điều Hành Truyền Thông & Tài Sản Số — Việt Nam & Global Network'
+      ).trim(),
+      edition: String(raw.edition || 'COMMERCIAL ENTERPRISE v2.4 · MỆNH KIM FUTURISTIC').trim(),
+      licenseCode: String(raw.licenseCode || 'SF-ENT-2026-GOLD').trim(),
+      updatedAt: raw.updatedAt || '2026-10-17T00:00:00.000Z',
+    };
+  }
+
+  updateBrandProfile(input = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const prev = this.getBrandProfile();
+    this.state.meta.brandProfile = {
+      brandName: input.brandName !== undefined ? String(input.brandName).trim() || prev.brandName : prev.brandName,
+      commercialTitle:
+        input.commercialTitle !== undefined
+          ? String(input.commercialTitle).trim() || prev.commercialTitle
+          : prev.commercialTitle,
+      tagline: input.tagline !== undefined ? String(input.tagline).trim() || prev.tagline : prev.tagline,
+      companyName:
+        input.companyName !== undefined ? String(input.companyName).trim() || prev.companyName : prev.companyName,
+      domain: input.domain !== undefined ? String(input.domain).trim() || prev.domain : prev.domain,
+      hotline: input.hotline !== undefined ? String(input.hotline).trim() : prev.hotline,
+      email: input.email !== undefined ? String(input.email).trim() : prev.email,
+      address: input.address !== undefined ? String(input.address).trim() : prev.address,
+      edition: input.edition !== undefined ? String(input.edition).trim() || prev.edition : prev.edition,
+      licenseCode:
+        input.licenseCode !== undefined ? String(input.licenseCode).trim() || prev.licenseCode : prev.licenseCode,
+      updatedAt: new Date().toISOString(),
+    };
+    this.#save();
+    return this.getBrandProfile();
+  }
+
   getNotionConfig() {
     const cfg = this.state.meta?.notionConfig || {};
     const token = String(cfg.notionToken || process.env.NOTION_TOKEN || '').trim();
@@ -1894,6 +1940,9 @@ export class StudioStore {
     const lastSyncIso = this.state.meta.lastDailySyncAt || new Date().toISOString();
     const lastSyncMs = new Date(lastSyncIso).getTime() || Date.now();
     const nextHourlySyncAt = new Date(lastSyncMs + 60 * 60 * 1000).toISOString();
+    const totalNetworkRevenue = Math.round(
+      channels.reduce((sum, ch) => sum + (Number(ch.totalYearlyRevenue) || 0), 0) * 100
+    ) / 100;
 
     return {
       meta: {
@@ -1902,6 +1951,7 @@ export class StudioStore {
         nextHourlySyncAt,
         autoSyncIntervalMinutes: 60,
         notion: this.getNotionConfig(),
+        brand: this.getBrandProfile(),
       },
       crm: {
         totalDeals: deals.length,
@@ -1931,6 +1981,7 @@ export class StudioStore {
         totalLikes,
         totalComments,
         todayViewsDelta,
+        totalNetworkRevenue,
         dailyTrend,
         labelStats,
         topVideosLeaderboard,

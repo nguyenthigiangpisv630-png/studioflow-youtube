@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastDailySyncDate": "2026-10-17",
-    "lastDailySyncAt": "2026-10-17T00:28:00.418Z",
+    "lastDailySyncAt": "2026-10-17T01:29:00.917Z",
     "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b"
   },
   "channels": [
@@ -21,7 +21,7 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-17T00:27:59.908Z",
+      "updatedAt": "2026-10-17T01:29:00.421Z",
       "group": "KÊNH ÂM THỰC",
       "watchHours": 0,
       "realtimeViews48h": 0,
@@ -89,8 +89,8 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-17T00:28:00.416Z",
-      "totalViews": 34321,
+      "updatedAt": "2026-10-17T01:29:00.910Z",
+      "totalViews": 35143,
       "watchHours": 2200,
       "group": "NGƯỜI NỔI TIẾNG",
       "realtimeViews48h": 0,
@@ -102,7 +102,7 @@
           "id": "vid-42078c14",
           "youtubeVideoId": "UEQ5XifO7L8",
           "title": "How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked",
-          "views": 23962,
+          "views": 24060,
           "likes": 101,
           "comments": 8,
           "publishedAt": "2026-09-29"
@@ -120,7 +120,7 @@
           "id": "vid-790f40ec",
           "youtubeVideoId": "IJ79UvSykBE",
           "title": "12 OLD HOLLYWOOD GIANTS: #12 STOOD ABOUT 7'7\" TALL",
-          "views": 3239,
+          "views": 3240,
           "likes": 17,
           "comments": 2,
           "publishedAt": "2026-09-30"
@@ -625,16 +625,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 256,
+          "views": 261,
           "likes": 0,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 5
         }
       ],
-      "currentViews": 256,
+      "currentViews": 261,
       "currentLikes": 0,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 5,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -687,16 +687,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 500,
+          "views": 502,
           "likes": 0,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 2
         }
       ],
-      "currentViews": 500,
+      "currentViews": 502,
       "currentLikes": 0,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 2,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -718,16 +718,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 3239,
+          "views": 3240,
           "likes": 17,
           "comments": 2,
-          "dailyViewsDelta": 2
+          "dailyViewsDelta": 3
         }
       ],
-      "currentViews": 3239,
+      "currentViews": 3240,
       "currentLikes": 17,
       "currentComments": 2,
-      "dailyViewsDelta": 2,
+      "dailyViewsDelta": 3,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -749,16 +749,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 23962,
+          "views": 24060,
           "likes": 101,
           "comments": 8,
-          "dailyViewsDelta": 438
+          "dailyViewsDelta": 536
         }
       ],
-      "currentViews": 23962,
+      "currentViews": 24060,
       "currentLikes": 101,
       "currentComments": 8,
-      "dailyViewsDelta": 438,
+      "dailyViewsDelta": 536,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -780,16 +780,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 526,
+          "views": 548,
           "likes": 7,
           "comments": 2,
-          "dailyViewsDelta": 6
+          "dailyViewsDelta": 28
         }
       ],
-      "currentViews": 526,
+      "currentViews": 548,
       "currentLikes": 7,
       "currentComments": 2,
-      "dailyViewsDelta": 6,
+      "dailyViewsDelta": 28,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -811,16 +811,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 450,
+          "views": 455,
           "likes": 2,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 5
         }
       ],
-      "currentViews": 450,
+      "currentViews": 455,
       "currentLikes": 2,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 5,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -842,16 +842,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 290,
+          "views": 293,
           "likes": 0,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 3
         }
       ],
-      "currentViews": 290,
+      "currentViews": 293,
       "currentLikes": 0,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 3,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -873,16 +873,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 318,
+          "views": 319,
           "likes": 0,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 1
         }
       ],
-      "currentViews": 318,
+      "currentViews": 319,
       "currentLikes": 0,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 1,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -904,16 +904,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 216,
+          "views": 219,
           "likes": 3,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 3
         }
       ],
-      "currentViews": 216,
+      "currentViews": 219,
       "currentLikes": 3,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 3,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -935,16 +935,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 442,
+          "views": 444,
           "likes": 1,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 2
         }
       ],
-      "currentViews": 442,
+      "currentViews": 444,
       "currentLikes": 1,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 2,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -966,16 +966,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 448,
+          "views": 450,
           "likes": 1,
           "comments": 2,
-          "dailyViewsDelta": 1
+          "dailyViewsDelta": 3
         }
       ],
-      "currentViews": 448,
+      "currentViews": 450,
       "currentLikes": 1,
       "currentComments": 2,
-      "dailyViewsDelta": 1,
+      "dailyViewsDelta": 3,
       "lastUpdatedDate": "2026-10-17"
     },
     {
