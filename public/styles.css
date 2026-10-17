@@ -4268,8 +4268,438 @@ select:focus-visible {
 }
 
 @media (max-width: 768px) {
+  html,
+  body {
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   .sidebar-toggle-btn,
   .sidebar-expand-tab {
     display: none !important;
+  }
+
+  /* Biến thanh bên trái thành Thanh Header App Gọn Gàng (1 hàng ngang) trên Điện thoại */
+  .app-shell,
+  .app-shell.sidebar-collapsed {
+    flex-direction: column;
+  }
+
+  .left-sidebar,
+  .app-shell.sidebar-collapsed .left-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    margin-left: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 75 !important;
+    padding: 8px 12px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.35) !important;
+    overflow: visible !important;
+  }
+
+  .left-sidebar .sidebar-top {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .left-sidebar .brand-block {
+    padding: 0 !important;
+    border-bottom: none !important;
+    gap: 7px !important;
+  }
+
+  /* Ẩn menu dọc trên cùng vì đã có Thanh Điều Hướng Đáy (Bottom Tab Bar) chuẩn App Điện Thoại */
+  .left-sidebar .left-nav {
+    display: none !important;
+  }
+
+  .left-sidebar .sidebar-footer {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding-top: 0 !important;
+    border-top: none !important;
+  }
+
+  .left-sidebar .sidebar-footer .hourly-sync-pill {
+    width: auto !important;
+    padding: 5px 9px !important;
+    font-size: 0.69rem !important;
+  }
+
+  .left-sidebar .sidebar-settings-wrap {
+    position: relative !important;
+  }
+
+  .left-sidebar .sidebar-settings-btn {
+    width: auto !important;
+    padding: 5px 10px !important;
+    font-size: 0.74rem !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #F8FAFC !important;
+    border: 1px solid rgba(212, 175, 55, 0.45) !important;
+  }
+
+  .left-sidebar .sidebar-settings-menu {
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    right: 0 !important;
+    min-width: 185px !important;
+    z-index: 95 !important;
+    box-shadow: 0 14px 32px rgba(11, 15, 25, 0.35) !important;
+  }
+
+  /* Nội dung chính trên điện thoại */
+  .main-content {
+    padding: 10px 10px calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .status-banner {
+    margin: 8px 10px 0 !important;
+    font-size: 0.76rem !important;
+    padding: 7px 10px !important;
+  }
+
+  /* 6 Thẻ KPI Tổng quan Trang chủ chia 2 cột gọn đẹp */
+  .home-exec-grid,
+  .home-exec-grid-6,
+  .deep-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .deep-kpi-card {
+    padding: 8px 10px !important;
+    border-radius: 9px !important;
+  }
+
+  .deep-kpi-label {
+    font-size: 0.62rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .deep-kpi-val {
+    font-size: 1rem !important;
+  }
+
+  .deep-kpi-sub {
+    font-size: 0.67rem !important;
+  }
+
+  /* Thanh tiêu đề & Card Thống kê Nhãn trên Điện thoại */
+  .insights-hub-bar {
+    padding: 6px 10px !important;
+  }
+
+  .insights-hub-hint {
+    display: none !important;
+  }
+
+  .insights-card {
+    padding: 10px !important;
+    border-radius: 10px !important;
+  }
+
+  .insights-card-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .insights-header-actions {
+    width: 100% !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  .insights-mode-tabs {
+    flex: 1 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+
+  .insights-tab-btn {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 5px 6px !important;
+    font-size: 0.7rem !important;
+  }
+
+  /* Hàng thống kê từng Nhãn (Group / Ngách / Quản lý) trên Điện thoại */
+  .label-stat-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding: 8px 9px 11px !important;
+  }
+
+  .label-stat-main {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .label-stat-metrics {
+    width: 100% !important;
+    gap: 4px !important;
+  }
+
+  .label-stat-pill {
+    font-size: 0.67rem !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Bảng Video Nổ View & Danh sách Video trong Kênh: Hiển thị 2 dòng rõ ràng trên Điện thoại */
+  .top-video-item,
+  .burst-video-row {
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding: 8px 9px !important;
+  }
+
+  .burst-video-main {
+    flex: 1 1 calc(100% - 42px) !important;
+    min-width: 0 !important;
+  }
+
+  .top-video-title {
+    white-space: normal !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    line-height: 1.35 !important;
+    font-size: 0.81rem !important;
+  }
+
+  .outlier-badge,
+  .top-video-views {
+    font-size: 0.68rem !important;
+    padding: 2px 7px !important;
+  }
+
+  .btn-save-key {
+    margin-left: auto !important;
+    padding: 4px 10px !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* Thanh công cụ Kênh YouTube & Bộ lọc trên Điện thoại */
+  .minimal-command-bar {
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+
+  .quick-channel-form {
+    min-width: 0 !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 7px !important;
+  }
+
+  .quick-url-input {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  #btn-submit-channel {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 9px 12px !important;
+  }
+
+  .quick-filter-cluster {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .cat-dropdown {
+    width: 100% !important;
+  }
+
+  .cat-dropdown-trigger {
+    width: 100% !important;
+    justify-content: space-between !important;
+    padding: 7px 10px !important;
+    font-size: 0.74rem !important;
+  }
+
+  .cat-dropdown-menu {
+    min-width: min(260px, 88vw) !important;
+    max-width: 92vw !important;
+  }
+
+  #yt-search.quick-search-input,
+  #yt-channel-filter {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Danh sách từng Kênh YouTube trên Điện thoại */
+  .channel-row-header {
+    padding: 8px 12px !important;
+    font-size: 0.74rem !important;
+  }
+
+  .channel-row {
+    padding: 10px !important;
+  }
+
+  .channel-single-line {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .channel-title-line {
+    width: 100% !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  .channel-single-line .channel-name-text {
+    max-width: 100% !important;
+    font-size: 0.96rem !important;
+  }
+
+  .channel-inline-actions {
+    width: 100% !important;
+    margin-left: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .channel-inline-actions .btn-xs {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    padding: 6px 8px !important;
+  }
+
+  .channel-metrics-under-title {
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  .channel-single-line .inline-meta-field,
+  .channel-single-line .inline-group-pill {
+    flex: 1 1 calc(50% - 6px) !important;
+    min-width: 135px !important;
+  }
+
+  .channel-single-line .inline-group-input,
+  .channel-single-line .inline-meta-input,
+  .channel-single-line .inline-meta-mail .inline-meta-input {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  /* Quản lý sâu 1 Kênh trên Điện thoại */
+  .deep-channel-top-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+
+  .deep-channel-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  .deep-channel-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    font-size: 0.74rem !important;
+    padding: 7px 8px !important;
+  }
+
+  .deep-kpi-grid-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  .deep-kpi-grid-5 > :last-child {
+    grid-column: 1 / -1 !important;
+  }
+
+  .monthly-revenue-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .monthly-rev-cell {
+    padding: 6px 7px !important;
+  }
+
+  .monthly-rev-input {
+    font-size: 0.82rem !important;
+    padding: 4px 6px !important;
+  }
+
+  .monthly-rev-summary-bar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+
+  #input-deep-video-search {
+    width: 100% !important;
+  }
+
+  /* Thanh Điều Hướng Đáy (Bottom Navigation Bar) chuẩn App Điện Thoại */
+  .mobile-bottom-nav {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 85 !important;
+    background: rgba(11, 15, 25, 0.96) !important;
+    backdrop-filter: blur(12px) !important;
+    border-top: 1px solid rgba(212, 175, 55, 0.4) !important;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+    box-shadow: 0 -6px 20px rgba(11, 15, 25, 0.25) !important;
+  }
+
+  .m-nav-btn {
+    border-radius: 10px !important;
+    padding: 6px 4px !important;
+    font-size: 0.71rem !important;
+    font-weight: 700 !important;
+    color: #94A3B8 !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .m-nav-btn.active {
+    background: rgba(212, 175, 55, 0.16) !important;
+    color: #FBF0B9 !important;
+    box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.4) !important;
+  }
+
+  /* Tránh iOS tự động zoom khi chạm vào ô nhập liệu trên Điện thoại */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }

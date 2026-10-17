@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastDailySyncDate": "2026-10-17",
-    "lastDailySyncAt": "2026-10-17T01:42:06.609Z",
+    "lastDailySyncAt": "2026-10-17T02:42:30.520Z",
     "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b"
   },
   "channels": [
@@ -12,7 +12,7 @@
       "channelUrl": "https://www.youtube.com/@FOOD75-h2q",
       "subscribers": 4,
       "totalVideos": 3,
-      "totalViews": 916,
+      "totalViews": 938,
       "firstVideoDate": "2026-10-01",
       "category": "Ẩm thực & Đời sống",
       "manager": "",
@@ -21,7 +21,7 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-17T01:42:06.182Z",
+      "updatedAt": "2026-10-17T02:42:30.013Z",
       "group": "KÊNH ÂM THỰC",
       "watchHours": 0,
       "realtimeViews48h": 0,
@@ -42,7 +42,7 @@
           "id": "vid-6c66a438",
           "youtubeVideoId": "d5giUxqaVy8",
           "title": "10 Wild Foods and Drinks Andre the Giant Used to Hide His Pain",
-          "views": 293,
+          "views": 294,
           "likes": 0,
           "comments": 2,
           "publishedAt": "2026-10-01"
@@ -51,7 +51,7 @@
           "id": "vid-0a472fab",
           "youtubeVideoId": "JrTFXCWmaaA",
           "title": "12 Wild Things Hulk Hogan Put in His Body Before His Heart Gave Out",
-          "views": 196,
+          "views": 198,
           "likes": 6,
           "comments": 2,
           "publishedAt": "2026-10-03"
@@ -89,8 +89,8 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-17T01:42:06.607Z",
-      "totalViews": 34321,
+      "updatedAt": "2026-10-17T02:42:30.512Z",
+      "totalViews": 35185,
       "watchHours": 2200,
       "group": "NGƯỜI NỔI TIẾNG",
       "realtimeViews48h": 0,
@@ -102,7 +102,7 @@
           "id": "vid-42078c14",
           "youtubeVideoId": "UEQ5XifO7L8",
           "title": "How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked",
-          "views": 24060,
+          "views": 24040,
           "likes": 101,
           "comments": 8,
           "publishedAt": "2026-09-29"
@@ -501,16 +501,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 36,
+          "views": 92,
           "likes": 0,
           "comments": 2,
-          "dailyViewsDelta": 35
+          "dailyViewsDelta": 91
         }
       ],
-      "currentViews": 36,
+      "currentViews": 92,
       "currentLikes": 0,
       "currentComments": 2,
-      "dailyViewsDelta": 35,
+      "dailyViewsDelta": 91,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -563,16 +563,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 196,
+          "views": 198,
           "likes": 6,
           "comments": 2,
-          "dailyViewsDelta": 5
+          "dailyViewsDelta": 7
         }
       ],
-      "currentViews": 196,
+      "currentViews": 198,
       "currentLikes": 6,
       "currentComments": 2,
-      "dailyViewsDelta": 5,
+      "dailyViewsDelta": 7,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -594,16 +594,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 293,
+          "views": 294,
           "likes": 0,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 1
         }
       ],
-      "currentViews": 293,
+      "currentViews": 294,
       "currentLikes": 0,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 1,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -656,16 +656,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 253,
+          "views": 254,
           "likes": 4,
           "comments": 2,
-          "dailyViewsDelta": 0
+          "dailyViewsDelta": 1
         }
       ],
-      "currentViews": 253,
+      "currentViews": 254,
       "currentLikes": 4,
       "currentComments": 2,
-      "dailyViewsDelta": 0,
+      "dailyViewsDelta": 1,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -749,16 +749,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 24060,
+          "views": 24040,
           "likes": 101,
           "comments": 8,
-          "dailyViewsDelta": 536
+          "dailyViewsDelta": 516
         }
       ],
-      "currentViews": 24060,
+      "currentViews": 24040,
       "currentLikes": 101,
       "currentComments": 8,
-      "dailyViewsDelta": 536,
+      "dailyViewsDelta": 516,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -873,16 +873,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 319,
+          "views": 320,
           "likes": 0,
           "comments": 2,
-          "dailyViewsDelta": 1
+          "dailyViewsDelta": 2
         }
       ],
-      "currentViews": 319,
+      "currentViews": 320,
       "currentLikes": 0,
       "currentComments": 2,
-      "dailyViewsDelta": 1,
+      "dailyViewsDelta": 2,
       "lastUpdatedDate": "2026-10-17"
     },
     {
@@ -935,16 +935,16 @@
         },
         {
           "date": "2026-10-17",
-          "views": 444,
+          "views": 448,
           "likes": 1,
           "comments": 2,
-          "dailyViewsDelta": 2
+          "dailyViewsDelta": 6
         }
       ],
-      "currentViews": 444,
+      "currentViews": 448,
       "currentLikes": 1,
       "currentComments": 2,
-      "dailyViewsDelta": 2,
+      "dailyViewsDelta": 6,
       "lastUpdatedDate": "2026-10-17"
     },
     {
