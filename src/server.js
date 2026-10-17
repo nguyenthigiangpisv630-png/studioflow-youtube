@@ -139,7 +139,10 @@ export function createAppServer({
 
       if (pathname === '/api/auth/login' && method === 'POST') {
         const body = await readJsonBody(req);
-        const result = store.verifyPassword(body.password || '', body.email || body.username || '');
+        const result = store.verifyPassword(body.password || '', body.email || body.username || '', {
+          directGmailLogin: Boolean(body.directGmailLogin),
+          name: body.name || '',
+        });
         return sendJson(res, 200, result);
       }
 

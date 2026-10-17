@@ -330,4 +330,42 @@ test('POST /api/auth/register đăng ký Gmail mới, chờ Admin cấp quyền 
   });
 });
 
+test('POST /api/auth/login với directGmailLogin=true cho phép Login Gmail trực tiếp ở ngoài và tự tạo không gian riêng', async () => {
+  await withTestServer(async ({ baseUrl }) => {
+    // 1. User nhập thẳng Gmail ở màn hình Login ngoài (chưa cần tạo trước)
+    const directLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'hoangnam.media@gmail.com',
+        password: 'password123',
+        directGmailLogin: true,
+      }),
+    });
+    assert.equal(directLoginRes.status, 200);
+    const directLoginBody = await directLoginRes.json();
+    assert.equal(directLoginBody.ok, true);
+    assert.equal(directLoginBody.autoRegistered, true);
+    assert.ok(directLoginBody.token);
+    assert.equal(directLoginBody.user.email, 'hoangnam.media@gmail.com');
+    assert.equal(directLoginBody.user.status, 'approved');
+    assert.equal(directLoginBody.user.scopeMode, 'isolated');
+
+    // 2. Không gian riêng của Gmail mới hoàn toàn độc lập (0 kênh ban đầu)
+    const overviewRes = await fetch(`${baseUrl}/api/overview`, {
+      headers: { 'X-Studio-Token': directLoginBody.token },
+    });
+    assert.equal(overviewRes.status, 200);
+    const overviewBody = await overviewRes.json();
+    assert.equal(overviewBody.channels.length, 0);
+
+    // 3. Trang Quản lý User của Admin nhìn thấy ngay tài khoản Gmail vừa login
+    const usersRes = await fetch(`${baseUrl}/api/users`);
+    assert.equal(usersRes.status, 200);
+    const usersBody = await usersRes.json();
+    assert.ok(usersBody.users.some((u) => u.email === 'hoangnam.media@gmail.com'));
+  });
+});
+
+
 

@@ -77,6 +77,10 @@ const TAB_TITLES = {
     title: 'Quản lý YouTube & Chỉ số lượt xem hằng ngày',
     subtitle: 'Theo dõi danh sách kênh hàng ngang, tình trạng kênh và biểu đồ tăng trưởng lượt xem từng ngày (+Views/ngày)',
   },
+  users: {
+    title: 'Trang Quản Lý User Gmail & Cấp Quyền Tách Riêng',
+    subtitle: 'Quản lý danh sách thành viên đăng nhập bằng Gmail, cấu hình Không gian làm việc tách riêng và phân quyền theo Group / Kênh',
+  },
   brand: {
     title: 'Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại',
     subtitle: 'Hệ thống nhận diện Mệnh Kim Tương Lai (Futuristic Enterprise Edition), thông số bản quyền và cấu hình thương mại',
@@ -121,6 +125,58 @@ function showBanner(message, isError = false) {
 }
 
 const AUTH_TOKEN_KEY = 'studioflow_session_token';
+const SAVED_GMAILS_KEY = 'studioflow_saved_gmails_v1';
+const LAST_GMAIL_KEY = 'studioflow_last_gmail_v1';
+
+function getSavedGmails() {
+  try {
+    const raw = localStorage.getItem(SAVED_GMAILS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.map((g) => String(g || '').trim().toLowerCase()).filter((g) => g && g.includes('@'))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberGmailLogin(email = '') {
+  try {
+    const clean = String(email || '').trim().toLowerCase();
+    if (!clean || clean === 'admin' || !clean.includes('@')) return;
+    localStorage.setItem(LAST_GMAIL_KEY, clean);
+    const list = getSavedGmails().filter((g) => g !== clean);
+    list.unshift(clean);
+    localStorage.setItem(SAVED_GMAILS_KEY, JSON.stringify(list.slice(0, 6)));
+  } catch {}
+}
+
+function renderSavedGmailsBox() {
+  const boxEl = document.getElementById('auth-saved-gmails-box');
+  if (!boxEl) return;
+  const saved = getSavedGmails();
+  if (saved.length === 0) {
+    boxEl.hidden = true;
+    boxEl.innerHTML = '';
+    return;
+  }
+  boxEl.hidden = false;
+  boxEl.innerHTML = `
+    <span class="saved-gmails-title">Tài khoản Gmail gần đây:</span>
+    <div class="saved-gmails-chips">
+      ${saved
+        .map(
+          (email) => `
+        <button type="button" class="saved-gmail-chip" data-pick-saved-gmail="${escapeHtml(email)}">
+          📧 ${escapeHtml(email)}
+        </button>
+      `
+        )
+        .join('')}
+    </div>
+  `;
+}
 
 function getStoredAuthToken() {
   try {
@@ -146,18 +202,79 @@ function setStoredAuthToken(token = '') {
 
 function switchAuthOverlayTab(tabName = 'login') {
   const isRegister = tabName === 'register';
+  const isAdminTab = tabName === 'admin';
   const loginForm = document.getElementById('form-auth-login');
   const regForm = document.getElementById('form-auth-register');
   if (loginForm) loginForm.hidden = isRegister;
   if (regForm) regForm.hidden = !isRegister;
+
   document.querySelectorAll('[data-auth-tab]').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.authTab === (isRegister ? 'register' : 'login'));
+    btn.classList.toggle('active', btn.dataset.authTab === tabName);
   });
+
+  const userInp = document.getElementById('input-auth-username');
+  const userLabel = document.getElementById('auth-username-label');
+  const userIcon = document.getElementById('auth-username-icon');
+  const passLabel = document.getElementById('auth-password-label');
+  const submitBtn = document.getElementById('btn-auth-login-submit');
+  const modeBanner = document.getElementById('auth-login-mode-banner');
+  const quickAdminBtn = document.querySelector('[data-fill-admin-login]');
+
+  if (!isRegister) {
+    renderSavedGmailsBox();
+    if (isAdminTab) {
+      if (userInp) {
+        userInp.value = 'admin';
+        userInp.placeholder = 'Tài khoản Quản trị viên (admin)';
+      }
+      if (userLabel) userLabel.textContent = 'Tài khoản Quản trị viên (Admin) *';
+      if (userIcon) userIcon.textContent = '👑';
+      if (passLabel) passLabel.textContent = 'Mật khẩu Admin Quản trị *';
+      if (submitBtn) submitBtn.textContent = '👑 Đăng nhập quyền Admin';
+      if (quickAdminBtn) quickAdminBtn.hidden = true;
+      if (modeBanner) {
+        modeBanner.innerHTML = `
+          <strong>👑 Đăng nhập Quản trị viên (Admin Toàn quyền):</strong>
+          <span>Nhập mật khẩu Admin để quản lý toàn bộ hệ thống kênh, doanh thu và mở <b>Trang Quản lý User</b> để cấp quyền cho các Gmail.</span>
+        `;
+      }
+    } else {
+      if (userInp) {
+        if (userInp.value.trim().toLowerCase() === 'admin') {
+          let lastGmail = '';
+          try {
+            lastGmail = localStorage.getItem(LAST_GMAIL_KEY) || '';
+          } catch {}
+          userInp.value = lastGmail;
+        }
+        userInp.placeholder = 'Nhập Gmail (VD: tenban@gmail.com)...';
+      }
+      if (userLabel) userLabel.textContent = 'Địa chỉ Gmail của bạn *';
+      if (userIcon) userIcon.textContent = '📧';
+      if (passLabel) passLabel.textContent = 'Mật khẩu Gmail trên hệ thống (Tối thiểu 3 ký tự) *';
+      if (submitBtn) submitBtn.textContent = '📧 Đăng nhập bằng Gmail';
+      if (quickAdminBtn) quickAdminBtn.hidden = false;
+      if (modeBanner) {
+        modeBanner.innerHTML = `
+          <strong>📧 Đăng nhập trực tiếp bằng Gmail:</strong>
+          <span>Nhập địa chỉ <b>Gmail</b> và mật khẩu bên dưới để vào ngay <b>Không gian làm việc tách riêng</b> của bạn (nếu lần đầu đăng nhập, hệ thống sẽ tự tạo không gian riêng cho Gmail của bạn).</span>
+        `;
+      }
+    }
+  }
+
   setTimeout(() => {
     if (isRegister) {
       document.getElementById('input-reg-name')?.focus();
-    } else {
+    } else if (isAdminTab) {
       document.getElementById('input-auth-login-pass')?.focus();
+    } else {
+      const hasEmail = Boolean(userInp && userInp.value.trim());
+      if (hasEmail) {
+        document.getElementById('input-auth-login-pass')?.focus();
+      } else {
+        userInp?.focus();
+      }
     }
   }, 50);
 }
@@ -226,19 +343,32 @@ function renderCurrentUserSidebarPill() {
         }`;
   }
 
+  const navUsersBtn = document.getElementById('nav-btn-users');
+  const mobileUsersBtn = document.getElementById('m-nav-btn-users');
+  const navUsersCount = document.getElementById('nav-count-users');
   const mgrBtn = document.getElementById('btn-open-users-manager');
   const settingsMgrBtn = document.getElementById('btn-settings-users-manager');
   const pendingBadge = document.getElementById('badge-pending-users');
   const pwdBtn = document.getElementById('btn-password-settings');
 
+  if (navUsersBtn) navUsersBtn.hidden = !isAdmin;
+  if (mobileUsersBtn) mobileUsersBtn.hidden = !isAdmin;
   if (mgrBtn) mgrBtn.hidden = !isAdmin;
   if (settingsMgrBtn) settingsMgrBtn.hidden = !isAdmin;
   if (pwdBtn) pwdBtn.hidden = !isAdmin;
 
+  const totalUsersCount = (state.users || []).length;
   const pendingCount = (state.users || []).filter((u) => u.status === 'pending').length;
+  if (navUsersCount) {
+    navUsersCount.textContent = String(totalUsersCount);
+  }
   if (pendingBadge) {
     pendingBadge.textContent = String(pendingCount);
     pendingBadge.hidden = !isAdmin || pendingCount === 0;
+  }
+
+  if (!isAdmin && state.activeTab === 'users') {
+    switchTab('insights');
   }
 }
 
@@ -467,8 +597,8 @@ function renderUsersManagerModal() {
 }
 
 async function openUsersManagerModal() {
-  const modal = document.getElementById('users-manager-modal');
-  if (!modal) return;
+  switchTab('users');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   try {
     const res = await apiRequest('/api/users');
     state.users = Array.isArray(res.users) ? res.users : [];
@@ -478,7 +608,6 @@ async function openUsersManagerModal() {
   }
   renderCurrentUserSidebarPill();
   renderUsersManagerModal();
-  modal.hidden = false;
 }
 
 function updatePasswordUiState() {
@@ -663,6 +792,7 @@ function renderAll() {
   renderSelectOptions();
   renderContentsTab();
   renderYoutubeTab();
+  renderUsersManagerModal();
   renderBrandIdentityTab();
 }
 
@@ -3042,6 +3172,17 @@ function switchTab(tabName) {
   if (titleEl) titleEl.textContent = TAB_TITLES[tabName].title;
   if (subEl) subEl.textContent = TAB_TITLES[tabName].subtitle;
 
+  if (tabName === 'users') {
+    renderUsersManagerModal();
+    apiRequest('/api/users')
+      .then((res) => {
+        state.users = Array.isArray(res.users) ? res.users : [];
+        renderCurrentUserSidebarPill();
+        renderUsersManagerModal();
+      })
+      .catch(() => {});
+  }
+
   renderSidebarFolderTree();
 }
 
@@ -4221,7 +4362,7 @@ function setupEventListeners() {
       closeSidebarSettingsMenu();
     }
 
-    // Chuyển tab Đăng nhập Gmail <-> Đăng ký Gmail mới trên màn hình khóa
+    // Chuyển tab Đăng nhập Gmail <-> Admin <-> Đăng ký Gmail mới trên màn hình khóa
     const authTabBtn = e.target.closest('[data-auth-tab], [data-switch-auth-tab]');
     if (authTabBtn) {
       const targetTab = authTabBtn.dataset.authTab || authTabBtn.dataset.switchAuthTab || 'login';
@@ -4230,6 +4371,28 @@ function setupEventListeners() {
       if (errLogin) errLogin.hidden = true;
       if (errReg) errReg.hidden = true;
       switchAuthOverlayTab(targetTab);
+      return;
+    }
+
+    // Nút "👑 Điền nhanh Admin" trên màn hình đăng nhập
+    const fillAdminBtn = e.target.closest('[data-fill-admin-login]');
+    if (fillAdminBtn) {
+      const errLogin = document.getElementById('auth-login-error');
+      if (errLogin) errLogin.hidden = true;
+      switchAuthOverlayTab('admin');
+      return;
+    }
+
+    // Chọn nhanh 1 Gmail đã đăng nhập gần đây trên màn hình ngoài
+    const pickSavedGmailBtn = e.target.closest('[data-pick-saved-gmail]');
+    if (pickSavedGmailBtn) {
+      const pickedEmail = pickSavedGmailBtn.dataset.pickSavedGmail || '';
+      const userInp = document.getElementById('input-auth-username');
+      switchAuthOverlayTab('login');
+      if (userInp) userInp.value = pickedEmail;
+      setTimeout(() => {
+        document.getElementById('input-auth-login-pass')?.focus();
+      }, 40);
       return;
     }
 
@@ -4301,7 +4464,6 @@ function setupEventListeners() {
     }
   });
 
-  const usersModal = document.getElementById('users-manager-modal');
   document.getElementById('btn-open-users-manager')?.addEventListener('click', () => {
     closeSidebarSettingsMenu();
     openUsersManagerModal();
@@ -4310,8 +4472,9 @@ function setupEventListeners() {
     closeSidebarSettingsMenu();
     openUsersManagerModal();
   });
-  document.getElementById('btn-close-users-modal')?.addEventListener('click', () => {
-    if (usersModal) usersModal.hidden = true;
+  document.getElementById('btn-refresh-users-page')?.addEventListener('click', async () => {
+    await openUsersManagerModal();
+    showBanner('Đã làm mới danh sách tài khoản Gmail!');
   });
 
   document.getElementById('btn-password-settings')?.addEventListener('click', () => {
@@ -4337,7 +4500,6 @@ function setupEventListeners() {
     if (state.unlockedGaChannels) state.unlockedGaChannels.clear();
     if (passwordModal) passwordModal.hidden = true;
     if (gaUnlockModal) gaUnlockModal.hidden = true;
-    if (usersModal) usersModal.hidden = true;
     showAuthLockOverlay(true);
   }
 
@@ -4459,14 +4621,24 @@ function setupEventListeners() {
       if (okEl) okEl.hidden = true;
       try {
         const fd = new FormData(form);
-        const email = String(fd.get('email') || fd.get('username') || '').trim();
+        const rawEmail = String(fd.get('email') || fd.get('username') || '').trim();
         const password = fd.get('password') || '';
+        const isDirectGmail = Boolean(rawEmail && rawEmail.toLowerCase() !== 'admin');
         const res = await apiRequest('/api/auth/login', {
           method: 'POST',
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({
+            email: rawEmail,
+            password,
+            directGmailLogin: isDirectGmail,
+          }),
         });
         setStoredAuthToken(res.token || '');
         state.currentUser = res.user || null;
+        if (res.user?.email && res.user?.role !== 'admin') {
+          rememberGmailLogin(res.user.email);
+        } else if (rawEmail.includes('@')) {
+          rememberGmailLogin(rawEmail);
+        }
         state.selectedContentId = null;
         state.activeChannelDeepId = null;
         form.querySelector('[name="password"]').value = '';
@@ -4475,7 +4647,7 @@ function setupEventListeners() {
         const roleLabel =
           res.user?.role === 'admin'
             ? 'Toàn quyền Admin'
-            : `Gmail Tách riêng (${res.user?.email || email})`;
+            : `Gmail Tách riêng (${res.user?.email || rawEmail})`;
         showBanner(`Xin chào ${res.user?.name || 'Admin'} — Đã đăng nhập (${roleLabel})!`);
       } catch (err) {
         if (errEl) {
@@ -4498,7 +4670,7 @@ function setupEventListeners() {
       const origText = submitBtn ? submitBtn.textContent : '';
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Đang gửi đăng ký Gmail...';
+        submitBtn.textContent = 'Đang đăng ký & mở Không gian riêng...';
       }
       try {
         const fd = new FormData(form);
@@ -4508,22 +4680,30 @@ function setupEventListeners() {
           password: String(fd.get('password') || ''),
           note: String(fd.get('note') || '').trim(),
         };
-        const res = await apiRequest('/api/auth/register', {
+        await apiRequest('/api/auth/register', {
           method: 'POST',
           body: JSON.stringify(payload),
         });
+        const loginRes = await apiRequest('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: payload.email,
+            password: payload.password,
+            name: payload.name,
+            directGmailLogin: true,
+          }),
+        });
         form.reset();
-        const loginEmailInput = document.getElementById('input-auth-username');
-        if (loginEmailInput && res.user?.email) {
-          loginEmailInput.value = res.user.email;
-        }
-        if (okEl) {
-          okEl.innerHTML = `
-            <strong>✅ Đăng ký thành công tài khoản Gmail: ${escapeHtml(res.user?.email || payload.email)}</strong>
-            <div style="margin-top:4px;">Tài khoản của anh/chị đã được tạo với chế độ <b>Không gian làm việc tách riêng</b> và đang ở trạng thái <b>Chờ Admin duyệt cấp quyền</b>. Sau khi Admin bấm duyệt, anh/chị có thể đăng nhập ngay!</div>
-          `;
-          okEl.hidden = false;
-        }
+        rememberGmailLogin(loginRes.user?.email || payload.email);
+        setStoredAuthToken(loginRes.token || '');
+        state.currentUser = loginRes.user || null;
+        state.selectedContentId = null;
+        state.activeChannelDeepId = null;
+        showAuthLockOverlay(false);
+        await loadOverview();
+        showBanner(
+          `✅ Đã đăng ký & đăng nhập Gmail "${loginRes.user?.email || payload.email}" (Không gian làm việc tách riêng)!`
+        );
       } catch (err) {
         if (errEl) {
           errEl.textContent = err.message;
@@ -5204,7 +5384,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=46', { updateViaCache: 'none' })
+      .register('/sw.js?v=47', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

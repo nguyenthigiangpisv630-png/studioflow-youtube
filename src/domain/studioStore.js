@@ -1085,32 +1085,41 @@ export class StudioStore {
     };
   }
 
-  verifyPassword(password = '', emailOrUsername = '') {
+  verifyPassword(password = '', emailOrUsername = '', options = {}) {
     const requiredHash = this.getRequiredPasswordHash();
     const rawId = String(emailOrUsername || '').trim().toLowerCase();
     const adminEmail = String(this.state.meta?.adminEmail || '').trim().toLowerCase();
     const candidateHash = hashPassword(password);
+    const directGmailLogin = Boolean(options?.directGmailLogin);
 
-    // 1. Kiểm tra nếu người dùng đăng nhập bằng Gmail đã đăng ký trong danh sách Users
-    if (rawId && rawId !== 'admin' && (!adminEmail || rawId !== adminEmail)) {
-      const foundUser = (this.state.users || []).find(
-        (u) => String(u.email || '').trim().toLowerCase() === rawId
-      );
+    // 1. Kiểm tra nếu người dùng đăng nhập bằng Gmail ở màn hình ngoài
+    if (rawId && rawId !== 'admin' && (!adminEmail || rawId !== adminEmail || directGmailLogin)) {
+      const normalizedGmail = rawId.includes('@') ? rawId : `${rawId}@gmail.com`;
+      const foundUser = (this.state.users || []).find((u) => {
+        const uEmail = String(u.email || '').trim().toLowerCase();
+        return uEmail === rawId || uEmail === normalizedGmail;
+      });
       if (foundUser) {
         if (!candidateHash || candidateHash !== foundUser.passwordHash) {
-          throw new Error('Mật khẩu hoặc địa chỉ Gmail không chính xác. Vui lòng kiểm tra lại!');
-        }
-        if (foundUser.status === 'pending') {
-          const err = new Error(
-            'Tài khoản Gmail của bạn đã đăng ký thành công nhưng đang chờ Admin phê duyệt & cấp quyền!'
-          );
-          err.statusCode = 403;
-          throw err;
+          throw new Error('Mật khẩu của tài khoản Gmail này không chính xác. Vui lòng kiểm tra lại!');
         }
         if (foundUser.status === 'suspended') {
           const err = new Error('Tài khoản Gmail này hiện đang tạm khóa. Vui lòng liên hệ Admin!');
           err.statusCode = 403;
           throw err;
+        }
+        if (foundUser.status === 'pending') {
+          if (directGmailLogin) {
+            foundUser.status = 'approved';
+            foundUser.approvedAt = new Date().toISOString();
+            this.#save();
+          } else {
+            const err = new Error(
+              'Tài khoản Gmail của bạn đã đăng ký thành công nhưng đang chờ Admin phê duyệt & cấp quyền!'
+            );
+            err.statusCode = 403;
+            throw err;
+          }
         }
         if (!foundUser.sessionToken) {
           foundUser.sessionToken = `usr_tok_${crypto.randomUUID().replace(/-/g, '')}`;
@@ -1121,6 +1130,30 @@ export class StudioStore {
           passwordEnabled: true,
           token: foundUser.sessionToken,
           user: sanitizeUser(foundUser),
+        };
+      }
+
+      // Cho phép đăng nhập trực tiếp bằng Gmail ở màn hình ngoài -> Tự động khởi tạo Không gian làm việc tách riêng (Isolated Workspace)
+      if (directGmailLogin) {
+        const cleanPass = String(password || '').trim();
+        if (cleanPass.length < 3) {
+          throw new Error('Mật khẩu đăng nhập Gmail phải có ít nhất 3 ký tự!');
+        }
+        const created = this.registerGmailUser({
+          email: normalizedGmail,
+          name: String(options?.name || normalizedGmail.split('@')[0]).trim(),
+          password: cleanPass,
+          autoApprove: true,
+          scopeMode: 'isolated',
+          note: 'Đăng nhập trực tiếp bằng Gmail từ màn hình ngoài',
+        });
+        const newUserRecord = (this.state.users || []).find((u) => u.id === created.user.id);
+        return {
+          ok: true,
+          passwordEnabled: true,
+          autoRegistered: true,
+          token: newUserRecord?.sessionToken || '',
+          user: created.user,
         };
       }
 
@@ -1152,7 +1185,7 @@ export class StudioStore {
       };
     }
     if (!candidateHash || candidateHash !== requiredHash) {
-      throw new Error('Mật khẩu không chính xác. Vui lòng kiểm tra lại!');
+      throw new Error('Mật khẩu Admin không chính xác. Vui lòng kiểm tra lại!');
     }
     return {
       ok: true,
