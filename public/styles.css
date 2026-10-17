@@ -4200,28 +4200,36 @@ select:focus-visible {
 }
 
 .sidebar-toggle-btn {
-  margin-left: auto;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  border: 1px solid rgba(212, 175, 55, 0.45);
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.55);
   background: rgba(212, 175, 55, 0.14);
   color: #FBF0B9;
-  font-size: 1rem;
-  font-weight: 900;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.16s ease;
 }
 
+.sidebar-toggle-icon {
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .sidebar-toggle-btn:hover {
   background: #D4AF37;
   color: #0B0F19;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.45);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.45);
 }
 
 .sidebar-expand-tab {

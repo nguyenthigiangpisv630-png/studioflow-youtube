@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=38" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=38" />
+  <link rel="icon" href="/icon.svg?v=39" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=39" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -43,14 +43,6 @@
             <div class="brand-text">
               <span class="brand-name" id="sidebar-brand-name">ACB9x</span>
             </div>
-            <button
-              type="button"
-              class="sidebar-toggle-btn"
-              id="btn-collapse-sidebar"
-              data-toggle-sidebar="true"
-              title="Ẩn thanh menu bên trái vào"
-              aria-label="Ẩn thanh menu bên trái"
-            >«</button>
           </div>
 
           <nav class="left-nav" id="side-nav" aria-label="Điều hướng chính">
@@ -179,6 +171,19 @@
               </button>
             </div>
           </div>
+
+          <!-- NÚT ẨN THANH MENU BÊN TRÁI ĐẶT Ở DƯỚI CÙNG ĐỂ DỄ SỬ DỤNG -->
+          <button
+            type="button"
+            class="sidebar-toggle-btn sidebar-toggle-bottom"
+            id="btn-collapse-sidebar"
+            data-toggle-sidebar="true"
+            title="Ẩn thanh menu bên trái vào"
+            aria-label="Ẩn thanh menu bên trái"
+          >
+            <span class="sidebar-toggle-icon">«</span>
+            <span class="sidebar-toggle-text">Thu gọn</span>
+          </button>
         </div>
       </aside>
 
@@ -696,7 +701,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=38"></script>
+  <script type="module" src="/app.js?v=39"></script>
 </body>
 </html>
 
