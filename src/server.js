@@ -92,6 +92,24 @@ export function createAppServer({
     // Kiểm tra mỗi 1 phút để tự động reset & cập nhật chỉ số kênh/video đúng chu kỳ 1 tiếng 1 lần
     dailyTimer = setInterval(checkAndRunHourlySync, 60 * 1000);
     dailyTimer.unref?.();
+
+    // Tự động quét bổ sung ngay khi khởi động cho các kênh đang có 0 video (do lần quét trước bị YouTube đổi cấu trúc)
+    const bootRepairTimer = setTimeout(async () => {
+      if (isSyncing) return;
+      try {
+        const channels = store.state?.channels || [];
+        const videos = store.state?.videos || [];
+        for (const ch of channels) {
+          const chVidCount = videos.filter((v) => v.channelId === ch.id).length;
+          if (chVidCount === 0 && (ch.handle || ch.channelUrl)) {
+            await store.syncChannelFromYouTube(ch.id);
+          }
+        }
+      } catch {
+        // Bỏ qua lỗi mạng tạm thời khi khởi động
+      }
+    }, 1500);
+    bootRepairTimer.unref?.();
   }
 
   const server = http.createServer(async (req, res) => {

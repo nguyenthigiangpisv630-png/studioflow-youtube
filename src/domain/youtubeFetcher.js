@@ -2,6 +2,7 @@ const DEFAULT_HEADERS = {
   'User-Agent':
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
   'Accept-Language': 'en-US,en;q=0.9',
+  Cookie: 'CONSENT=YES+cb.20210328-17-p0.en+FX+999; SOCS=CAISHAgBEhJnd3NfMjAyMzA4MTAtMF9SQzIaAmVuIAEaBgiAo_CmBg',
 };
 
 export function parseCompactNumber(rawText = '') {
@@ -52,6 +53,29 @@ export function normalizeChannelTargetUrl(query = '') {
   return `https://www.youtube.com/@${encodeURIComponent(slug)}/videos`;
 }
 
+function parseRelativePublishDate(rawText = '') {
+  const s = String(rawText || '').trim().toLowerCase();
+  if (!s) return undefined;
+  const m = s.match(/(\d+)\s*(hour|hr|h|day|d|week|wk|w|month|mo|year|yr|y)/i);
+  if (!m) return undefined;
+  const amount = Number(m[1]) || 0;
+  const unit = m[2].toLowerCase();
+  if (amount <= 0) return undefined;
+  const d = new Date();
+  if (unit.startsWith('h')) {
+    d.setHours(d.getHours() - amount);
+  } else if (unit.startsWith('d')) {
+    d.setDate(d.getDate() - amount);
+  } else if (unit.startsWith('w')) {
+    d.setDate(d.getDate() - amount * 7);
+  } else if (unit.startsWith('m')) {
+    d.setMonth(d.getMonth() - amount);
+  } else if (unit.startsWith('y')) {
+    d.setFullYear(d.getFullYear() - amount);
+  }
+  return d.toISOString().slice(0, 10);
+}
+
 function collectVideoRenderers(node, list = []) {
   if (!node || typeof node !== 'object' || list.length >= 500) return list;
   if (node.videoRenderer && node.videoRenderer.videoId) {
@@ -64,12 +88,64 @@ function collectVideoRenderers(node, list = []) {
       vr.viewCountText?.simpleText ||
       vr.viewCountText?.runs?.[0]?.text ||
       '0';
+    const pubText =
+      vr.publishedTimeText?.simpleText ||
+      vr.publishedTimeText?.runs?.[0]?.text ||
+      '';
     const views = parseCompactNumber(viewText);
+    const publishedAt = parseRelativePublishDate(pubText);
     if (!list.some((x) => x.youtubeVideoId === vr.videoId)) {
       list.push({
         youtubeVideoId: vr.videoId,
         title,
         views,
+        publishedAt,
+        likes: Math.max(10, Math.round(views * 0.042)),
+        comments: Math.max(2, Math.round(views * 0.004)),
+      });
+    }
+    return list;
+  }
+  if (node.lockupViewModel && node.lockupViewModel.contentId) {
+    const lvm = node.lockupViewModel;
+    const videoId = String(lvm.contentId || '').trim();
+    if (
+      videoId &&
+      (!lvm.contentType ||
+        lvm.contentType === 'LOCKUP_CONTENT_TYPE_VIDEO' ||
+        lvm.contentType === 'LOCKUP_CONTENT_TYPE_SHORTS') &&
+      !list.some((x) => x.youtubeVideoId === videoId)
+    ) {
+      const lMeta = lvm.metadata?.lockupMetadataViewModel;
+      const title =
+        lMeta?.title?.content ||
+        lvm.rendererContext?.accessibilityContext?.label ||
+        'Video YouTube';
+      const rows = lMeta?.metadata?.contentMetadataViewModel?.metadataRows || [];
+      let views = 0;
+      let publishedAt;
+      for (const row of rows) {
+        for (const part of row.metadataParts || []) {
+          const text = String(part?.text?.content || '').trim();
+          const a11y = String(part?.accessibilityLabel || '').trim();
+          if (
+            /view|lượt xem/i.test(a11y) ||
+            /view|lượt xem/i.test(text) ||
+            part?.leadingIcon?.name === 'PLAY_ARROW_OUTLINED'
+          ) {
+            views = Math.max(views, parseCompactNumber(text || a11y));
+          } else if (/ago|trước/i.test(text) || /ago|trước/i.test(a11y)) {
+            publishedAt = publishedAt || parseRelativePublishDate(text || a11y);
+          } else if (!views && /^[\d.,]+\s*[KMBNTr]?$/i.test(text)) {
+            views = parseCompactNumber(text);
+          }
+        }
+      }
+      list.push({
+        youtubeVideoId: videoId,
+        title,
+        views,
+        publishedAt,
         likes: Math.max(10, Math.round(views * 0.042)),
         comments: Math.max(2, Math.round(views * 0.004)),
       });
@@ -259,33 +335,36 @@ async function fetchChannelAboutMetrics(initialData) {
 async function fetchRssVideos(externalId) {
   const list = [];
   if (!externalId) return list;
-  try {
-    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(externalId)}`;
-    const res = await fetch(rssUrl, { headers: DEFAULT_HEADERS });
-    if (!res.ok) return list;
-    const xml = await res.text();
-    const entries = xml.split('<entry>').slice(1);
-    for (const entry of entries) {
-      const idMatch = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
-      const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
-      const pubMatch = entry.match(/<published>(\d{4}-\d{2}-\d{2})/);
-      const viewsMatch = entry.match(/<media:statistics views="(\d+)"/);
-      const ratingMatch = entry.match(/<media:starRating count="(\d+)"/);
-      if (idMatch) {
-        const views = viewsMatch ? Number(viewsMatch[1]) : 0;
-        const likes = ratingMatch ? Number(ratingMatch[1]) : Math.max(10, Math.round(views * 0.035));
-        list.push({
-          youtubeVideoId: idMatch[1].trim(),
-          title: titleMatch ? titleMatch[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').trim() : 'Video YouTube',
-          publishedAt: pubMatch ? pubMatch[1] : undefined,
-          views,
-          likes,
-          comments: Math.max(2, Math.round(likes * 0.08)),
-        });
+  const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(externalId)}`;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const res = await fetch(rssUrl, { headers: DEFAULT_HEADERS });
+      if (!res.ok) continue;
+      const xml = await res.text();
+      const entries = xml.split('<entry>').slice(1);
+      for (const entry of entries) {
+        const idMatch = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+        const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
+        const pubMatch = entry.match(/<published>(\d{4}-\d{2}-\d{2})/);
+        const viewsMatch = entry.match(/<media:statistics views="(\d+)"/);
+        const ratingMatch = entry.match(/<media:starRating count="(\d+)"/);
+        if (idMatch) {
+          const views = viewsMatch ? Number(viewsMatch[1]) : 0;
+          const likes = ratingMatch ? Number(ratingMatch[1]) : Math.max(10, Math.round(views * 0.035));
+          list.push({
+            youtubeVideoId: idMatch[1].trim(),
+            title: titleMatch ? titleMatch[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').trim() : 'Video YouTube',
+            publishedAt: pubMatch ? pubMatch[1] : undefined,
+            views,
+            likes,
+            comments: Math.max(2, Math.round(likes * 0.08)),
+          });
+        }
       }
+      if (list.length > 0) break;
+    } catch {
+      // Bỏ qua nếu RSS không phản hồi
     }
-  } catch {
-    // Bỏ qua nếu RSS không phản hồi
   }
   return list;
 }

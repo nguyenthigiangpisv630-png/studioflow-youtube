@@ -1329,8 +1329,8 @@ export class StudioStore {
       return true;
     }
     if (!ch) return false;
-    // 1. Kênh do chính User này tạo trong không gian tách riêng (isolated)
-    if (user.scopeMode === 'isolated' && ch.ownerUserId && ch.ownerUserId === user.id) {
+    // 1. Kênh do chính User này tạo
+    if (ch.ownerUserId && ch.ownerUserId === user.id) {
       return true;
     }
     // 2. Kênh được Admin tích chọn cấp quyền trực tiếp

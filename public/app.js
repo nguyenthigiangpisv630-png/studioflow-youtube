@@ -4452,12 +4452,26 @@ function setupEventListeners() {
       try {
         const fd = new FormData(form);
         const payload = Object.fromEntries(fd.entries());
+        if (
+          !payload.group &&
+          state.filters.ytGroup &&
+          state.filters.ytGroup !== 'all' &&
+          state.filters.ytGroup !== '__none__'
+        ) {
+          payload.group = state.filters.ytGroup;
+        }
         const created = await apiRequest('/api/youtube/channels', {
           method: 'POST',
           body: JSON.stringify(payload),
         });
         form.reset();
         state.filters.ytChannel = 'all';
+        state.filters.ytCategory = 'all';
+        state.filters.ytManager = 'all';
+        state.filters.ytSearch = '';
+        if (state.filters.ytGroup !== 'all' && state.filters.ytGroup !== (created.group || '')) {
+          state.filters.ytGroup = created.group || 'all';
+        }
         await loadOverview();
         const scannedCount = created.scannedVideosCount || created.importedVideosCount || 0;
         const topCount = Array.isArray(created.topVideos) ? created.topVideos.length : 0;
