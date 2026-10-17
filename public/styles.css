@@ -5584,5 +5584,132 @@ select:focus-visible {
   display: inline-flex !important;
 }
 
+/* =========================================================================
+   NỀN BACKGROUND NỔI BẬT CHO THƯ MỤC NHÃN & BẢNG TOPVIEW (v42)
+   ========================================================================= */
 
+/* 1. Khung bên trái: Thống kê tổng hợp theo Nhãn / Thư mục Group */
+.insights-hub-grid > .insights-card:first-child {
+  background: linear-gradient(145deg, #EFF6FF 0%, #DBEAFE 52%, #E0F2FE 100%) !important;
+  border: 1.5px solid #60A5FA !important;
+  border-top: 4px solid #2563EB !important;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.14) !important;
+}
 
+.insights-hub-grid > .insights-card:first-child .insights-card-title {
+  color: #1E3A8A !important;
+}
+
+.insights-hub-grid > .insights-card:first-child .insights-card-sub {
+  color: #1E40AF !important;
+  font-weight: 600;
+}
+
+/* Nền từng dòng Thư mục / Group bên trong bảng Thống kê Nhãn */
+.label-stat-row:nth-child(4n + 1) {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 65%, #FDE68A 100%) !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.14) !important;
+}
+
+.label-stat-row:nth-child(4n + 2) {
+  background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 65%, #FECDD3 100%) !important;
+  border: 1.5px solid #FB7185 !important;
+  box-shadow: 0 3px 10px rgba(244, 63, 94, 0.13) !important;
+}
+
+.label-stat-row:nth-child(4n + 3) {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 65%, #A7F3D0 100%) !important;
+  border: 1.5px solid #10B981 !important;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.13) !important;
+}
+
+.label-stat-row:nth-child(4n + 4) {
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 65%, #DDD6FE 100%) !important;
+  border: 1.5px solid #8B5CF6 !important;
+  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.13) !important;
+}
+
+.label-stat-row:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+}
+
+.label-stat-row .label-stat-meta {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+.label-stat-row .label-stat-pill {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  color: #1E293B !important;
+}
+
+/* Thanh tiêu đề Thư mục trong tab Kênh YouTube */
+.channel-row-header {
+  background: linear-gradient(90deg, #1E3A8A 0%, #1D4ED8 55%, #0F172A 100%) !important;
+  color: #FEF3C7 !important;
+  border: 1px solid #60A5FA !important;
+  border-radius: 9px !important;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.18) !important;
+}
+
+/* 2. Khung bên phải: Bảng tổng hợp TopView ("Video Nổ View" cả dàn kênh) */
+.insights-hub-grid > .insights-card:last-child {
+  background: linear-gradient(145deg, #FFF7ED 0%, #FFEDD5 50%, #FFE4E6 100%) !important;
+  border: 1.5px solid #FB923C !important;
+  border-top: 4px solid #EA580C !important;
+  box-shadow: 0 8px 22px rgba(234, 88, 12, 0.15) !important;
+}
+
+.insights-hub-grid > .insights-card:last-child .insights-card-title {
+  color: #9A3412 !important;
+}
+
+.insights-hub-grid > .insights-card:last-child .insights-card-sub {
+  color: #7C2D12 !important;
+  font-weight: 600;
+}
+
+/* Khung Top 3 Video cao view nhất bên trong từng Kênh */
+.channel-top-videos {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 55%, #FFEDD5 100%) !important;
+  border: 1px solid #F59E0B !important;
+  border-radius: 9px !important;
+  padding: 8px 10px !important;
+}
+
+/* Nền từng dòng Video trong bảng TopView (Hạng #1, #2, #3 và các hạng tiếp theo) */
+.top-video-item.top-video-rank-1,
+.burst-video-row.top-video-rank-1 {
+  background: linear-gradient(135deg, #FEF9C3 0%, #FDE68A 60%, #FCD34D 100%) !important;
+  border: 1.5px solid #D97706 !important;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.18) !important;
+}
+
+.top-video-item.top-video-rank-2,
+.burst-video-row.top-video-rank-2 {
+  background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 65%, #7DD3FC 100%) !important;
+  border: 1.5px solid #0284C7 !important;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.14) !important;
+}
+
+.top-video-item.top-video-rank-3,
+.burst-video-row.top-video-rank-3 {
+  background: linear-gradient(135deg, #ECFDF5 0%, #A7F3D0 65%, #6EE7B7 100%) !important;
+  border: 1.5px solid #059669 !important;
+  box-shadow: 0 3px 10px rgba(5, 150, 105, 0.14) !important;
+}
+
+.top-video-item.top-video-rank-other,
+.burst-video-row.top-video-rank-other {
+  background: linear-gradient(135deg, #F5F3FF 0%, #E0E7FF 65%, #DBEAFE 100%) !important;
+  border: 1.5px solid #818CF8 !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12) !important;
+}
+
+.top-video-item .top-video-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
