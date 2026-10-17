@@ -1390,28 +1390,28 @@ function renderSingleChannelDeepView(ch, boardEl) {
 
       <!-- 5 THẺ CHỈ SỐ CHUYÊN SÂU CỦA RIÊNG KÊNH NÀY -->
       <div class="deep-kpi-grid deep-kpi-grid-5 num">
-        <div class="deep-kpi-card">
-          <span class="deep-kpi-label">SUBSCRIBERS</span>
+        <div class="deep-kpi-card kpi-theme-violet">
+          <span class="deep-kpi-label">👥 SUBSCRIBERS</span>
           <strong class="deep-kpi-val">${formatNumber(ch.subscribers || 0)}</strong>
           <span class="deep-kpi-sub">Người đăng ký thực tế</span>
         </div>
-        <div class="deep-kpi-card deep-kpi-gold">
-          <span class="deep-kpi-label">TỔNG LƯỢT XEM (VIEWS)</span>
+        <div class="deep-kpi-card kpi-theme-cyan">
+          <span class="deep-kpi-label">👁️ TỔNG LƯỢT XEM (VIEWS)</span>
           <strong class="deep-kpi-val">${formatNumber(chTotalViews)}</strong>
           <span class="deep-kpi-sub">Toàn kênh YouTube</span>
         </div>
-        <div class="deep-kpi-card">
-          <span class="deep-kpi-label">TỔNG SỐ VIDEO</span>
+        <div class="deep-kpi-card kpi-theme-blue">
+          <span class="deep-kpi-label">🎬 TỔNG SỐ VIDEO</span>
           <strong class="deep-kpi-val">${formatNumber(videoCount)}</strong>
           <span class="deep-kpi-sub">Đã liệt kê ${formatNumber(allChannelVideos.length)} video</span>
         </div>
-        <div class="deep-kpi-card">
-          <span class="deep-kpi-label">TRUNG BÌNH / VIDEO</span>
+        <div class="deep-kpi-card kpi-theme-flame">
+          <span class="deep-kpi-label">🔥 TRUNG BÌNH / VIDEO</span>
           <strong class="deep-kpi-val">${formatNumber(avgViewsPerVideo)}</strong>
           <span class="deep-kpi-sub">Views trung bình mỗi video</span>
         </div>
-        <div class="deep-kpi-card deep-kpi-gold">
-          <span class="deep-kpi-label">TỔNG DOANH THU (T1–T12)</span>
+        <div class="deep-kpi-card kpi-theme-emerald">
+          <span class="deep-kpi-label">💰 TỔNG DOANH THU (T1–T12)</span>
           <strong class="deep-kpi-val" id="deep-kpi-rev-${escapeHtml(ch.id)}">${formatRevenueAmount(totalYearlyRevenue)}</strong>
           <span class="deep-kpi-sub" id="deep-kpi-rev-sub-${escapeHtml(ch.id)}">Đã nhập ${activeRevMonths}/12 tháng</span>
         </div>
@@ -2282,33 +2282,33 @@ function renderYoutubeInsightsHub() {
   hubEl.innerHTML = `
     <!-- PHẦN 1: TÓM TẮT PHÂN TÍCH & DOANH THU TOÀN HỆ THỐNG (EXECUTIVE OVERVIEW) -->
     <div class="home-exec-grid home-exec-grid-6 num">
-      <div class="deep-kpi-card">
-        <span class="deep-kpi-label">HỆ THỐNG KÊNH &amp; NHÓM</span>
+      <div class="deep-kpi-card kpi-theme-blue">
+        <span class="deep-kpi-label">📺 HỆ THỐNG KÊNH &amp; NHÓM</span>
         <strong class="deep-kpi-val">${formatNumber(state.channels.length)} kênh</strong>
         <span class="deep-kpi-sub">${grandMonetized} kênh Đã BKT · ${groupFolders.length} thư mục Nhóm</span>
       </div>
-      <div class="deep-kpi-card deep-kpi-gold">
-        <span class="deep-kpi-label">TIỀN THÁNG NÀY (LỊCH GOOGLE T${googleMonth})</span>
+      <div class="deep-kpi-card kpi-theme-emerald">
+        <span class="deep-kpi-label">💵 TIỀN THÁNG NÀY (LỊCH GOOGLE T${googleMonth})</span>
         <strong class="deep-kpi-val" id="home-kpi-google-month-rev">${formatRevenueAmount(grandGoogleMonthRevenue)}</strong>
         <span class="deep-kpi-sub">📅 Lịch Google: ${escapeHtml(googleDateStr)}</span>
       </div>
-      <div class="deep-kpi-card deep-kpi-gold">
-        <span class="deep-kpi-label">TỔNG TIỀN TOÀN BỘ (12 THÁNG)</span>
+      <div class="deep-kpi-card kpi-theme-gold">
+        <span class="deep-kpi-label">🏆 TỔNG TIỀN TOÀN BỘ (12 THÁNG)</span>
         <strong class="deep-kpi-val" id="home-kpi-grand-total-rev">${formatRevenueAmount(grandTotalYearlyRevenue)}</strong>
         <span class="deep-kpi-sub">Tổng tiền tất cả các kênh &amp; các nhóm</span>
       </div>
-      <div class="deep-kpi-card">
-        <span class="deep-kpi-label">TỔNG LƯỢT XEM THỰC TẾ</span>
+      <div class="deep-kpi-card kpi-theme-cyan">
+        <span class="deep-kpi-label">👁️ TỔNG LƯỢT XEM THỰC TẾ</span>
         <strong class="deep-kpi-val">${formatNumber(grandTotalViews)}</strong>
         <span class="deep-kpi-sub">TB ${formatNumber(Math.round(grandTotalViews / Math.max(state.channels.length, 1)))} views / kênh</span>
       </div>
-      <div class="deep-kpi-card">
-        <span class="deep-kpi-label">TỔNG SUB &amp; KHO VIDEO</span>
+      <div class="deep-kpi-card kpi-theme-violet">
+        <span class="deep-kpi-label">👥 TỔNG SUB &amp; KHO VIDEO</span>
         <strong class="deep-kpi-val">${formatNumber(grandTotalSubs)} sub</strong>
         <span class="deep-kpi-sub">Đã quét ${formatNumber(grandTotalVideos)} video trên toàn dàn kênh</span>
       </div>
-      <div class="deep-kpi-card">
-        <span class="deep-kpi-label">KEY VIDEO NỔ MẠNH NHẤT</span>
+      <div class="deep-kpi-card kpi-theme-flame">
+        <span class="deep-kpi-label">🔥 KEY VIDEO NỔ MẠNH NHẤT</span>
         <strong class="deep-kpi-val" style="font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(topOutlierVideo ? topOutlierVideo.title : '')}">
           ${topOutlierVideo ? `🔥 x${topOutlierVideo.outlierMultiplier} TB kênh (${formatNumber(topOutlierVideo.views)} views)` : 'Chưa có dữ liệu'}
         </strong>
@@ -4273,7 +4273,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=34', { updateViaCache: 'none' })
+      .register('/sw.js?v=35', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

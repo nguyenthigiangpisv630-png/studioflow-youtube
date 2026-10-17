@@ -4703,3 +4703,138 @@ select:focus-visible {
     font-size: 16px !important;
   }
 }
+
+/* ============================================================================
+   BẢNG MÀU RỰC RỠ BẮT MẮT CHO 6 THẺ CHỈ SỐ KPI & THANH TIÊU ĐỀ TRANG CHỦ (v35)
+   ============================================================================ */
+@media (min-width: 769px) {
+  .app-shell.sidebar-collapsed .main-content {
+    padding-left: 76px;
+  }
+}
+
+.deep-kpi-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.deep-kpi-card:hover {
+  transform: translateY(-2px);
+}
+
+/* 1. Xanh Hoàng Gia (Royal Blue — Hệ thống Kênh & Nhóm / Tổng Video) */
+.deep-kpi-card.kpi-theme-blue {
+  background: linear-gradient(145deg, #EFF6FF 0%, #DBEAFE 55%, #FFFFFF 100%) !important;
+  border: 1px solid #93C5FD !important;
+  border-top: 4px solid #2563EB !important;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12) !important;
+}
+.deep-kpi-card.kpi-theme-blue .deep-kpi-label {
+  color: #1D4ED8 !important;
+}
+.deep-kpi-card.kpi-theme-blue .deep-kpi-val {
+  color: #1E3A8A !important;
+}
+.deep-kpi-card.kpi-theme-blue .deep-kpi-sub {
+  color: #1E40AF !important;
+}
+
+/* 2. Xanh Lục Bảo (Emerald Money — Tiền Tháng Này / Doanh thu) */
+.deep-kpi-card.kpi-theme-emerald {
+  background: linear-gradient(145deg, #ECFDF5 0%, #D1FAE5 55%, #FFFFFF 100%) !important;
+  border: 1px solid #6EE7B7 !important;
+  border-top: 4px solid #059669 !important;
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.14) !important;
+}
+.deep-kpi-card.kpi-theme-emerald .deep-kpi-label {
+  color: #047857 !important;
+}
+.deep-kpi-card.kpi-theme-emerald .deep-kpi-val {
+  color: #065F46 !important;
+}
+.deep-kpi-card.kpi-theme-emerald .deep-kpi-sub {
+  color: #047857 !important;
+}
+
+/* 3. Hoàng Kim Rực Rỡ (Imperial Gold — Tổng Tiền Toàn Bộ 12 Tháng) */
+.deep-kpi-card.kpi-theme-gold {
+  background: linear-gradient(145deg, #FFFBEB 0%, #FEF3C7 55%, #FFFDF5 100%) !important;
+  border: 1px solid #F59E0B !important;
+  border-top: 4px solid #D97706 !important;
+  box-shadow: 0 6px 16px rgba(217, 119, 6, 0.16) !important;
+}
+.deep-kpi-card.kpi-theme-gold .deep-kpi-label {
+  color: #B45309 !important;
+}
+.deep-kpi-card.kpi-theme-gold .deep-kpi-val {
+  color: #92400E !important;
+}
+.deep-kpi-card.kpi-theme-gold .deep-kpi-sub {
+  color: #B45309 !important;
+}
+
+/* 4. Xanh Đại Dương (Ocean Cyan — Tổng Lượt Xem Thực Tế) */
+.deep-kpi-card.kpi-theme-cyan {
+  background: linear-gradient(145deg, #ECFEFF 0%, #CFFAFE 55%, #FFFFFF 100%) !important;
+  border: 1px solid #67E8F9 !important;
+  border-top: 4px solid #0891B2 !important;
+  box-shadow: 0 6px 16px rgba(8, 145, 178, 0.13) !important;
+}
+.deep-kpi-card.kpi-theme-cyan .deep-kpi-label {
+  color: #0E7490 !important;
+}
+.deep-kpi-card.kpi-theme-cyan .deep-kpi-val {
+  color: #155E75 !important;
+}
+.deep-kpi-card.kpi-theme-cyan .deep-kpi-sub {
+  color: #0E7490 !important;
+}
+
+/* 5. Tím Ngọc Bích (Royal Violet — Tổng Sub & Kho Video) */
+.deep-kpi-card.kpi-theme-violet {
+  background: linear-gradient(145deg, #F5F3FF 0%, #EDE9FE 55%, #FFFFFF 100%) !important;
+  border: 1px solid #C4B5FD !important;
+  border-top: 4px solid #7C3AED !important;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.13) !important;
+}
+.deep-kpi-card.kpi-theme-violet .deep-kpi-label {
+  color: #6D28D9 !important;
+}
+.deep-kpi-card.kpi-theme-violet .deep-kpi-val {
+  color: #4C1D95 !important;
+}
+.deep-kpi-card.kpi-theme-violet .deep-kpi-sub {
+  color: #5B21B6 !important;
+}
+
+/* 6. Đỏ Cam Lửa Nhiệt (Flame Rose-Orange — Key Video Nổ Mạnh Nhất) */
+.deep-kpi-card.kpi-theme-flame {
+  background: linear-gradient(145deg, #FFF1F2 0%, #FFE4E6 52%, #FFF7ED 100%) !important;
+  border: 1px solid #FDA4AF !important;
+  border-top: 4px solid #E11D48 !important;
+  box-shadow: 0 6px 16px rgba(225, 29, 72, 0.14) !important;
+}
+.deep-kpi-card.kpi-theme-flame .deep-kpi-label {
+  color: #BE123C !important;
+}
+.deep-kpi-card.kpi-theme-flame .deep-kpi-val {
+  color: #9F1239 !important;
+}
+.deep-kpi-card.kpi-theme-flame .deep-kpi-sub {
+  color: #BE123C !important;
+}
+
+/* Thanh phân tích nhãn nổi bật sắc màu */
+.insights-hub-bar {
+  background: linear-gradient(90deg, #1E1B4B 0%, #0F172A 50%, #1E293B 100%) !important;
+  border: 1px solid #D4AF37 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12) !important;
+}
+.insights-hub-badge {
+  color: #FDE68A !important;
+}
+.insights-hub-hint {
+  color: #E2E8F0 !important;
+}
+
