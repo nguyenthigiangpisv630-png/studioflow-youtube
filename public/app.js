@@ -2056,118 +2056,123 @@ function renderYoutubeChannelsBoard() {
 
             <!-- Khối toàn bộ thông tin kênh (Trên Web luôn hiện; Trên App bấm vào tên kênh mới trổ ra) -->
             <div class="channel-app-expand-body">
-              <!-- Dòng 1 duy nhất: Tên Kênh + @Handle + Đồng bộ/Xóa + Group + BKT + Ngách + SUB + VIEWS + VIDEO + Ngày đầu + Quản lý + Gà kết nối -->
-              <div class="channel-single-line num">
-                <button
-                  type="button"
-                  class="channel-name-btn"
-                  data-open-channel-deep="${escapeHtml(ch.id)}"
-                  title="Bấm để mở thư mục chi tiết kênh ${escapeHtml(ch.name)}"
-                >
-                  <strong class="channel-name-text">${escapeHtml(ch.name)}</strong>
-                </button>
-                ${
-                  ch.channelUrl
-                    ? `<a href="${escapeHtml(ch.channelUrl)}" target="_blank" rel="noopener" class="channel-handle-link">${escapeHtml(
-                        ch.handle || 'Mở kênh'
-                      )} ↗</a>`
-                    : `<span class="channel-handle-muted">${escapeHtml(ch.handle)}</span>`
-                }
-
-                <div class="channel-inline-actions">
+              <!-- Thiết kế 2 hàng rõ ràng: Hàng 1 (Tên kênh, Group, Quản lý, Gà) & Hàng 2 (BKT, Ngách, SUB, VIEWS, VIDEO, Ngày đầu) -->
+              <div class="channel-single-line channel-two-rows num">
+                <div class="channel-line-row channel-line-row-1">
                   <button
                     type="button"
-                    class="btn btn-primary btn-xs btn-app-open-deep"
+                    class="channel-name-btn"
                     data-open-channel-deep="${escapeHtml(ch.id)}"
-                    title="Mở Sổ Doanh Thu 12 Tháng & Danh sách toàn bộ video của kênh"
-                  >📊 Doanh thu &amp; Video</button>
+                    title="Bấm để mở thư mục chi tiết kênh ${escapeHtml(ch.name)}"
+                  >
+                    <strong class="channel-name-text">${escapeHtml(ch.name)}</strong>
+                  </button>
+                  ${
+                    ch.channelUrl
+                      ? `<a href="${escapeHtml(ch.channelUrl)}" target="_blank" rel="noopener" class="channel-handle-link">${escapeHtml(
+                          ch.handle || 'Mở kênh'
+                        )} ↗</a>`
+                      : `<span class="channel-handle-muted">${escapeHtml(ch.handle)}</span>`
+                  }
+
+                  <div class="channel-inline-actions">
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-xs btn-app-open-deep"
+                      data-open-channel-deep="${escapeHtml(ch.id)}"
+                      title="Mở Sổ Doanh Thu 12 Tháng & Danh sách toàn bộ video của kênh"
+                    >📊 Doanh thu &amp; Video</button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-xs"
+                      data-sync-channel-id="${escapeHtml(ch.id)}"
+                      title="Tự động quét loạt video của kênh, cập nhật số Sub/Views và liệt kê Top 3 video nhiều view nhất"
+                    >Đồng bộ</button>
+                    <button
+                      type="button"
+                      class="btn btn-danger-outline btn-xs"
+                      data-delete-channel-id="${escapeHtml(ch.id)}"
+                      data-delete-channel-name="${escapeHtml(ch.name)}"
+                      title="Xóa kênh này khỏi hệ thống"
+                    >Xóa</button>
+                  </div>
+
+                  <label class="inline-group-pill ${groupColorClass}" title="Nhập hoặc chọn Group cho kênh này">
+                    <span class="inline-group-label">Group:</span>
+                    <input
+                      type="text"
+                      list="yt-groups-datalist"
+                      class="inline-group-input"
+                      data-channel-group="${escapeHtml(ch.id)}"
+                      value="${escapeHtml(chGroup)}"
+                      placeholder="Chọn Group..."
+                    />
+                  </label>
+
+                  <label class="inline-meta-field inline-meta-mail" title="Người / Mail quản lý kênh">
+                    <span class="inline-meta-label">Quản lý:</span>
+                    <input
+                      type="text"
+                      class="inline-meta-input"
+                      data-channel-manager-mail="${escapeHtml(ch.id)}"
+                      value="${escapeHtml(managerMailValue)}"
+                      placeholder="Tên / Gmail..."
+                    />
+                  </label>
+
+                  ${renderChannelGaPill(ch, false)}
+                </div>
+
+                <!-- HÀNG THỨ 2: Trạng thái BKT + Ngách + SUB + TỔNG VIEWS + VIDEO + Ngày đầu -->
+                <div class="channel-line-row channel-line-row-2">
+                  <select
+                    class="bkt-pill-select bkt-status-${escapeHtml(ch.status || 'monetized')}"
+                    data-channel-bkt-select="${escapeHtml(ch.id)}"
+                    aria-label="Chọn trạng thái BKT của kênh"
+                  >
+                    ${Object.entries(CHANNEL_STATUS_META)
+                      .map(
+                        ([k, info]) =>
+                          `<option value="${k}" ${ch.status === k ? 'selected' : ''}>● ${info.label}</option>`
+                      )
+                      .join('')}
+                  </select>
+
                   <button
                     type="button"
-                    class="btn btn-secondary btn-xs"
-                    data-sync-channel-id="${escapeHtml(ch.id)}"
-                    title="Tự động quét loạt video của kênh, cập nhật số Sub/Views và liệt kê Top 3 video nhiều view nhất"
-                  >Đồng bộ</button>
-                  <button
-                    type="button"
-                    class="btn btn-danger-outline btn-xs"
-                    data-delete-channel-id="${escapeHtml(ch.id)}"
-                    data-delete-channel-name="${escapeHtml(ch.name)}"
-                    title="Xóa kênh này khỏi hệ thống"
-                  >Xóa</button>
+                    class="niche-chip ${catColorClass}"
+                    data-filter-category="${escapeHtml(chCategory)}"
+                    title="Bấm để lọc các kênh thuộc danh mục: ${escapeHtml(chCategory)}"
+                  >
+                    <span class="cat-dot"></span>
+                    <span>${escapeHtml(chCategory)}</span>
+                  </button>
+
+                  <div class="hero-stat-pill hero-stat-subs">
+                    <strong class="hero-stat-num">${formatNumber(ch.subscribers || 0)}</strong>
+                    <span class="hero-stat-label">SUB</span>
+                  </div>
+
+                  <div class="hero-stat-pill hero-stat-views">
+                    <strong class="hero-stat-num">${formatNumber(chTotalViews)}</strong>
+                    <span class="hero-stat-label">TỔNG VIEWS</span>
+                  </div>
+
+                  <div class="hero-stat-pill hero-stat-videos">
+                    <strong class="hero-stat-num">${formatNumber(videoCount)}</strong>
+                    <span class="hero-stat-label">VIDEO</span>
+                  </div>
+
+                  <label class="inline-meta-field" title="Ngày đầu đăng video">
+                    <span class="inline-meta-label">Ngày đầu:</span>
+                    <input
+                      type="date"
+                      class="inline-meta-input num"
+                      data-channel-first-date="${escapeHtml(ch.id)}"
+                      value="${escapeHtml(earliestVideoDate)}"
+                    />
+                  </label>
                 </div>
-
-                <label class="inline-group-pill ${groupColorClass}" title="Nhập hoặc chọn Group cho kênh này">
-                  <span class="inline-group-label">Group:</span>
-                  <input
-                    type="text"
-                    list="yt-groups-datalist"
-                    class="inline-group-input"
-                    data-channel-group="${escapeHtml(ch.id)}"
-                    value="${escapeHtml(chGroup)}"
-                    placeholder="Chọn Group..."
-                  />
-                </label>
-
-                <select
-                  class="bkt-pill-select bkt-status-${escapeHtml(ch.status || 'monetized')}"
-                  data-channel-bkt-select="${escapeHtml(ch.id)}"
-                  aria-label="Chọn trạng thái BKT của kênh"
-                >
-                  ${Object.entries(CHANNEL_STATUS_META)
-                    .map(
-                      ([k, info]) =>
-                        `<option value="${k}" ${ch.status === k ? 'selected' : ''}>● ${info.label}</option>`
-                    )
-                    .join('')}
-                </select>
-
-                <button
-                  type="button"
-                  class="niche-chip ${catColorClass}"
-                  data-filter-category="${escapeHtml(chCategory)}"
-                  title="Bấm để lọc các kênh thuộc danh mục: ${escapeHtml(chCategory)}"
-                >
-                  <span class="cat-dot"></span>
-                  <span>${escapeHtml(chCategory)}</span>
-                </button>
-
-                <div class="hero-stat-pill hero-stat-subs">
-                  <strong class="hero-stat-num">${formatNumber(ch.subscribers || 0)}</strong>
-                  <span class="hero-stat-label">SUB</span>
-                </div>
-
-                <div class="hero-stat-pill hero-stat-views">
-                  <strong class="hero-stat-num">${formatNumber(chTotalViews)}</strong>
-                  <span class="hero-stat-label">TỔNG VIEWS</span>
-                </div>
-
-                <div class="hero-stat-pill hero-stat-videos">
-                  <strong class="hero-stat-num">${formatNumber(videoCount)}</strong>
-                  <span class="hero-stat-label">VIDEO</span>
-                </div>
-
-                <label class="inline-meta-field" title="Ngày đầu đăng video">
-                  <span class="inline-meta-label">Ngày đầu:</span>
-                  <input
-                    type="date"
-                    class="inline-meta-input num"
-                    data-channel-first-date="${escapeHtml(ch.id)}"
-                    value="${escapeHtml(earliestVideoDate)}"
-                  />
-                </label>
-
-                <label class="inline-meta-field inline-meta-mail" title="Người / Mail quản lý kênh">
-                  <span class="inline-meta-label">Quản lý:</span>
-                  <input
-                    type="text"
-                    class="inline-meta-input"
-                    data-channel-manager-mail="${escapeHtml(ch.id)}"
-                    value="${escapeHtml(managerMailValue)}"
-                    placeholder="Tên / Gmail..."
-                  />
-                </label>
-
-                ${renderChannelGaPill(ch, false)}
               </div>
 
               <!-- Top 3 Video Có Lượng View Cao Nhất (Kiểu cũ: dọc từng dòng rõ ràng) -->

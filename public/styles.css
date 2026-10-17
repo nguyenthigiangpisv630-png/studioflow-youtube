@@ -5673,11 +5673,34 @@ select:focus-visible {
 }
 
 /* Khung Top 3 Video cao view nhất bên trong từng Kênh */
-.channel-top-videos {
+.channel-top-videos,
+.channel-top-videos-box {
   background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 55%, #FFEDD5 100%) !important;
   border: 1px solid #F59E0B !important;
+  border-left: 4px solid #D97706 !important;
   border-radius: 9px !important;
   padding: 8px 10px !important;
+}
+
+/* Bố cục 2 hàng cho thông tin Kênh YouTube (v43) */
+.channel-single-line.channel-two-rows {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  overflow-x: visible !important;
+}
+
+.channel-line-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.channel-line-row-2 {
+  padding-top: 6px;
+  border-top: 1px dashed rgba(212, 175, 55, 0.45);
 }
 
 /* Nền từng dòng Video trong bảng TopView (Hạng #1, #2, #3 và các hạng tiếp theo) */
