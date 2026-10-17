@@ -2982,27 +2982,123 @@ select:focus-visible {
   display: block;
 }
 
-.left-sidebar .side-nav-item {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #CBD5E1 !important;
+/* 3 Nút Điều Hướng Chính Nhiều Màu Sắc Rõ Nét Dễ Nhìn Trên Nền Tối (v40) */
+.left-sidebar .left-nav {
+  gap: 7px !important;
 }
 
-.left-sidebar .side-nav-item:hover {
-  background: rgba(212, 175, 55, 0.14) !important;
-  border-color: rgba(212, 175, 55, 0.45) !important;
+.left-sidebar .nav-btn {
+  padding: 8px 10px !important;
+  border-radius: 9px !important;
+  font-size: 0.8rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em;
+  transition: all 0.16s ease !important;
+}
+
+/* 1. Trang chủ — Sắc Vàng Hoàng Kim (Gold Amber) */
+.left-sidebar .nav-btn[data-tab="insights"] {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.24) 0%, rgba(217, 119, 6, 0.14) 100%) !important;
+  border: 1px solid rgba(251, 191, 36, 0.55) !important;
+  color: #FEF3C7 !important;
+}
+.left-sidebar .nav-btn[data-tab="insights"] svg {
+  color: #FBBF24 !important;
+}
+.left-sidebar .nav-btn[data-tab="insights"] .nav-count {
+  background: #D97706 !important;
   color: #FFFFFF !important;
+  border-color: #FBBF24 !important;
+}
+.left-sidebar .nav-btn[data-tab="insights"]:hover,
+.left-sidebar .nav-btn[data-tab="insights"].active {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FDE68A 100%) !important;
+  border-color: #F59E0B !important;
+  color: #78350F !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.32) !important;
+}
+.left-sidebar .nav-btn[data-tab="insights"]:hover svg,
+.left-sidebar .nav-btn[data-tab="insights"].active svg {
+  color: #B45309 !important;
+}
+.left-sidebar .nav-btn[data-tab="insights"].active .nav-count {
+  background: #92400E !important;
+  color: #FFFFFF !important;
+  border-color: #78350F !important;
 }
 
-.left-sidebar .side-nav-item.active {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.24) 0%, rgba(154, 116, 24, 0.16) 100%) !important;
-  border-color: #D4AF37 !important;
-  color: #FBF0B9 !important;
-  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.18), inset 0 0 0 1px rgba(251, 240, 185, 0.15) !important;
+/* 2. Kênh YouTube — Sắc Xanh Ngọc Lam Sáng (Electric Sky Blue) */
+.left-sidebar .nav-btn[data-tab="youtube"] {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.55) !important;
+  color: #E0F2FE !important;
+}
+.left-sidebar .nav-btn[data-tab="youtube"] svg {
+  color: #38BDF8 !important;
+}
+.left-sidebar .nav-btn[data-tab="youtube"] .nav-count {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  border-color: #7DD3FC !important;
+}
+.left-sidebar .nav-btn[data-tab="youtube"]:hover,
+.left-sidebar .nav-btn[data-tab="youtube"].active {
+  background: linear-gradient(135deg, #F0F9FF 0%, #BAE6FD 100%) !important;
+  border-color: #0284C7 !important;
+  color: #0C4A6E !important;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.32) !important;
+}
+.left-sidebar .nav-btn[data-tab="youtube"]:hover svg,
+.left-sidebar .nav-btn[data-tab="youtube"].active svg {
+  color: #0369A1 !important;
+}
+.left-sidebar .nav-btn[data-tab="youtube"].active .nav-count {
+  background: #0369A1 !important;
+  color: #FFFFFF !important;
+  border-color: #0C4A6E !important;
 }
 
-.left-sidebar .side-nav-item.active .side-nav-title {
-  color: #FBF0B9 !important;
+/* 3. Nơi lưu nội dung — Sắc Xanh Lục Bảo Sáng (Vibrant Emerald) */
+.left-sidebar .nav-btn[data-tab="contents"] {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.15) 100%) !important;
+  border: 1px solid rgba(52, 211, 153, 0.55) !important;
+  color: #D1FAE5 !important;
+}
+.left-sidebar .nav-btn[data-tab="contents"] svg {
+  color: #34D399 !important;
+}
+.left-sidebar .nav-btn[data-tab="contents"] .nav-count {
+  background: #059669 !important;
+  color: #FFFFFF !important;
+  border-color: #6EE7B7 !important;
+}
+.left-sidebar .nav-btn[data-tab="contents"]:hover,
+.left-sidebar .nav-btn[data-tab="contents"].active {
+  background: linear-gradient(135deg, #ECFDF5 0%, #A7F3D0 100%) !important;
+  border-color: #059669 !important;
+  color: #064E3B !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.32) !important;
+}
+.left-sidebar .nav-btn[data-tab="contents"]:hover svg,
+.left-sidebar .nav-btn[data-tab="contents"].active svg {
+  color: #047857 !important;
+}
+.left-sidebar .nav-btn[data-tab="contents"].active .nav-count {
+  background: #065F46 !important;
+  color: #FFFFFF !important;
+  border-color: #064E3B !important;
+}
+
+/* Cây thư mục kênh bên dưới nút Kênh YouTube cũng sáng rõ dễ nhìn */
+.left-sidebar .sidebar-tree-folder,
+.left-sidebar .sidebar-tree-channel {
+  color: #E2E8F0 !important;
+}
+.left-sidebar .sidebar-tree-folder:hover,
+.left-sidebar .sidebar-tree-channel:hover {
+  background: rgba(56, 189, 248, 0.16) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
 }
 
 .left-sidebar .sidebar-footer {
