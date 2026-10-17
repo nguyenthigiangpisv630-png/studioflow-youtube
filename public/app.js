@@ -3003,6 +3003,19 @@ function setupEventListeners() {
       renderYoutubeInsightsHub();
       return;
     }
+
+    // Bấm nút ẩn vào («) / nhảy ra (») cho thanh điều hướng bên trái
+    const toggleSidebarBtn = e.target.closest('[data-toggle-sidebar]');
+    if (toggleSidebarBtn) {
+      const appShellEl = document.getElementById('app-shell') || document.querySelector('.app-shell');
+      if (appShellEl) {
+        const isCollapsed = appShellEl.classList.toggle('sidebar-collapsed');
+        try {
+          localStorage.setItem('studioflow_sidebar_collapsed', isCollapsed ? '1' : '0');
+        } catch {}
+      }
+      return;
+    }
   });
 
   // Lưu Group mới ngay từ khung Thống kê tổng hợp theo Nhãn
@@ -4260,11 +4273,18 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=32', { updateViaCache: 'none' })
+      .register('/sw.js?v=33', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
 }
+
+try {
+  if (localStorage.getItem('studioflow_sidebar_collapsed') === '1') {
+    const appShellEl = document.getElementById('app-shell') || document.querySelector('.app-shell');
+    appShellEl?.classList.add('sidebar-collapsed');
+  }
+} catch {}
 
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {

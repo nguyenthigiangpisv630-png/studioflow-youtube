@@ -8,14 +8,30 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=32" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=32" />
+  <link rel="icon" href="/icon.svg?v=33" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=33" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
-    <div class="app-shell">
+    <div class="app-shell" id="app-shell">
+      <!-- NÚT MỞ NHẢY RA KHI THANH BÊN TRÁI ĐANG ẨN -->
+      <button
+        type="button"
+        class="sidebar-expand-tab"
+        id="btn-expand-sidebar"
+        data-toggle-sidebar="true"
+        title="Mở thanh menu ACB9x nhảy ra"
+        aria-label="Mở thanh menu bên trái"
+      >
+        <svg viewBox="0 0 28 20" width="22" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0.5" y="0.5" width="27" height="19" rx="5" fill="#FF0000" />
+          <polygon points="11,5.5 19.5,10 11,14.5" fill="#FFFFFF" />
+        </svg>
+        <span class="sidebar-expand-arrow">»</span>
+      </button>
+
       <!-- THANH ĐIỀU HƯỚNG DỌC BÊN TRÁI NHỎ GỌN (CHỈ CÓ TIÊU ĐỀ CHÍNH) -->
-      <aside class="left-sidebar">
+      <aside class="left-sidebar" id="left-sidebar">
         <div class="sidebar-top">
           <div class="brand-block">
             <div class="brand-logo yt-brand-logo" aria-hidden="true">
@@ -27,6 +43,14 @@
             <div class="brand-text">
               <span class="brand-name" id="sidebar-brand-name">ACB9x</span>
             </div>
+            <button
+              type="button"
+              class="sidebar-toggle-btn"
+              id="btn-collapse-sidebar"
+              data-toggle-sidebar="true"
+              title="Ẩn thanh menu bên trái vào"
+              aria-label="Ẩn thanh menu bên trái"
+            >«</button>
           </div>
 
           <nav class="left-nav" id="side-nav" aria-label="Điều hướng chính">
@@ -471,7 +495,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=32"></script>
+  <script type="module" src="/app.js?v=33"></script>
 </body>
 </html>
 
