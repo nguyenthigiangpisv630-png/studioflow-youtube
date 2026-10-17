@@ -1298,10 +1298,6 @@ function renderSingleChannelDeepView(ch, boardEl) {
             const vDate = v.publishedAt
               ? `<span class="top-video-date num">📅 ${escapeHtml(v.publishedAt)}</span>`
               : '';
-            const deltaBadge =
-              v.dailyDelta > 0
-                ? `<span class="label-stat-pill label-stat-pill-views num">+${formatNumber(v.dailyDelta)} hôm nay</span>`
-                : '';
             return `
               <div class="top-video-item burst-video-row top-video-rank-${idx < 3 ? idx + 1 : 'other'}">
                 <span class="top-video-rank num">#${idx + 1}</span>
@@ -1311,7 +1307,6 @@ function renderSingleChannelDeepView(ch, boardEl) {
                   </a>
                 </div>
                 ${vDate}
-                ${deltaBadge}
                 ${outlierBadge}
                 <span class="top-video-views num">${formatNumber(v.views)} views</span>
                 <button
@@ -4156,7 +4151,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=26', { updateViaCache: 'none' })
+      .register('/sw.js?v=27', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
