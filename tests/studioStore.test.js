@@ -633,3 +633,33 @@ test('Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại (getBrandPr
   }
 });
 
+test('Quản lý Group Kênh (createGroup & customGroups persistence): tạo Group mới ngay cả khi chưa có kênh nào vẫn được lưu bền vững trong listGroups và labelStats.byGroup', () => {
+  const { store, cleanup } = createTempStore(false);
+  try {
+    const created = store.createGroup({ name: 'Team Global 99' });
+    assert.equal(created.name, 'Team Global 99');
+    assert.ok(created.groups.includes('Team Global 99'), 'Group mới tạo chưa gán kênh vẫn phải nằm trong danh sách groups');
+
+    const summary = store.getDashboardSummary();
+    const emptyGroupStat = summary.youtube.labelStats.byGroup.find((g) => g.label === 'Team Global 99');
+    assert.ok(emptyGroupStat, 'Group mới tạo 0 kênh vẫn phải hiển thị trong Thống kê tổng hợp theo Nhãn (byGroup)');
+    assert.equal(emptyGroupStat.channelCount, 0);
+
+    const ch = store.createChannel({
+      name: 'Travel 88',
+      handle: '@travel_dimension88',
+      group: 'Team Travel VIP',
+    });
+    assert.ok(store.listGroups().includes('Team Travel VIP'), 'Gán Group khi tạo kênh phải tự động lưu vào customGroups');
+
+    store.updateChannel(ch.id, { group: 'Team US' });
+    assert.ok(
+      store.listGroups().includes('Team Travel VIP'),
+      'Đổi kênh sang Group khác không làm mất Group đã tạo trước đó'
+    );
+  } finally {
+    cleanup();
+  }
+});
+
+

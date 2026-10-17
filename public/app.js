@@ -35,6 +35,8 @@ const state = {
   insightsCollapsed: false,
   groups: [],
   showCreateGroupBox: false,
+  draftNewGroupName: '',
+  draftSelectedGroupChannelIds: new Set(),
 };
 
 const STAGE_META = {
@@ -516,6 +518,57 @@ async function apiRequest(url, options = {}) {
   return data;
 }
 
+function getCustomGroupsStorageKey() {
+  const uid = state.currentUser?.id || state.currentUser?.email || 'admin';
+  return `studioflow_custom_groups_v1:${uid}`;
+}
+
+function getLocalCustomGroups() {
+  try {
+    const raw = localStorage.getItem(getCustomGroupsStorageKey());
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.map((g) => String(g || '').trim()).filter(Boolean)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalCustomGroup(groupName = '') {
+  const clean = String(groupName || '').trim();
+  if (!clean) return;
+  try {
+    const current = getLocalCustomGroups();
+    const exists = current.some((g) => g.toLowerCase() === clean.toLowerCase());
+    if (!exists) {
+      current.push(clean);
+      localStorage.setItem(getCustomGroupsStorageKey(), JSON.stringify(current));
+    }
+  } catch {}
+  if (!Array.isArray(state.groups)) state.groups = [];
+  if (!state.groups.some((g) => String(g || '').trim().toLowerCase() === clean.toLowerCase())) {
+    state.groups.push(clean);
+  }
+}
+
+function removeLocalCustomGroup(groupName = '') {
+  const clean = String(groupName || '').trim();
+  if (!clean) return;
+  try {
+    const current = getLocalCustomGroups().filter(
+      (g) => g.toLowerCase() !== clean.toLowerCase()
+    );
+    localStorage.setItem(getCustomGroupsStorageKey(), JSON.stringify(current));
+  } catch {}
+  if (Array.isArray(state.groups)) {
+    state.groups = state.groups.filter(
+      (g) => String(g || '').trim().toLowerCase() !== clean.toLowerCase()
+    );
+  }
+}
+
 async function loadOverview() {
   const authStatus = await apiRequest('/api/auth/status');
   state.passwordEnabled = Boolean(authStatus.passwordEnabled);
@@ -533,7 +586,42 @@ async function loadOverview() {
   state.currentUser = data.currentUser || state.currentUser;
   state.users = Array.isArray(data.users) ? data.users : [];
   state.channels = data.channels || [];
-  state.groups = data.groups || data.summary?.meta?.customGroups || [];
+
+  const serverGroups = Array.isArray(data.groups)
+    ? data.groups
+    : Array.isArray(data.summary?.meta?.customGroups)
+    ? data.summary.meta.customGroups
+    : [];
+  const localGroups = getLocalCustomGroups();
+  const serverLowerSet = new Set(serverGroups.map((g) => String(g || '').trim().toLowerCase()));
+  const mergedGroups = [];
+  const mergedSeen = new Set();
+
+  for (const g of [...serverGroups, ...localGroups]) {
+    const clean = String(g || '').trim();
+    if (!clean) continue;
+    const lower = clean.toLowerCase();
+    if (!mergedSeen.has(lower)) {
+      mergedSeen.add(lower);
+      mergedGroups.push(clean);
+    }
+  }
+  state.groups = mergedGroups;
+
+  // Đồng bộ hai chiều: lưu các Group từ server vào localStorage và khôi phục lên server nếu container vừa khởi động lại
+  for (const sg of serverGroups) {
+    saveLocalCustomGroup(sg);
+  }
+  for (const lg of localGroups) {
+    const clean = String(lg || '').trim();
+    if (clean && !serverLowerSet.has(clean.toLowerCase())) {
+      apiRequest('/api/youtube/groups', {
+        method: 'POST',
+        body: JSON.stringify({ name: clean }),
+      }).catch(() => {});
+    }
+  }
+
   state.deals = data.deals || [];
   state.projects = data.projects || [];
   state.contents = data.contents || [];
@@ -1298,10 +1386,22 @@ function renderCategoryDropdown() {
 }
 
 function getAllGroupNames() {
+  const fromLocal = getLocalCustomGroups();
   const fromStore = Array.isArray(state.groups) ? state.groups : [];
   const fromMeta = Array.isArray(state.summary?.meta?.customGroups) ? state.summary.meta.customGroups : [];
   const fromChannels = state.channels.map((ch) => String(ch.group || '').trim()).filter(Boolean);
-  return [...new Set([...fromStore, ...fromMeta, ...fromChannels].map((g) => String(g || '').trim()).filter(Boolean))];
+  const seen = new Set();
+  const result = [];
+  for (const raw of [...fromStore, ...fromMeta, ...fromLocal, ...fromChannels]) {
+    const clean = String(raw || '').trim();
+    if (!clean) continue;
+    const lower = clean.toLowerCase();
+    if (!seen.has(lower)) {
+      seen.add(lower);
+      result.push(clean);
+    }
+  }
+  return result;
 }
 
 function renderGroupDropdown() {
@@ -1316,7 +1416,9 @@ function renderGroupDropdown() {
   state.channels.forEach((ch) => {
     const grp = String(ch.group || '').trim();
     if (grp) {
-      groupCounts.set(grp, (groupCounts.get(grp) || 0) + 1);
+      const existingKey =
+        Array.from(groupCounts.keys()).find((k) => k.toLowerCase() === grp.toLowerCase()) || grp;
+      groupCounts.set(existingKey, (groupCounts.get(existingKey) || 0) + 1);
     } else {
       ungroupedCount += 1;
     }
@@ -1420,6 +1522,20 @@ function renderGroupDropdown() {
       ${allItemHtml}
       ${groupItemsHtml}
       ${ungroupedItemHtml}
+      <div style="padding:8px 10px;border-top:1px solid #e2e8f0;display:flex;gap:6px;align-items:center;margin-top:4px;">
+        <input
+          type="text"
+          id="input-dropdown-new-group"
+          class="input-control"
+          style="padding:5px 8px;font-size:0.75rem;flex:1;min-width:120px;"
+          placeholder="+ Tạo Group mới..."
+        />
+        <button
+          type="button"
+          class="btn btn-primary btn-xs"
+          data-create-group-from-dropdown="true"
+        >Lưu</button>
+      </div>
     </div>
   `;
 }
@@ -1960,7 +2076,12 @@ function renderYoutubeChannelsBoard() {
     if (categoryFilter !== 'all' && chCat !== categoryFilter) return false;
     const chGroup = (ch.group || '').trim();
     if (groupFilter === '__none__' && chGroup !== '') return false;
-    if (groupFilter !== 'all' && groupFilter !== '__none__' && chGroup !== groupFilter) return false;
+    if (
+      groupFilter !== 'all' &&
+      groupFilter !== '__none__' &&
+      chGroup.toLowerCase() !== groupFilter.toLowerCase()
+    )
+      return false;
     const chMgr = (ch.managerEmail || ch.manager || '').trim();
     if (managerFilter === '__none__' && chMgr !== '') return false;
     if (managerFilter !== 'all' && managerFilter !== '__none__' && chMgr !== managerFilter) return false;
@@ -1976,11 +2097,6 @@ function renderYoutubeChannelsBoard() {
     );
   });
 
-  if (filteredChannels.length === 0) {
-    boardEl.innerHTML = `<p class="panel-desc" style="padding:18px;">Chưa có kênh YouTube nào trong thư mục này. Bấm chọn "📁 Tất cả" trên thanh thư mục phía trên để xem toàn bộ kênh.</p>`;
-    return;
-  }
-
   const folderTitle =
     groupFilter === 'all'
       ? `📁 Thư mục: Tất cả Kênh (${filteredChannels.length} kênh)`
@@ -1989,10 +2105,33 @@ function renderYoutubeChannelsBoard() {
       : `📁 Thư mục Nhóm: ${groupFilter} (${filteredChannels.length} kênh)`;
 
   const headerHtml = `
-    <div class="channel-row-header">
+    <div class="channel-row-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
       <div>${escapeHtml(folderTitle)}</div>
+      ${
+        groupFilter !== 'all'
+          ? `<button type="button" class="btn btn-secondary btn-xs" data-clear-all-yt-filters="true">📁 Xem tất cả kênh (${state.channels.length})</button>`
+          : ''
+      }
     </div>
   `;
+
+  if (filteredChannels.length === 0) {
+    boardEl.innerHTML =
+      headerHtml +
+      `<div class="panel-box" style="padding:18px;border-radius:12px;background:#ffffff;border:1px dashed #cbd5e1;">
+        <p class="panel-desc" style="margin:0 0 8px;font-weight:700;color:#1e293b;">
+          ${
+            groupFilter !== 'all' && groupFilter !== '__none__'
+              ? `✅ Thư mục Group "${escapeHtml(groupFilter)}" đã được lưu! Hiện chưa có kênh nào trong Group này.`
+              : 'Chưa có kênh YouTube nào khớp bộ lọc hiện tại.'
+          }
+        </p>
+        <p class="panel-desc" style="margin:0;">
+          👉 Dán đường dẫn Kênh YouTube (URL) hoặc <code>@Handle</code> vào ô phía trên và bấm <strong>Lưu &amp; Tự chạy thông tin</strong> để thêm kênh thẳng vào thư mục này.
+        </p>
+      </div>`;
+    return;
+  }
 
   const rowsHtml = filteredChannels
     .map((ch) => {
@@ -2221,12 +2360,15 @@ function renderYoutubeInsightsHub() {
   const hubEl = document.getElementById('yt-insights-hub');
   if (!hubEl) return;
 
-  if (state.channels.length === 0) {
+  if (state.channels.length === 0 && getAllGroupNames().length === 0 && !state.showCreateGroupBox) {
     hubEl.innerHTML = `
       <div class="insights-card" style="padding:24px;text-align:center;">
         <h3 class="insights-card-title">Chưa có kênh YouTube nào trong hệ thống</h3>
-        <p class="insights-card-sub" style="margin:8px 0 14px;">Hãy mở Thư mục Kênh YouTube để dán link kênh đầu tiên vào hệ thống.</p>
-        <button type="button" class="btn btn-primary" data-goto-tab="youtube">+ Thêm Kênh YouTube mới</button>
+        <p class="insights-card-sub" style="margin:8px 0 14px;">Hãy tạo thư mục Group hoặc mở Kênh YouTube để dán link kênh đầu tiên vào hệ thống.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary" data-toggle-create-group-box="true">+ Tạo Group mới</button>
+          <button type="button" class="btn btn-secondary" data-goto-tab="youtube">+ Thêm Kênh YouTube mới</button>
+        </div>
       </div>
     `;
     return;
@@ -2733,11 +2875,13 @@ function renderYoutubeInsightsHub() {
                   <input
                     type="text"
                     id="input-new-group-name"
+                    name="groupName"
                     class="input-control quick-create-group-input"
+                    value="${escapeHtml(state.draftNewGroupName || '')}"
                     placeholder="📁 Nhập tên Group mới (VD: KÊNH AI US, NHÓM PHIM, TEAM 1...)"
                     required
                   />
-                  <button type="submit" class="btn btn-primary btn-sm">✓ Lưu Group</button>
+                  <button type="submit" class="btn btn-primary btn-sm" data-save-quick-group="true">✓ Lưu Group</button>
                   <button type="button" class="btn btn-ghost btn-sm" data-close-create-group-box="true">Hủy</button>
                 </div>
                 ${
@@ -2747,14 +2891,21 @@ function renderYoutubeInsightsHub() {
                         <span class="quick-create-group-hint">Chọn nhanh kênh đưa vào Group này (tùy chọn):</span>
                         <div class="quick-create-group-chips">
                           ${state.channels
-                            .map(
-                              (ch) => `
+                            .map((ch) => {
+                              const isChecked =
+                                state.draftSelectedGroupChannelIds &&
+                                state.draftSelectedGroupChannelIds.has(ch.id);
+                              return `
                                 <label class="quick-group-ch-chip">
-                                  <input type="checkbox" name="groupChannelIds" value="${escapeHtml(ch.id)}" />
-                                  <span>📺 ${escapeHtml(ch.name)}${ch.group ? ` <small>(${escapeHtml(ch.group)})</small>` : ''}</span>
+                                  <input type="checkbox" name="groupChannelIds" value="${escapeHtml(ch.id)}" ${
+                                isChecked ? 'checked' : ''
+                              } />
+                                  <span>📺 ${escapeHtml(ch.name)}${
+                                ch.group ? ` <small>(${escapeHtml(ch.group)})</small>` : ''
+                              }</span>
                                 </label>
-                              `
-                            )
+                              `;
+                            })
                             .join('')}
                         </div>
                       </div>
@@ -3352,9 +3503,63 @@ function setupEventListeners() {
       return;
     }
 
+    // Tạo Group mới từ menu trỏ xuống trong tab Kênh YouTube
+    const createFromDropdownBtn = e.target.closest('[data-create-group-from-dropdown]');
+    if (createFromDropdownBtn) {
+      const dropdownInput = document.getElementById('input-dropdown-new-group');
+      const groupName = String(dropdownInput?.value || '').trim();
+      if (!groupName) {
+        showBanner('Vui lòng nhập tên Group cần tạo!', true);
+        dropdownInput?.focus();
+        return;
+      }
+      await submitQuickCreateGroup({
+        name: groupName,
+        channelIds: [],
+        submitBtn: createFromDropdownBtn,
+        selectAfterCreate: true,
+      });
+      return;
+    }
+
+    // Bấm nút "✓ Lưu Group" trực tiếp trong khung Tạo Group nhanh
+    const saveQuickGroupBtn = e.target.closest('[data-save-quick-group]');
+    if (saveQuickGroupBtn) {
+      e.preventDefault();
+      const quickGroupForm = document.getElementById('form-quick-create-group');
+      const nameInput = document.getElementById('input-new-group-name');
+      const groupName = String(nameInput?.value ?? state.draftNewGroupName ?? '').trim();
+      const checkedBoxes = quickGroupForm
+        ? quickGroupForm.querySelectorAll('input[name="groupChannelIds"]:checked')
+        : [];
+      const channelIds = Array.from(checkedBoxes).map((cb) => cb.value);
+      await submitQuickCreateGroup({
+        name: groupName,
+        channelIds,
+        submitBtn: saveQuickGroupBtn,
+      });
+      return;
+    }
+
     // Bấm nút "+ Tạo Group" ngay trong khung Thống kê tổng hợp theo Nhãn
     const toggleCreateGroupBtn = e.target.closest('[data-toggle-create-group-box]');
     if (toggleCreateGroupBtn) {
+      if (state.showCreateGroupBox) {
+        const nameInput = document.getElementById('input-new-group-name');
+        const pendingName = String(nameInput?.value ?? state.draftNewGroupName ?? '').trim();
+        if (pendingName) {
+          const quickGroupForm = document.getElementById('form-quick-create-group');
+          const checkedBoxes = quickGroupForm
+            ? quickGroupForm.querySelectorAll('input[name="groupChannelIds"]:checked')
+            : [];
+          const channelIds = Array.from(checkedBoxes).map((cb) => cb.value);
+          await submitQuickCreateGroup({
+            name: pendingName,
+            channelIds,
+          });
+          return;
+        }
+      }
       state.showCreateGroupBox = !state.showCreateGroupBox;
       state.insightsLabelMode = 'group';
       renderYoutubeInsightsHub();
@@ -3370,6 +3575,8 @@ function setupEventListeners() {
     const closeCreateGroupBtn = e.target.closest('[data-close-create-group-box]');
     if (closeCreateGroupBtn) {
       state.showCreateGroupBox = false;
+      state.draftNewGroupName = '';
+      if (state.draftSelectedGroupChannelIds) state.draftSelectedGroupChannelIds.clear();
       renderYoutubeInsightsHub();
       return;
     }
@@ -3412,27 +3619,43 @@ function setupEventListeners() {
     }
   });
 
-  // Lưu Group mới ngay từ khung Thống kê tổng hợp theo Nhãn
-  document.body.addEventListener('submit', async (e) => {
-    const quickGroupForm = e.target.closest('#form-quick-create-group');
-    if (!quickGroupForm) return;
-    e.preventDefault();
-
-    const nameInput = document.getElementById('input-new-group-name');
-    const groupName = String(nameInput?.value || '').trim();
+  async function submitQuickCreateGroup({
+    name,
+    channelIds = [],
+    submitBtn = null,
+    selectAfterCreate = false,
+  } = {}) {
+    const groupName = String(name || '').trim();
     if (!groupName) {
       showBanner('Vui lòng nhập tên Group cần tạo!', true);
+      document.getElementById('input-new-group-name')?.focus();
       return;
     }
 
-    const checkedBoxes = quickGroupForm.querySelectorAll('input[name="groupChannelIds"]:checked');
-    const channelIds = Array.from(checkedBoxes).map((cb) => cb.value);
-
-    const submitBtn = quickGroupForm.querySelector('button[type="submit"]');
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Đang lưu...';
     }
+
+    // Lưu ngay lập tức vào bộ nhớ trình duyệt & state để hiển thị tức thì (0ms) và không bao giờ bị mất
+    saveLocalCustomGroup(groupName);
+    if (Array.isArray(channelIds) && channelIds.length > 0) {
+      const idSet = new Set(channelIds.map(String));
+      for (const ch of state.channels) {
+        if (idSet.has(ch.id)) {
+          ch.group = groupName;
+        }
+      }
+    }
+    state.showCreateGroupBox = false;
+    state.draftNewGroupName = '';
+    if (state.draftSelectedGroupChannelIds) state.draftSelectedGroupChannelIds.clear();
+    state.insightsLabelMode = 'group';
+    if (selectAfterCreate) {
+      state.filters.ytGroup = groupName;
+      state.activeChannelDeepId = null;
+    }
+    renderAll();
 
     try {
       const res = await apiRequest('/api/youtube/groups', {
@@ -3442,13 +3665,12 @@ function setupEventListeners() {
           channelIds,
         }),
       });
-      state.showCreateGroupBox = false;
-      state.insightsLabelMode = 'group';
+      saveLocalCustomGroup(res.name || groupName);
       await loadOverview();
       showBanner(
         res.assignedCount > 0
           ? `Đã tạo Group "${res.name}" và gán ${res.assignedCount} kênh vào Group!`
-          : `Đã tạo Group "${res.name}" thành công!`
+          : `Đã tạo và lưu Group "${res.name || groupName}" thành công!`
       );
     } catch (err) {
       showBanner(err.message, true);
@@ -3457,6 +3679,25 @@ function setupEventListeners() {
         submitBtn.textContent = '✓ Lưu Group';
       }
     }
+  }
+
+  // Lưu Group mới ngay từ khung Thống kê tổng hợp theo Nhãn
+  document.body.addEventListener('submit', async (e) => {
+    const quickGroupForm = e.target.closest('#form-quick-create-group');
+    if (!quickGroupForm) return;
+    e.preventDefault();
+
+    const nameInput = document.getElementById('input-new-group-name');
+    const groupName = String(nameInput?.value ?? state.draftNewGroupName ?? '').trim();
+    const checkedBoxes = quickGroupForm.querySelectorAll('input[name="groupChannelIds"]:checked');
+    const channelIds = Array.from(checkedBoxes).map((cb) => cb.value);
+    const submitBtn = quickGroupForm.querySelector('button[type="submit"]');
+
+    await submitQuickCreateGroup({
+      name: groupName,
+      channelIds,
+      submitBtn,
+    });
   });
 
   function readChannelMonthlyRevenueFromDom(chId) {
@@ -3609,6 +3850,11 @@ function setupEventListeners() {
       return;
     }
 
+    if (e.target.id === 'input-new-group-name') {
+      state.draftNewGroupName = e.target.value;
+      return;
+    }
+
     if (e.target.id === 'input-deep-video-search') {
       state.deepChannelVideoSearch = e.target.value;
       const pos = e.target.selectionStart || e.target.value.length;
@@ -3621,8 +3867,37 @@ function setupEventListeners() {
     }
   });
 
+  document.body.addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter' && e.target.matches?.('[data-channel-group]')) {
+      e.preventDefault();
+      e.target.blur();
+      return;
+    }
+    if (e.key === 'Enter' && e.target.id === 'input-dropdown-new-group') {
+      e.preventDefault();
+      const val = String(e.target.value || '').trim();
+      if (val) {
+        await submitQuickCreateGroup({
+          name: val,
+          channelIds: [],
+          selectAfterCreate: true,
+        });
+      }
+    }
+  });
+
   // Thay đổi trực tiếp trạng thái BKT, Group, Ngày đầu đăng video, Giờ xem Studio, hoặc Người / Mail quản lý kênh
   document.body.addEventListener('change', async (e) => {
+    if (e.target.matches?.('input[name="groupChannelIds"]')) {
+      if (!state.draftSelectedGroupChannelIds) state.draftSelectedGroupChannelIds = new Set();
+      if (e.target.checked) {
+        state.draftSelectedGroupChannelIds.add(e.target.value);
+      } else {
+        state.draftSelectedGroupChannelIds.delete(e.target.value);
+      }
+      return;
+    }
+
     // Lưu tự động khi sửa tiền tháng của kênh ngay ngoài Trang chủ
     const homeRevInput = e.target.closest('[data-home-ch-rev-id]');
     if (homeRevInput) {
@@ -3679,6 +3954,9 @@ function setupEventListeners() {
     if (groupInput) {
       const chId = groupInput.dataset.channelGroup;
       const val = groupInput.value.trim();
+      if (val) {
+        saveLocalCustomGroup(val);
+      }
       try {
         const updated = await apiRequest(`/api/youtube/channels/${encodeURIComponent(chId)}`, {
           method: 'PATCH',
@@ -4926,7 +5204,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=38', { updateViaCache: 'none' })
+      .register('/sw.js?v=46', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
@@ -4963,6 +5241,7 @@ loadOverview().catch((err) => showBanner(err.message, true));
 
 // Tự động làm mới dữ liệu nền mỗi 5 phút để cập nhật danh sách video trên 10K views & chỉ số theo ngày
 setInterval(() => {
+  if (state.showCreateGroupBox) return;
   const activeTag = document.activeElement?.tagName;
   if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
   loadOverview().catch(() => {});

@@ -605,8 +605,24 @@ export class StudioStore {
       try {
         const raw = fs.readFileSync(this.filePath, 'utf8');
         const parsed = JSON.parse(raw);
+        parsed.meta = parsed.meta || {};
         parsed.users = Array.isArray(parsed.users) ? parsed.users : [];
         (parsed.channels || []).forEach(normalizeChannel);
+        const existingCustom = Array.isArray(parsed.meta.customGroups)
+          ? parsed.meta.customGroups.map((g) => String(g || '').trim()).filter(Boolean)
+          : [];
+        const channelGroups = (parsed.channels || [])
+          .map((ch) => String(ch.group || '').trim())
+          .filter(Boolean);
+        const seenLower = new Set();
+        parsed.meta.customGroups = [];
+        for (const g of [...existingCustom, ...channelGroups]) {
+          const lower = g.toLowerCase();
+          if (!seenLower.has(lower)) {
+            seenLower.add(lower);
+            parsed.meta.customGroups.push(g);
+          }
+        }
         (parsed.videos || []).forEach(recalculateVideoHistory);
         (parsed.projects || []).forEach(recalculateProjectProgress);
         return parsed;
@@ -1601,14 +1617,9 @@ export class StudioStore {
     return [...new Set([...customGroups, ...userGroups, ...channelGroups])];
   }
 
-  createGroup(input = {}, user = null) {
-    if (user && user.role !== 'admin' && user.permissions?.canCreateChannel === false) {
-      throw new Error('Tài khoản của bạn chưa được Admin cấp quyền tạo Group mới!');
-    }
-    const name = String(input.name || '').trim();
-    if (!name) {
-      throw new Error('Vui lòng nhập tên Group cần tạo!');
-    }
+  #registerCustomGroupName(groupName = '', user = null) {
+    const name = String(groupName || '').trim();
+    if (!name) return;
 
     if (user && user.role !== 'admin' && user.scopeMode !== 'all') {
       const uRecord = (this.state.users || []).find((u) => u.id === user.id);
@@ -1620,19 +1631,41 @@ export class StudioStore {
         if (!existsUserGrp) {
           uRecord.customGroups.push(name);
         }
-      }
-    } else {
-      if (!this.state.meta) this.state.meta = {};
-      if (!Array.isArray(this.state.meta.customGroups)) {
-        this.state.meta.customGroups = [];
-      }
-      const existsCaseInsensitive = this.state.meta.customGroups.some(
-        (g) => String(g || '').trim().toLowerCase() === name.toLowerCase()
-      );
-      if (!existsCaseInsensitive) {
-        this.state.meta.customGroups.push(name);
+        if (uRecord.scopeMode === 'assigned') {
+          if (!Array.isArray(uRecord.allowedGroups)) uRecord.allowedGroups = [];
+          const existsAllowed = uRecord.allowedGroups.some(
+            (g) => String(g || '').trim().toLowerCase() === name.toLowerCase()
+          );
+          if (!existsAllowed) {
+            uRecord.allowedGroups.push(name);
+          }
+        }
+        return;
       }
     }
+
+    if (!this.state.meta) this.state.meta = {};
+    if (!Array.isArray(this.state.meta.customGroups)) {
+      this.state.meta.customGroups = [];
+    }
+    const existsCaseInsensitive = this.state.meta.customGroups.some(
+      (g) => String(g || '').trim().toLowerCase() === name.toLowerCase()
+    );
+    if (!existsCaseInsensitive) {
+      this.state.meta.customGroups.push(name);
+    }
+  }
+
+  createGroup(input = {}, user = null) {
+    if (user && user.role !== 'admin' && user.permissions?.canCreateChannel === false) {
+      throw new Error('Tài khoản của bạn chưa được Admin cấp quyền tạo Group mới!');
+    }
+    const name = String(input.name || '').trim();
+    if (!name) {
+      throw new Error('Vui lòng nhập tên Group cần tạo!');
+    }
+
+    this.#registerCustomGroupName(name, user);
 
     let assignedCount = 0;
     if (Array.isArray(input.channelIds) && input.channelIds.length > 0) {
@@ -1835,6 +1868,9 @@ export class StudioStore {
       updatedAt: new Date().toISOString(),
     });
 
+    if (channel.group) {
+      this.#registerCustomGroupName(channel.group, user);
+    }
     this.state.channels.unshift(channel);
     this.#save();
     return channel;
@@ -2105,7 +2141,12 @@ export class StudioStore {
     if (patch.estimatedRevenue !== undefined) channel.estimatedRevenue = String(patch.estimatedRevenue).trim();
     if (patch.firstVideoDate !== undefined) channel.firstVideoDate = String(patch.firstVideoDate).trim();
     if (patch.category !== undefined) channel.category = String(patch.category).trim();
-    if (patch.group !== undefined) channel.group = String(patch.group).trim();
+    if (patch.group !== undefined) {
+      channel.group = String(patch.group).trim();
+      if (channel.group) {
+        this.#registerCustomGroupName(channel.group, user);
+      }
+    }
     if (patch.manager !== undefined) channel.manager = String(patch.manager).trim();
     if (patch.managerEmail !== undefined) channel.managerEmail = String(patch.managerEmail).trim();
     if (patch.adsenseAccount !== undefined) channel.adsenseAccount = String(patch.adsenseAccount).trim();
