@@ -260,9 +260,9 @@ function switchAuthOverlayTab(tabName = '') {
     if (googleBtn) googleBtn.hidden = true;
     if (orDivider) orDivider.hidden = true;
     if (userInp) {
-      userInp.value = 'admin';
+      userInp.value = 'timhanhphuc';
       userInp.readOnly = true;
-      userInp.placeholder = 'admin';
+      userInp.placeholder = 'timhanhphuc';
     }
     if (passStep) passStep.hidden = false;
     if (passInp) passInp.placeholder = 'Nhập mật khẩu Admin...';
@@ -289,7 +289,8 @@ function switchAuthOverlayTab(tabName = '') {
     if (orDivider) orDivider.hidden = true;
     if (userInp) {
       userInp.readOnly = false;
-      if (userInp.value.trim().toLowerCase() === 'admin') {
+      const curVal = userInp.value.trim().toLowerCase();
+      if (curVal === 'admin' || curVal === 'timhanhphuc') {
         userInp.value = '';
       }
       userInp.placeholder = 'Nhập Username đăng nhập (trên 3 chữ cái)...';
@@ -336,8 +337,8 @@ function isAdminUser() {
 
 function renderCurrentUserSidebarPill() {
   const user = state.currentUser || {
-    name: 'Admin',
-    email: 'admin',
+    name: 'timhanhphuc',
+    email: 'timhanhphuc',
     role: 'admin',
     scopeMode: 'all',
   };
@@ -347,7 +348,7 @@ function renderCurrentUserSidebarPill() {
   const scopeEl = document.getElementById('sidebar-user-scope');
   const pillEl = document.getElementById('sidebar-current-user-pill');
 
-  const initial = String(user.name || user.email || 'A')
+  const initial = String(user.name || user.email || 'T')
     .trim()
     .charAt(0)
     .toUpperCase();
@@ -356,7 +357,7 @@ function renderCurrentUserSidebarPill() {
     avatarEl.classList.toggle('is-member', !isAdmin);
   }
   if (nameEl) {
-    nameEl.textContent = isAdmin ? 'Admin' : user.name || user.email;
+    nameEl.textContent = isAdmin ? 'timhanhphuc' : user.name || user.email;
   }
   if (scopeEl) {
     if (isAdmin) {
@@ -4127,7 +4128,8 @@ function setupEventListeners() {
     }
 
     if (e.target.id === 'input-auth-username') {
-      const isAdmin = String(e.target.value || '').trim().toLowerCase() === 'admin';
+      const valLower = String(e.target.value || '').trim().toLowerCase();
+      const isAdmin = valLower === 'timhanhphuc' || valLower === 'admin';
       const passStep = document.getElementById('auth-password-step');
       const submitBtn = document.getElementById('btn-auth-login-submit');
       if (passStep) passStep.hidden = false;
@@ -4893,13 +4895,14 @@ function setupEventListeners() {
         const fd = new FormData(form);
         const rawEmail = String(fd.get('email') || fd.get('username') || '').trim();
         const password = String(fd.get('password') || '');
-        const isAdminId = rawEmail.toLowerCase() === 'admin';
+        const lowerEmail = rawEmail.toLowerCase();
+        const isAdminId = lowerEmail === 'timhanhphuc' || lowerEmail === 'admin';
 
-        // Nếu gõ 'admin' mà ô mật khẩu đang ẩn -> mở ô mật khẩu Admin ra để nhập
+        // Nếu gõ 'timhanhphuc' / 'admin' mà ô mật khẩu đang ẩn -> mở ô mật khẩu Admin ra để nhập
         if (isAdminId && passStep && passStep.hidden && !password) {
           passStep.hidden = false;
           if (passInp) {
-            passInp.placeholder = 'Enter Admin password...';
+            passInp.placeholder = 'Nhập mật khẩu Admin...';
             passInp.focus();
           }
           return;
@@ -5664,7 +5667,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=59', { updateViaCache: 'none' })
+      .register('/sw.js?v=60', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

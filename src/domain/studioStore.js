@@ -1028,10 +1028,14 @@ export class StudioStore {
   }
 
   getAdminUserProfile() {
-    const adminEmail = String(this.state.meta?.adminEmail || 'admin@gmail.com').trim().toLowerCase();
+    const rawAdmin = String(this.state.meta?.adminEmail || '').trim().toLowerCase();
+    const adminEmail =
+      !rawAdmin || rawAdmin === 'admin' || rawAdmin === 'admin@gmail.com'
+        ? 'timhanhphuc'
+        : rawAdmin;
     return {
       id: 'admin',
-      name: 'Admin Quản Trị',
+      name: 'timhanhphuc',
       email: adminEmail,
       role: 'admin',
       status: 'approved',
@@ -1152,8 +1156,14 @@ export class StudioStore {
     const candidateHash = hashPassword(password);
     const directGmailLogin = Boolean(options?.directGmailLogin);
 
+    const isAdminUsername =
+      !rawId ||
+      rawId === 'timhanhphuc' ||
+      rawId === 'admin' ||
+      (adminEmail && rawId === adminEmail && !directGmailLogin);
+
     // 1. Kiểm tra nếu người dùng đăng nhập bằng Username hoặc Gmail ở màn hình ngoài
-    if (rawId && rawId !== 'admin' && (!adminEmail || rawId !== adminEmail || directGmailLogin)) {
+    if (!isAdminUsername) {
       if (!isValidUsernameOrEmail(rawId)) {
         throw new Error('Username đăng nhập bắt buộc phải có trên 3 chữ cái (tối thiểu 4 chữ cái)!');
       }
@@ -1248,6 +1258,9 @@ export class StudioStore {
       throw new Error('Mật khẩu đăng ký phải có ít nhất 3 ký tự!');
     }
     const rawLocal = rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail;
+    if (rawLocal === 'timhanhphuc' || rawLocal === 'admin') {
+      throw new Error('Username này là tài khoản Quản trị viên (Admin), vui lòng chọn Username khác!');
+    }
     const existing = this.state.users.find((u) => {
       const uEmail = String(u.email || '').trim().toLowerCase();
       const uLocal = uEmail.includes('@') ? uEmail.split('@')[0] : uEmail;
@@ -1624,12 +1637,13 @@ export class StudioStore {
 
       // Admin hoặc chế độ không khóa Web
       if (loginHash) {
-        const adminEmail = String(this.state.meta.adminEmail || 'admin').trim().toLowerCase();
+        const adminEmail = String(this.state.meta.adminEmail || 'timhanhphuc').trim().toLowerCase();
         const adminLocal = adminEmail.includes('@') ? adminEmail.split('@')[0] : adminEmail;
         const matchedAdminPass = safeCompareStrings(recoveryHash, loginHash);
         const matchedAdminId = Boolean(
           lowerRecovery &&
-            (lowerRecovery === 'admin' ||
+            (lowerRecovery === 'timhanhphuc' ||
+              lowerRecovery === 'admin' ||
               lowerRecovery === adminEmail ||
               lowerRecovery === adminLocal)
         );
