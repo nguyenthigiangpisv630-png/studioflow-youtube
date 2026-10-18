@@ -511,6 +511,23 @@ test('Đăng ký & Đăng nhập bằng Username (không cần @gmail.com), bắ
     const loginBody = await loginRes.json();
     assert.equal(loginBody.ok, true);
     assert.equal(loginBody.user.email, 'minhquan99');
+
+    // 4. Giao diện & API của User thường không có quyền thấy hoặc chạy bất kỳ Bot nào (403 Forbidden)
+    const userOverviewRes = await fetch(`${baseUrl}/api/overview`, {
+      headers: { 'X-Studio-Token': loginBody.token },
+    });
+    const userOverviewData = await userOverviewRes.json();
+    assert.equal(userOverviewData.botCenter, null);
+
+    const userFootageRes = await fetch(`${baseUrl}/api/bots/footage/scan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Studio-Token': loginBody.token,
+      },
+      body: JSON.stringify({ query: 'test user' }),
+    });
+    assert.equal(userFootageRes.status, 403);
   });
 });
 

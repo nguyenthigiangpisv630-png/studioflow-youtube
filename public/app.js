@@ -400,9 +400,14 @@ function renderCurrentUserSidebarPill() {
   const settingsMgrBtn = document.getElementById('btn-settings-users-manager');
   const navBotsBtn = document.getElementById('nav-btn-bots');
   const mobileBotsBtn = document.getElementById('m-nav-btn-bots');
+  const navFootageBtn = document.getElementById('nav-btn-footage');
+  const mobileFootageBtn = document.getElementById('m-nav-btn-footage');
   const settingsBotsBtn = document.getElementById('btn-settings-bots-center');
   const pendingBadge = document.getElementById('badge-pending-users');
   const pwdBtn = document.getElementById('btn-password-settings');
+  const panelBots = document.getElementById('panel-bots');
+  const panelFootage = document.getElementById('panel-footage');
+  const panelUsers = document.getElementById('panel-users');
 
   if (navUsersBtn) navUsersBtn.hidden = !isAdmin;
   if (mobileUsersBtn) mobileUsersBtn.hidden = !isAdmin;
@@ -410,8 +415,13 @@ function renderCurrentUserSidebarPill() {
   if (settingsMgrBtn) settingsMgrBtn.hidden = !isAdmin;
   if (navBotsBtn) navBotsBtn.hidden = !isAdmin;
   if (mobileBotsBtn) mobileBotsBtn.hidden = !isAdmin;
+  if (navFootageBtn) navFootageBtn.hidden = !isAdmin;
+  if (mobileFootageBtn) mobileFootageBtn.hidden = !isAdmin;
   if (settingsBotsBtn) settingsBotsBtn.hidden = !isAdmin;
   if (pwdBtn) pwdBtn.hidden = !isAdmin;
+  if (panelBots) panelBots.hidden = !isAdmin;
+  if (panelFootage) panelFootage.hidden = !isAdmin;
+  if (panelUsers) panelUsers.hidden = !isAdmin;
 
   const totalUsersCount = (state.users || []).length;
   const pendingCount = (state.users || []).filter((u) => u.status === 'pending').length;
@@ -423,7 +433,7 @@ function renderCurrentUserSidebarPill() {
     pendingBadge.hidden = !isAdmin || pendingCount === 0;
   }
 
-  if (!isAdmin && (state.activeTab === 'users' || state.activeTab === 'bots')) {
+  if (!isAdmin && (state.activeTab === 'users' || state.activeTab === 'bots' || state.activeTab === 'footage')) {
     switchTab('insights');
   }
 }
@@ -922,8 +932,11 @@ function renderAll() {
   renderSelectOptions();
   renderContentsTab();
   renderYoutubeTab();
-  renderUsersManagerModal();
-  renderBotsCenterTab();
+  if (isAdminUser()) {
+    renderUsersManagerModal();
+    renderBotsCenterTab();
+    renderFootageStudioTab();
+  }
   renderBrandIdentityTab();
 }
 
@@ -3306,6 +3319,9 @@ function parseStudioTextInBrowser(rawText = '') {
 // =============================================================================
 function switchTab(tabName) {
   if (!TAB_TITLES[tabName]) return;
+  if (!isAdminUser() && (tabName === 'bots' || tabName === 'footage' || tabName === 'users')) {
+    tabName = 'insights';
+  }
   state.activeTab = tabName;
 
   document.querySelectorAll('.nav-btn, .m-nav-btn').forEach((btn) => {
@@ -8919,7 +8935,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=72', { updateViaCache: 'none' })
+      .register('/sw.js?v=73', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
