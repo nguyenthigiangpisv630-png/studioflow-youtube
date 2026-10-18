@@ -178,10 +178,10 @@ export function createAppServer({
     dailyTimer = setInterval(checkAndRunHourlySync, 60 * 1000);
     dailyTimer.unref?.();
 
-    // Bot 1: Tự động lắng nghe nút bấm [✅ Duyệt ngay] và lệnh (/report, /top, /users, /backup) từ Telegram mỗi 15 giây
+    // Bot 1: Tự động lắng nghe nút bấm và lệnh (/trend, /footage, /spy, /rea, /report...) từ Telegram mỗi 2.5 giây
     const telegramPollTimer = setInterval(() => {
       pollTelegramBotUpdates(store).catch(() => {});
-    }, 15 * 1000);
+    }, 2500);
     telegramPollTimer.unref?.();
 
     // Tự động quét bổ sung ngay khi khởi động cho các kênh đang có 0 video (do lần quét trước bị YouTube đổi cấu trúc)

@@ -708,11 +708,68 @@ export async function createImmortalSnapshot(store, { label = 'Sao lưu tự đ�
 // ============================================================================
 // BOT 1: TELEGRAM ADMIN CENTER BOT (DUYỆT USER, BÁO CÁO & ĐIỀU KHIỂN TỪ XA)
 // ============================================================================
+function splitTelegramTextIntoChunks(rawText = '', maxLen = 3700) {
+  const text = String(rawText || '').trim();
+  if (!text) return ['(Trống)'];
+  if (text.length <= maxLen) return [text];
+
+  const chunks = [];
+  const lines = text.split('\n');
+  let current = '';
+
+  for (const line of lines) {
+    const candidate = current ? `${current}\n${line}` : line;
+    if (candidate.length <= maxLen) {
+      current = candidate;
+    } else {
+      if (current) {
+        chunks.push(current);
+      }
+      if (line.length <= maxLen) {
+        current = line;
+      } else {
+        let rest = line;
+        while (rest.length > maxLen) {
+          chunks.push(rest.slice(0, maxLen));
+          rest = rest.slice(maxLen);
+        }
+        current = rest;
+      }
+    }
+  }
+  if (current) {
+    chunks.push(current);
+  }
+  return chunks;
+}
+
 export async function callTelegramApi(botToken, method, payload = {}) {
   const cleanToken = String(botToken || '').trim();
   if (!cleanToken) {
     throw new Error('Chưa nhập Telegram Bot Token!');
   }
+
+  // Tự động chia nhỏ tin nhắn nếu vượt quá giới hạn 4096 ký tự của Telegram (tránh lỗi "Bad Request: message is too long")
+  if (method === 'sendMessage' && typeof payload?.text === 'string' && payload.text.length > 3700) {
+    const chunks = splitTelegramTextIntoChunks(payload.text, 3700);
+    let lastResult = null;
+    for (let i = 0; i < chunks.length; i += 1) {
+      const isLast = i === chunks.length - 1;
+      const chunkPayload = {
+        ...payload,
+        text:
+          chunks.length > 1
+            ? `${chunks[i]}\n\n<i>📄 (Phần ${i + 1}/${chunks.length})</i>`
+            : chunks[i],
+      };
+      if (!isLast && chunkPayload.reply_markup) {
+        delete chunkPayload.reply_markup;
+      }
+      lastResult = await callTelegramApi(cleanToken, 'sendMessage', chunkPayload);
+    }
+    return lastResult;
+  }
+
   const url = `https://api.telegram.org/bot${encodeURIComponent(cleanToken)}/${method}`;
   const res = await fetch(url, {
     method: 'POST',
@@ -721,7 +778,29 @@ export async function callTelegramApi(botToken, method, payload = {}) {
   });
   const data = await res.json();
   if (!res.ok || !data.ok) {
-    throw new Error(data.description || `Lỗi Telegram API (${res.status})`);
+    const desc = String(data.description || '');
+    // Fallback an toàn: Nếu lỗi parse HTML entities, tự động gửi bản text thuần không thẻ HTML để không bao giờ mất tin nhắn
+    if (
+      method === 'sendMessage' &&
+      payload.parse_mode &&
+      /can't parse entities|parse_mode|entity/i.test(desc)
+    ) {
+      const plainPayload = {
+        ...payload,
+        text: String(payload.text || '').replace(/<[^>]+>/g, ''),
+      };
+      delete plainPayload.parse_mode;
+      const retryRes = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(plainPayload),
+      });
+      const retryData = await retryRes.json();
+      if (retryRes.ok && retryData.ok) {
+        return retryData.result;
+      }
+    }
+    throw new Error(desc || `Lỗi Telegram API (${res.status})`);
   }
   return data.result;
 }
@@ -914,11 +993,15 @@ export function getTelegramMainControlKeyboard() {
   };
 }
 
+let isTelegramPollingInProgress = false;
+
 export async function pollTelegramBotUpdates(store) {
+  if (isTelegramPollingInProgress) return;
   const center = ensureBotCenterState(store.state.meta);
   const cfg = center.config;
   if (!cfg.telegramEnabled || !cfg.telegramBotToken) return;
 
+  isTelegramPollingInProgress = true;
   try {
     const offset = (Number(cfg.lastTelegramUpdateId) || 0) + 1;
     const updates = await callTelegramApi(cfg.telegramBotToken, 'getUpdates', {
@@ -928,11 +1011,22 @@ export async function pollTelegramBotUpdates(store) {
     });
     if (!Array.isArray(updates) || updates.length === 0) return;
 
-    for (const u of updates) {
-      if (u.update_id >= (cfg.lastTelegramUpdateId || 0)) {
-        cfg.lastTelegramUpdateId = u.update_id;
+    // Xác nhận (acknowledge) ngay lập tức với máy chủ Telegram bằng offset = maxUpdateId + 1
+    // để không bao giờ bị lặp tin nhắn 2 lần hoặc chạy lại khi lệnh đang xử lý!
+    const maxUpdateId = Math.max(...updates.map((u) => Number(u.update_id) || 0));
+    if (maxUpdateId >= (cfg.lastTelegramUpdateId || 0)) {
+      cfg.lastTelegramUpdateId = maxUpdateId;
+      if (typeof store.saveState === 'function') {
+        store.saveState();
       }
+      callTelegramApi(cfg.telegramBotToken, 'getUpdates', {
+        offset: maxUpdateId + 1,
+        timeout: 0,
+        limit: 1,
+      }).catch(() => {});
+    }
 
+    for (const u of updates) {
       // 1. Xử lý khi Admin bấm nút Inline [✅ Duyệt], [⛔ Khóa] hoặc Menu 10 Bot ngay trên Telegram
       if (u.callback_query) {
         const cb = u.callback_query;
@@ -1091,202 +1185,226 @@ export async function pollTelegramBotUpdates(store) {
       }
       const text = String(msg.text || '').trim();
 
-      if (text.startsWith('/start') || text.startsWith('/help') || text.startsWith('/menu')) {
-        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-          chat_id: chatId,
-          parse_mode: 'HTML',
-          reply_markup: getTelegramMainControlKeyboard(),
-          text: [
-            `👑 <b>BẢNG ĐIỀU KHIỂN 10 BOT SIÊU CÔNG CỤ QUỐC TẾ — ACB9X STUDIOFLOW</b>`,
-            `Xin chào Admin <b>timhanhphuc</b>! Anh có thể <b>chạm trực tiếp vào 10 nút bên dưới</b> hoặc gõ lệnh:`,
-            `• /menu — Mở Bảng 10 nút điều khiển nhanh 10 Bot (Bot 1)`,
-            `• /report — Báo cáo tổng hợp Kênh, Views &amp; Doanh thu (Bot 1)`,
-            `• /top — Video nổ view + TubeBuddy Booster &amp; Gợi ý Phần 2 (Bot 2)`,
-            `• /schedule — Nhắc lịch đăng, KPI Quản lý &amp; Giao đề tài 7 ngày (Bot 3)`,
-            `• /backup — Nhận ngay file Sao lưu bất tử .json kèm SHA-256 (Bot 4)`,
-            `• /spy <code>@TenKenh</code> — NexLev + vidIQ + SocialBlade + 1of10 + Viewstats (Bot 5)`,
-            `• /thumb hoặc /rea <code>Link_Video</code> — Dịch ngược REA + ThumbsUp + TubeBuddy A/B (Bot 6)`,
-            `• /trend <code>[mã_nước] Từ_khóa</code> — 5 Ngách Ít Cạnh Tranh + 12 Thị Trường + vidIQ (Bot 7)`,
-            `• /footage <code>Chủ_đề</code> — Săn Kho Footage 10 Nền Tảng + Link Tải MP4 &amp; Shotlist (Bot 10)`,
-            `• /ga hoặc /revenue — Đếm ngược BKT, Khiên Gà &amp; Dự báo SocialBlade (Bot 11)`,
-            `• /cloud — Xuất Google Sheets / Notion &amp; Kiểm toán CFO $/Video (Bot 12)`,
-            `• /users — Duyệt thành viên mới đăng ký`,
-          ].join('\n'),
-        });
-      } else if (text.startsWith('/report') || text.startsWith('/baocao')) {
-        const reportHtml = formatTelegramSystemReport(store);
-        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-          chat_id: chatId,
-          parse_mode: 'HTML',
-          text: reportHtml,
-        });
-      } else if (text.startsWith('/schedule') || text.startsWith('/lich')) {
-        const schedHtml = formatTelegramScheduleReport(store);
-        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-          chat_id: chatId,
-          parse_mode: 'HTML',
-          text: schedHtml,
-        });
-      } else if (text.startsWith('/spy') || text.startsWith('/doithu')) {
-        const arg = text.replace(/^\/(spy|doithu)(@\S+)?/i, '').trim();
-        if (!arg) {
+      try {
+        if (text.startsWith('/start') || text.startsWith('/help') || text.startsWith('/menu')) {
           await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
             chat_id: chatId,
             parse_mode: 'HTML',
-            text: `🕵️ <b>Cú pháp Bot 5 (NexLev + vidIQ + SocialBlade + 1of10 + Viewstats):</b>\nGõ <code>/spy @TenKenhDoiThu</code>, dán Link kênh hoặc gõ Từ khóa ngách.\n<i>Ví dụ:</i> <code>/spy @MrBeast</code>`,
-          });
-        } else {
-          const scanResult = await huntCompetitorChannelOutliers(store, { query: arg });
-          const html = formatTelegramCompetitorReport(scanResult);
-          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-            chat_id: chatId,
-            parse_mode: 'HTML',
-            text: html,
-          });
-        }
-      } else if (text.startsWith('/thumb') || text.startsWith('/rea')) {
-        const isReaCmd = text.toLowerCase().startsWith('/rea');
-        const arg = text.replace(/^\/(thumb|rea)(@\S+)?/i, '').trim();
-        if (!arg) {
-          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-            chat_id: chatId,
-            parse_mode: 'HTML',
-            text: `🔬🎨 <b>Cú pháp Bot 6 (Dịch Ngược REA <code>/rea</code> + ThumbsUp + TubeBuddy A/B):</b>\nGõ <code>/rea Link_Video_YouTube</code> hoặc <code>/thumb Chủ đề video</code> để mổ xẻ ngược cấu trúc ảnh gốc và sinh 4 Prompt AI nhân bản 1:1!\n<i>Ví dụ:</i> <code>/rea https://www.youtube.com/watch?v=dQw4w9WgXcQ</code>`,
-          });
-        } else {
-          const cloneItem = await analyzeAndGenerateThumbnailPrompts(store, {
-            videoUrlOrId: arg,
-            title: arg.startsWith('http') ? '' : arg,
-            reaMode: isReaCmd || true,
-          });
-          await sendTelegramThumbnailClone(store, cloneItem, cfg.telegramBotToken, chatId);
-        }
-      } else if (text.startsWith('/trend') || text.startsWith('/tukhoa')) {
-        const rawArg = text.replace(/^\/(trend|tukhoa)(@\S+)?/i, '').trim();
-        if (!rawArg) {
-          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-            chat_id: chatId,
-            parse_mode: 'HTML',
+            reply_markup: getTelegramMainControlKeyboard(),
             text: [
-              `🔍 <b>Cú pháp Bot 7 (Săn Từ Khóa &amp; Gợi Ý Ngách Ít Cạnh Tranh — 12 Thị Trường Quốc Tế):</b>`,
-              `• Quét Thị trường mặc định: <code>/trend tiểu sử tỷ phú</code> hoặc <code>/trend @TenKenh</code>`,
-              `• Quét Thị trường Ngoại (RPM cao): <code>/trend [mã_nước] [từ_khóa]</code>`,
-              `  └ 🇺🇸 Mỹ: <code>/trend us billionaire story</code>`,
-              `  └ 🇯🇵 Nhật: <code>/trend jp 歴史 ミステリー</code>`,
-              `  └ 🇰🇷 Hàn: <code>/trend kr 재벌 이야기</code>`,
-              `  └ 🇩🇪 Đức: <code>/trend de finanzen geheimnisse</code>`,
-              `  └ 🇪🇸 TBN/Mỹ Latinh: <code>/trend es historias ocultas</code>`,
+              `👑 <b>BẢNG ĐIỀU KHIỂN 10 BOT SIÊU CÔNG CỤ QUỐC TẾ — ACB9X STUDIOFLOW</b>`,
+              `Xin chào Admin <b>timhanhphuc</b>! Anh có thể <b>chạm trực tiếp vào 10 nút bên dưới</b> hoặc gõ lệnh:`,
+              `• /menu — Mở Bảng 10 nút điều khiển nhanh 10 Bot (Bot 1)`,
+              `• /report — Báo cáo tổng hợp Kênh, Views &amp; Doanh thu (Bot 1)`,
+              `• /top — Video nổ view + TubeBuddy Booster &amp; Gợi ý Phần 2 (Bot 2)`,
+              `• /schedule — Nhắc lịch đăng, KPI Quản lý &amp; Giao đề tài 7 ngày (Bot 3)`,
+              `• /backup — Nhận ngay file Sao lưu bất tử .json kèm SHA-256 (Bot 4)`,
+              `• /spy <code>@TenKenh</code> — NexLev + vidIQ + SocialBlade + 1of10 + Viewstats (Bot 5)`,
+              `• /thumb hoặc /rea <code>Link_Video</code> — Dịch ngược REA + ThumbsUp + TubeBuddy A/B (Bot 6)`,
+              `• /trend <code>[mã_nước] Từ_khóa</code> — 5 Ngách Ít Cạnh Tranh + 12 Thị Trường + vidIQ (Bot 7)`,
+              `• /footage <code>Chủ_đề</code> — Săn Kho Footage 10 Nền Tảng + Link Tải MP4 &amp; Shotlist (Bot 10)`,
+              `• /ga hoặc /revenue — Đếm ngược BKT, Khiên Gà &amp; Dự báo SocialBlade (Bot 11)`,
+              `• /cloud — Xuất Google Sheets / Notion &amp; Kiểm toán CFO $/Video (Bot 12)`,
+              `• /users — Duyệt thành viên mới đăng ký`,
             ].join('\n'),
           });
-        } else {
-          const marketPrefixMatch = rawArg.match(
-            /^(vi|vn|en|us|gb|uk|au|ca|jp|ja|kr|ko|de|fr|es|pt|br|in|id)\s+(.+)$/i
-          );
-          const marketParam = marketPrefixMatch ? marketPrefixMatch[1].toLowerCase() : undefined;
-          const seedParam = marketPrefixMatch ? marketPrefixMatch[2].trim() : rawArg;
-          const trendScan = await huntYouTubeSearchTrends(store, {
-            seedKeyword: seedParam,
-            ...(marketParam ? { market: marketParam } : {}),
-          });
-          const html = formatTelegramTrendReport(trendScan);
+        } else if (text.startsWith('/report') || text.startsWith('/baocao')) {
+          const reportHtml = formatTelegramSystemReport(store);
           await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
             chat_id: chatId,
             parse_mode: 'HTML',
-            text: html,
+            text: reportHtml,
           });
-        }
-      } else if (
-        text.startsWith('/footage') ||
-        text.startsWith('/broll') ||
-        text.startsWith('/foogate') ||
-        text.startsWith('/tulieu')
-      ) {
-        const rawArg = text.replace(/^\/(footage|broll|foogate|tulieu)(@\S+)?/i, '').trim();
-        if (!rawArg) {
+        } else if (text.startsWith('/schedule') || text.startsWith('/lich')) {
+          const schedHtml = formatTelegramScheduleReport(store);
           await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
             chat_id: chatId,
             parse_mode: 'HTML',
-            text: [
-              `🎬 <b>Cú pháp Bot 10 (Săn Kho Footage Đa Nền Tảng &amp; Link Tải Video MP4 4K):</b>`,
-              `• Gõ <code>/footage [Chủ đề hoặc Từ khóa]</code>`,
-              `  └ <i>Ví dụ 1:</i> <code>/footage tiểu sử tỷ phú</code>`,
-              `  └ <i>Ví dụ 2:</i> <code>/footage luxury yacht lifestyle</code>`,
-              `  └ <i>Ví dụ 3:</i> <code>/footage lịch sử cổ đại</code>`,
-              `💡 <i>Bot sẽ tự động dịch từ khóa sang Tiếng Anh &amp; Tiếng Trung, lấy link tải .MP4 trực tiếp (Archive.org / Wikimedia), quét YouTube CC-BY 4K B-Roll, Pexels, Pixabay, Douyin (抖音), Bilibili và viết sẵn 5 phân cảnh Shotlist + Prompt AI!</i>`,
-            ].join('\n'),
+            text: schedHtml,
           });
-        } else {
-          const footageScan = await huntMultiPlatformFootage(store, { query: rawArg });
-          const html = formatTelegramFootageReport(footageScan);
-          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-            chat_id: chatId,
-            parse_mode: 'HTML',
-            text: html,
-          });
-        }
-      } else if (
-        text.startsWith('/ga') ||
-        text.startsWith('/bkt') ||
-        text.startsWith('/revenue') ||
-        text.startsWith('/doanhthu')
-      ) {
-        const shieldHtml = formatTelegramMonetizationReport(store);
-        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-          chat_id: chatId,
-          parse_mode: 'HTML',
-          text: shieldHtml,
-        });
-      } else if (text.startsWith('/cloud') || text.startsWith('/sheets') || text.startsWith('/notion')) {
-        await sendTelegramCloudReportDocument(store, cfg.telegramBotToken, chatId);
-      } else if (text.startsWith('/top') || text.startsWith('/no')) {
-        const scan = scanViralAndChannelHealth(store);
-        const topList = (scan.viralVideos || []).slice(0, 8);
-        const body =
-          topList.length > 0
-            ? topList
-                .map(
-                  (v, i) =>
-                    `${i + 1}. 🔥 <b>${escapeTgHtml(v.title)}</b>\n   📺 ${escapeTgHtml(
-                      v.channelName
-                    )} (${escapeTgHtml(v.group)}) — <b>${Number(v.views).toLocaleString(
-                      'vi-VN'
-                    )} views</b> (<b>x${v.outlierMultiplier}</b> TB kênh)`
-                )
-                .join('\n\n')
-            : 'Chưa có video nào vượt ngưỡng nổ view.';
-        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-          chat_id: chatId,
-          parse_mode: 'HTML',
-          text: `🔥 <b>DANH SÁCH VIDEO ĐANG NỔ VIEW (BOT 2):</b>\n\n${body}`,
-        });
-      } else if (text.startsWith('/users')) {
-        const pending = (store.state.users || []).filter((usr) => usr.status === 'pending');
-        if (pending.length === 0) {
-          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
-            chat_id: chatId,
-            text: '✅ Hiện không có tài khoản nào đang chờ duyệt!',
-          });
-        } else {
-          for (const usr of pending) {
+        } else if (text.startsWith('/spy') || text.startsWith('/doithu')) {
+          const arg = text.replace(/^\/(spy|doithu)(@\S+)?/i, '').trim();
+          if (!arg) {
             await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
               chat_id: chatId,
               parse_mode: 'HTML',
-              text: `⏳ <b>Chờ duyệt:</b> <code>${escapeTgHtml(usr.email)}</code> (${escapeTgHtml(
-                usr.name
-              )})`,
-              reply_markup: {
-                inline_keyboard: [
-                  [
-                    { text: '✅ Duyệt ngay', callback_data: `approve_user:${usr.id}` },
-                    { text: '⛔ Khóa', callback_data: `suspend_user:${usr.id}` },
-                  ],
-                ],
-              },
+              text: `🕵️ <b>Cú pháp Bot 5 (NexLev + vidIQ + SocialBlade + 1of10 + Viewstats):</b>\nGõ <code>/spy @TenKenhDoiThu</code>, dán Link kênh hoặc gõ Từ khóa ngách.\n<i>Ví dụ:</i> <code>/spy @MrBeast</code>`,
+            });
+          } else {
+            callTelegramApi(cfg.telegramBotToken, 'sendChatAction', {
+              chat_id: chatId,
+              action: 'typing',
+            }).catch(() => {});
+            const scanResult = await huntCompetitorChannelOutliers(store, { query: arg });
+            const html = formatTelegramCompetitorReport(scanResult);
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              parse_mode: 'HTML',
+              text: html,
             });
           }
+        } else if (text.startsWith('/thumb') || text.startsWith('/rea')) {
+          const isReaCmd = text.toLowerCase().startsWith('/rea');
+          const arg = text.replace(/^\/(thumb|rea)(@\S+)?/i, '').trim();
+          if (!arg) {
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              parse_mode: 'HTML',
+              text: `🔬🎨 <b>Cú pháp Bot 6 (Dịch Ngược REA <code>/rea</code> + ThumbsUp + TubeBuddy A/B):</b>\nGõ <code>/rea Link_Video_YouTube</code> hoặc <code>/thumb Chủ đề video</code> để mổ xẻ ngược cấu trúc ảnh gốc và sinh 4 Prompt AI nhân bản 1:1!\n<i>Ví dụ:</i> <code>/rea https://www.youtube.com/watch?v=dQw4w9WgXcQ</code>`,
+            });
+          } else {
+            callTelegramApi(cfg.telegramBotToken, 'sendChatAction', {
+              chat_id: chatId,
+              action: 'typing',
+            }).catch(() => {});
+            const cloneItem = await analyzeAndGenerateThumbnailPrompts(store, {
+              videoUrlOrId: arg,
+              title: arg.startsWith('http') ? '' : arg,
+              reaMode: isReaCmd || true,
+            });
+            await sendTelegramThumbnailClone(store, cloneItem, cfg.telegramBotToken, chatId);
+          }
+        } else if (text.startsWith('/trend') || text.startsWith('/tukhoa')) {
+          const rawArg = text.replace(/^\/(trend|tukhoa)(@\S+)?/i, '').trim();
+          if (!rawArg) {
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              parse_mode: 'HTML',
+              text: [
+                `🔍 <b>Cú pháp Bot 7 (Săn Từ Khóa &amp; Gợi Ý Ngách Ít Cạnh Tranh — 12 Thị Trường Quốc Tế):</b>`,
+                `• Quét Thị trường mặc định: <code>/trend tiểu sử tỷ phú</code> hoặc <code>/trend @TenKenh</code>`,
+                `• Quét Thị trường Ngoại (RPM cao): <code>/trend [mã_nước] [từ_khóa]</code>`,
+                `  └ 🇺🇸 Mỹ: <code>/trend us billionaire story</code>`,
+                `  └ 🇯🇵 Nhật: <code>/trend jp 歴史 ミステリー</code>`,
+                `  └ 🇰🇷 Hàn: <code>/trend kr 재벌 이야기</code>`,
+                `  └ 🇩🇪 Đức: <code>/trend de finanzen geheimnisse</code>`,
+                `  └ 🇪🇸 TBN/Mỹ Latinh: <code>/trend es historias ocultas</code>`,
+              ].join('\n'),
+            });
+          } else {
+            callTelegramApi(cfg.telegramBotToken, 'sendChatAction', {
+              chat_id: chatId,
+              action: 'typing',
+            }).catch(() => {});
+            const marketPrefixMatch = rawArg.match(
+              /^(vi|vn|en|us|gb|uk|au|ca|jp|ja|kr|ko|de|fr|es|pt|br|in|id)\s+(.+)$/i
+            );
+            const marketParam = marketPrefixMatch ? marketPrefixMatch[1].toLowerCase() : undefined;
+            const seedParam = marketPrefixMatch ? marketPrefixMatch[2].trim() : rawArg;
+            const trendScan = await huntYouTubeSearchTrends(store, {
+              seedKeyword: seedParam,
+              ...(marketParam ? { market: marketParam } : {}),
+            });
+            const html = formatTelegramTrendReport(trendScan);
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              parse_mode: 'HTML',
+              text: html,
+            });
+          }
+        } else if (
+          text.startsWith('/footage') ||
+          text.startsWith('/broll') ||
+          text.startsWith('/foogate') ||
+          text.startsWith('/tulieu')
+        ) {
+          const rawArg = text.replace(/^\/(footage|broll|foogate|tulieu)(@\S+)?/i, '').trim();
+          if (!rawArg) {
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              parse_mode: 'HTML',
+              text: [
+                `🎬 <b>Cú pháp Bot 10 (Săn Kho Footage Đa Nền Tảng &amp; Link Tải Video MP4 4K):</b>`,
+                `• Gõ <code>/footage [Chủ đề hoặc Từ khóa]</code>`,
+                `  └ <i>Ví dụ 1:</i> <code>/footage tiểu sử tỷ phú</code>`,
+                `  └ <i>Ví dụ 2:</i> <code>/footage luxury yacht lifestyle</code>`,
+                `  └ <i>Ví dụ 3:</i> <code>/footage lịch sử cổ đại</code>`,
+                `💡 <i>Bot sẽ tự động dịch từ khóa sang Tiếng Anh &amp; Tiếng Trung, lấy link tải .MP4 trực tiếp (Archive.org / Wikimedia), quét YouTube CC-BY 4K B-Roll, Pexels, Pixabay, Douyin (抖音), Bilibili và viết sẵn 5 phân cảnh Shotlist + Prompt AI!</i>`,
+              ].join('\n'),
+            });
+          } else {
+            callTelegramApi(cfg.telegramBotToken, 'sendChatAction', {
+              chat_id: chatId,
+              action: 'typing',
+            }).catch(() => {});
+            const footageScan = await huntMultiPlatformFootage(store, { query: rawArg });
+            const html = formatTelegramFootageReport(footageScan);
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              parse_mode: 'HTML',
+              text: html,
+            });
+          }
+        } else if (
+          text.startsWith('/ga') ||
+          text.startsWith('/bkt') ||
+          text.startsWith('/revenue') ||
+          text.startsWith('/doanhthu')
+        ) {
+          const shieldHtml = formatTelegramMonetizationReport(store);
+          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+            chat_id: chatId,
+            parse_mode: 'HTML',
+            text: shieldHtml,
+          });
+        } else if (text.startsWith('/cloud') || text.startsWith('/sheets') || text.startsWith('/notion')) {
+          await sendTelegramCloudReportDocument(store, cfg.telegramBotToken, chatId);
+        } else if (text.startsWith('/top') || text.startsWith('/no')) {
+          const scan = scanViralAndChannelHealth(store);
+          const topList = (scan.viralVideos || []).slice(0, 8);
+          const body =
+            topList.length > 0
+              ? topList
+                  .map(
+                    (v, i) =>
+                      `${i + 1}. 🔥 <b>${escapeTgHtml(v.title)}</b>\n   📺 ${escapeTgHtml(
+                        v.channelName
+                      )} (${escapeTgHtml(v.group)}) — <b>${Number(v.views).toLocaleString(
+                        'vi-VN'
+                      )} views</b> (<b>x${v.outlierMultiplier}</b> TB kênh)`
+                  )
+                  .join('\n\n')
+              : 'Chưa có video nào vượt ngưỡng nổ view.';
+          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+            chat_id: chatId,
+            parse_mode: 'HTML',
+            text: `🔥 <b>DANH SÁCH VIDEO ĐANG NỔ VIEW (BOT 2):</b>\n\n${body}`,
+          });
+        } else if (text.startsWith('/users')) {
+          const pending = (store.state.users || []).filter((usr) => usr.status === 'pending');
+          if (pending.length === 0) {
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              text: '✅ Hiện không có tài khoản nào đang chờ duyệt!',
+            });
+          } else {
+            for (const usr of pending) {
+              await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+                chat_id: chatId,
+                parse_mode: 'HTML',
+                text: `⏳ <b>Chờ duyệt:</b> <code>${escapeTgHtml(usr.email)}</code> (${escapeTgHtml(
+                  usr.name
+                )})`,
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      { text: '✅ Duyệt ngay', callback_data: `approve_user:${usr.id}` },
+                      { text: '⛔ Khóa', callback_data: `suspend_user:${usr.id}` },
+                    ],
+                  ],
+                },
+              });
+            }
+          }
+        } else if (text.startsWith('/backup')) {
+          await sendTelegramBackupDocument(store, cfg.telegramBotToken, chatId);
         }
-      } else if (text.startsWith('/backup')) {
-        await sendTelegramBackupDocument(store, cfg.telegramBotToken, chatId);
+      } catch (cmdErr) {
+        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+          chat_id: chatId,
+          parse_mode: 'HTML',
+          text: `⚠️ <b>Thông báo từ Bot:</b> ${escapeTgHtml(cmdErr.message || 'Lỗi xử lý lệnh')}`,
+        }).catch(() => {});
       }
     }
     if (updates.length > 0 && typeof store.saveState === 'function') {
@@ -1294,6 +1412,8 @@ export async function pollTelegramBotUpdates(store) {
     }
   } catch {
     // Im lặng bỏ qua lỗi mạng tạm thời khi polling
+  } finally {
+    isTelegramPollingInProgress = false;
   }
 }
 
@@ -2127,7 +2247,9 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     input.videoUrlOrId || input.videoUrl || input.youtubeVideoId || rawCombined || ''
   ).trim();
   const videoId = extractYouTubeVideoId(rawUrlOrId);
-  let resolvedTitle = String(input.title || (!videoId && rawCombined ? rawCombined : '') || '').trim();
+  let resolvedTitle = String(
+    input.title || (!videoId && (rawCombined || rawUrlOrId) ? rawCombined || rawUrlOrId : '') || ''
+  ).trim();
   let resolvedChannel = String(input.channelName || '').trim();
 
   // Nếu có videoId mà chưa có tiêu đề -> tự động lấy tiêu đề qua YouTube oEmbed
@@ -3127,24 +3249,22 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
 }
 
 export function formatTelegramTrendReport(trendScan) {
-  const topKw = (trendScan.keywords || []).slice(0, 10);
+  const topKw = (trendScan.keywords || []).slice(0, 5);
   const vs = trendScan.vidiqSummary || {};
   const mInfo = trendScan.marketInfo || resolveYouTubeMarketInfo(trendScan.market || 'vi');
-  const blueOceans = Array.isArray(trendScan.blueOceanNiches) ? trendScan.blueOceanNiches.slice(0, 4) : [];
+  const blueOceans = Array.isArray(trendScan.blueOceanNiches) ? trendScan.blueOceanNiches.slice(0, 3) : [];
 
   const blueOceanBlock =
     blueOceans.length > 0
       ? [
-          `💎 <b>TOP NGÁCH CON ĐẠI DƯƠNG XANH — ÍT CẠNH TRANH (KÊNH MỚI DỄ NỔ VIEW):</b>`,
+          `💎 <b>TOP NGÁCH CON ĐẠI DƯƠNG XANH — ÍT CẠNH TRANH (DỄ NỔ VIEW):</b>`,
           ...blueOceans.map(
             (bo) =>
-              `  ${bo.rank}. <b>${escapeTgHtml(bo.nicheTitle)}</b>\n     └ 🔑 Key ngách: <code>${escapeTgHtml(
+              `  ${bo.rank}. <b>${escapeTgHtml(bo.nicheTitle)}</b>\n     └ 🔑 Key: <code>${escapeTgHtml(
                 bo.subNicheKeyword
               )}</code> · ⚔️ Cạnh tranh: <b>${bo.competitionScore}/100</b> (${escapeTgHtml(
                 bo.competitionBadge
-              )})\n     └ 💡 <i>${escapeTgHtml(bo.whyLowCompetition)}</i>\n     └ 🎬 <i>Tiêu đề mẫu:</i> ${escapeTgHtml(
-                bo.starterVideoTitle
-              )}`
+              )})\n     └ 🎬 <i>Tiêu đề:</i> ${escapeTgHtml(bo.starterVideoTitle)}`
           ),
           ``,
         ].join('\n')
@@ -3155,29 +3275,24 @@ export function formatTelegramTrendReport(trendScan) {
       (k) =>
         `${k.rank}. 🔑 <code>${escapeTgHtml(k.keyword)}</code> — 🎯 <b>vidIQ: ${
           k.vidiqOverallScore || k.opportunityScore || 88
-        }/100</b> (📊 Vol: <b>${k.vidiqVolumeScore || 82}</b> · ⚔️ Cạnh tranh: <b>${escapeTgHtml(
+        }/100</b> (📊 Vol: <b>${k.vidiqVolumeScore || 82}</b> · ⚔️ ${escapeTgHtml(
           k.vidiqCompetitionLabel || 'Thấp'
-        )}</b>)\n   🌊 ${escapeTgHtml(k.googleTrendsWave || '🚀 Sóng Mới')} · 🏷️ ${escapeTgHtml(
-          k.intentTag
-        )}\n   🎬 <i>Gợi ý tiêu đề:</i> ${escapeTgHtml(k.suggestedTitle)}`
+        )})\n   🎬 <i>Tiêu đề:</i> ${escapeTgHtml(k.suggestedTitle)}`
     )
     .join('\n\n');
 
   const competitorBlock = trendScan.sourceChannel
     ? [
-        `🕵️ <b>Phân tích từ Kênh Đối Thủ:</b> <b>${escapeTgHtml(
+        `🕵️ <b>Phân tích Kênh Đối Thủ:</b> <b>${escapeTgHtml(
           trendScan.sourceChannel.channelName
         )}</b> (<code>${escapeTgHtml(trendScan.sourceChannel.handle)}</code> · TB ${Number(
           trendScan.sourceChannel.avgViews || 0
         ).toLocaleString('vi-VN')} views/video)`,
-        `🔥 <b>Top Cụm Từ Khóa Đang Nổ View Của Đối Thủ:</b>`,
         ...(trendScan.sourceChannel.trendingPhrases || [])
-          .slice(0, 4)
+          .slice(0, 3)
           .map(
             (p) =>
-              `  • <code>${escapeTgHtml(p.phrase)}</code> — Đỉnh <b>x${p.maxMultiplier}</b> (${p.videoCount} video · ${Number(
-                p.totalViews || 0
-              ).toLocaleString('vi-VN')} views)`
+              `  • <code>${escapeTgHtml(p.phrase)}</code> — Đỉnh <b>x${p.maxMultiplier}</b> (${p.videoCount} video)`
           ),
         ``,
       ].join('\n')
@@ -3186,8 +3301,8 @@ export function formatTelegramTrendReport(trendScan) {
   const nicheCompBlock =
     Array.isArray(trendScan.nicheCompetitors) && trendScan.nicheCompetitors.length > 0
       ? [
-          `🕵️ <b>TOP KÊNH ĐỐI THỦ ĐANG THỐNG TRỊ NGÁCH NÀY (NEXLEV FINDER):</b>`,
-          ...trendScan.nicheCompetitors.slice(0, 4).map(
+          `🕵️ <b>TOP KÊNH ĐỐI THỦ TRONG NGÁCH (NEXLEV FINDER):</b>`,
+          ...trendScan.nicheCompetitors.slice(0, 3).map(
             (c, i) =>
               `  ${i + 1}. 📺 <b>${escapeTgHtml(c.channelName)}</b> (<code>${escapeTgHtml(
                 c.handle || c.channelName
@@ -3203,25 +3318,23 @@ export function formatTelegramTrendReport(trendScan) {
     `🔍 <b>BÁO CÁO SĂN TỪ KHÓA &amp; NGÁCH ĐẠI DƯƠNG XANH ÍT CẠNH TRANH (BOT 7)</b>`,
     `━━━━━━━━━━━━━━━━━━━━`,
     competitorBlock,
-    `🌍 <b>Thị trường YouTube:</b> <b>${escapeTgHtml(mInfo.label)}</b> · 💵 <b>RPM TB: ${escapeTgHtml(
+    `🌍 <b>Thị trường:</b> <b>${escapeTgHtml(mInfo.label)}</b> · 💵 <b>RPM: ${escapeTgHtml(
       mInfo.rpmRange
     )} / 1.000 views</b>`,
-    `🎯 Chủ đề / Từ khóa gốc: <b>${escapeTgHtml(trendScan.seedKeyword)}</b>`,
-    `📊 Tổng từ khóa: <b>${trendScan.totalKeywords} key</b> | 💎 Ngách ít cạnh tranh: <b>${
+    `🎯 Chủ đề gốc: <b>${escapeTgHtml(trendScan.seedKeyword)}</b>`,
+    `📊 Tổng: <b>${trendScan.totalKeywords} key</b> | 💎 Ngách ít cạnh tranh: <b>${
       trendScan.microNicheCount
-    } ngách</b> | 🏆 Key Vàng vidIQ (≥85đ): <b>${vs.goldenKeywordCount ?? trendScan.microNicheCount}</b>`,
-    `📈 Điểm vidIQ Toàn Ngách: <b>Đỉnh ${vs.bestOverallScore || 92}/100</b> (TB Volume: <b>${
-      vs.avgVolumeScore || 82
-    }/100</b> · Cạnh tranh TB: <b>${vs.avgCompetitionScore || 32}/100</b>)`,
-    `🏷️ <b>Bộ Thẻ Tags Chuẩn vidIQ (Copy dán ngay vào YouTube Studio):</b>`,
-    `<code>${escapeTgHtml(vs.masterTagsCsv || trendScan.seedKeyword)}</code>`,
+    } ngách</b> | 🏆 Điểm vidIQ đỉnh: <b>${vs.bestOverallScore || 92}/100</b>`,
+    `🏷️ <b>Thẻ Tags vidIQ:</b> <code>${escapeTgHtml(vs.masterTagsCsv || trendScan.seedKeyword)}</code>`,
     ``,
     blueOceanBlock,
     nicheCompBlock,
-    `🏆 <b>TOP TỪ KHÓA, ĐIỂM VIDIQ (VOLUME vs CẠNH TRANH) &amp; TIÊU ĐỀ:</b>`,
+    `🏆 <b>TOP TỪ KHÓA, ĐIỂM VIDIQ &amp; TIÊU ĐỀ GỢI Ý:</b>`,
     rows,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `💡 <i>Mẹo: Gõ <code>/trend us [từ_khóa]</code> (Mỹ), <code>/trend jp [từ_khóa]</code> (Nhật), <code>/trend kr [từ_khóa]</code> (Hàn), <code>/trend de [từ_khóa]</code> (Đức), <code>/trend es [từ_khóa]</code> (Tây Ban Nha) để săn ngách ngoại RPM cao!</i>`,
+    `💡 <i>Gõ <code>/footage ${escapeTgHtml(
+      trendScan.seedKeyword
+    )}</code> để săn kho Footage 4K cho chủ đề này, hoặc <code>/trend us [từ_khóa]</code> (Mỹ), <code>/trend jp [từ_khóa]</code> (Nhật), <code>/trend kr [từ_khóa]</code> (Hàn)!</i>`,
   ]
     .filter(Boolean)
     .join('\n');
@@ -4536,27 +4649,26 @@ export function formatTelegramFootageReport(scan) {
   if (!scan) return 'Chưa có dữ liệu quét Footage.';
   const qp = scan.queryPack || {};
   const directList = Array.isArray(scan.directDownloadClips) ? scan.directDownloadClips.slice(0, 4) : [];
-  const hubs = Array.isArray(scan.platformHubs) ? scan.platformHubs.slice(0, 8) : [];
-  const ytClips = Array.isArray(scan.youtubeBrollClips) ? scan.youtubeBrollClips.slice(0, 4) : [];
-  const shots = Array.isArray(scan.shotlist5Scenes) ? scan.shotlist5Scenes.slice(0, 4) : [];
+  const hubs = Array.isArray(scan.platformHubs) ? scan.platformHubs.slice(0, 6) : [];
+  const ytClips = Array.isArray(scan.youtubeBrollClips) ? scan.youtubeBrollClips.slice(0, 3) : [];
+  const shots = Array.isArray(scan.shotlist5Scenes) ? scan.shotlist5Scenes.slice(0, 3) : [];
 
   return [
     `🎬 <b>BOT 10 — HỒ SƠ SĂN KHO FOOTAGE ĐA NỀN TẢNG &amp; TẢI VIDEO 4K (/footage)</b>`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `🎯 Chủ đề gốc: <b>"${escapeTgHtml(scan.query)}"</b>`,
-    `📂 Danh mục: <b>${escapeTgHtml(scan.categoryLabel)}</b>`,
-    `🇺🇸 Key Tiếng Anh (4K Stock): <code>${escapeTgHtml(qp.englishCinematicQuery || '')}</code>`,
+    `🎯 Chủ đề: <b>"${escapeTgHtml(scan.query)}"</b> (${escapeTgHtml(scan.categoryLabel)})`,
+    `🇺🇸 Key Tiếng Anh: <code>${escapeTgHtml(qp.englishCinematicQuery || '')}</code>`,
     `🇨🇳 Key Tiếng Trung (Douyin/Bilibili): <code>${escapeTgHtml(qp.chineseDouyinQuery || '')}</code>`,
     ``,
-    `⬇️ <b>1. LINK TẢI VIDEO .MP4 TRỰC TIẾP (PUBLIC DOMAIN / CC0 — AN TOÀN BKT):</b>`,
+    `⬇️ <b>1. VIDEO .MP4 TẢI TRỰC TIẾP (PUBLIC DOMAIN / CC0 — AN TOÀN BKT):</b>`,
     ...directList.map(
       (c, i) =>
         `  ${i + 1}. 🟢 <a href="${escapeTgHtml(c.directVideoUrl)}">${escapeTgHtml(c.title)}</a> (${escapeTgHtml(
-          c.resolution
-        )} · ${escapeTgHtml(c.durationText)})`
+          c.durationText
+        )})`
     ),
     ``,
-    `🌍 <b>2. MỞ NHANH 8 KHO FOOTAGE ĐA NỀN TẢNG:</b>`,
+    `🌍 <b>2. MỞ NHANH KHO FOOTAGE ĐA NỀN TẢNG:</b>`,
     ...hubs.map(
       (p) =>
         `  • ${p.icon} <a href="${escapeTgHtml(p.searchUrl)}"><b>${escapeTgHtml(p.name)}</b></a> — <i>${escapeTgHtml(
@@ -4569,18 +4681,18 @@ export function formatTelegramFootageReport(scan) {
       (y, i) =>
         `  ${i + 1}. 📺 <a href="${escapeTgHtml(y.videoUrl)}">${escapeTgHtml(y.title)}</a> (${escapeTgHtml(
           y.durationText
-        )} · ${Number(y.views || 0).toLocaleString('vi-VN')} views)`
+        )})`
     ),
     ``,
-    `🎞️ <b>4. SHOTLIST PHÂN CẢNH B-ROLL &amp; PROMPT VIDEO AI (KLING / RUNWAY / SORA):</b>`,
+    `🎞️ <b>4. SHOTLIST PHÂN CẢNH B-ROLL &amp; PROMPT AI (KLING / RUNWAY):</b>`,
     ...shots.map(
       (s) =>
-        `  • <b>${escapeTgHtml(s.timeRange)}:</b> ${escapeTgHtml(s.visualGuideVi)}\n    🤖 <i>Prompt AI:</i> <code>${escapeTgHtml(
+        `  • <b>${escapeTgHtml(s.timeRange)}:</b> ${escapeTgHtml(s.visualGuideVi)}\n    🤖 <code>${escapeTgHtml(
           s.aiVideoPrompt
         )}</code>`
     ),
     `━━━━━━━━━━━━━━━━━━━━`,
-    `💡 <i>Mở mục <b>"🎬 Săn &amp; Tải Footage"</b> trên Web ACB9x để Xem thử trực tiếp và bấm <b>⬇️ Tải File .MP4 / Tải Bộ Công Cụ Tự Động .BAT</b> về máy!</i>`,
+    `💡 <i>Mở mục <b>"🎬 Săn &amp; Tải Footage"</b> trên Web ACB9x để Xem thử trực tiếp và bấm <b>⬇️ Tải File .MP4 / Tải Công Cụ .BAT</b> về máy!</i>`,
   ].join('\n');
 }
 
