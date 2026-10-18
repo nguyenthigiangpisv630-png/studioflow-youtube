@@ -684,7 +684,8 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     const schedData = await schedRes.json();
     assert.equal(schedData.ok, true);
     assert.ok(Array.isArray(schedData.scheduleRadar.scheduleItems));
-    assert.ok(schedData.scheduleRadar.scheduleItems.some((it) => it.channelId === ch.id));
+    assert.ok(Array.isArray(schedData.scheduleRadar.managerKpis));
+    assert.ok(schedData.scheduleRadar.scheduleItems.some((it) => it.channelId === ch.id && it.primeUploadWindow));
 
     // 3. Tạo Snapshot Bất Tử (Bot 4) khi đang có kênh Test
     const snapRes = await fetch(`${baseUrl}/api/bots/backup/create`, {
@@ -698,11 +699,14 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     const savedSnapshotId = snapData.snapshot.id;
     assert.ok(savedSnapshotId);
 
-    // 4. Xóa kênh Test đi, xác nhận kênh đã bị xóa
+    // 4. Xóa kênh Test đi, xác nhận kênh đã bị xóa & Bot 4 Auto-Shield tự động chụp Snapshot bảo vệ
     store.deleteChannel(ch.id);
     assert.equal(
       store.listChannels().some((c) => c.id === ch.id),
       false
+    );
+    assert.ok(
+      store.getBotCenterStatus().snapshots.some((s) => String(s.label).includes('Auto-Shield'))
     );
 
     // 5. Bấm Khôi phục 1-Click từ Snapshot vừa lưu (Bot 4) -> Kênh và Video quay trở lại nguyên vẹn!
@@ -719,7 +723,7 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
       true
     );
 
-    // 6. Bot 5 — Săn Ngách & Dò Kênh Đối Thủ (Outlier / NexLev Hunter)
+    // 6. Bot 5 — Săn Ngách, Dò Kênh & Ước Tính Doanh Thu Đối Thủ (Outlier / NexLev Hunter)
     const spyScan = await store.runCompetitorHunterScan({
       handleOrUrl: '@MockCompetitor',
       outlierThreshold: 1.5,
@@ -739,11 +743,13 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(spyScan.outlierCount, 1);
     assert.equal(spyScan.outliers[0].videoId, 'vid003');
     assert.ok(spyScan.outliers[0].multiplier >= 2);
+    assert.ok(spyScan.estimatedMonthlyRevenueUsd > 0);
+    assert.ok(spyScan.estimatedRpmUsd > 0);
     assert.ok(spyScan.hotKeywords.some((k) => k.word === 'automation'));
     assert.ok(Array.isArray(spyScan.trendingPhrases) && spyScan.trendingPhrases.length > 0);
     assert.ok(spyScan.trendingPhrases.some((p) => p.phrase.includes('ai automation')));
 
-    // 7. Bot 6 — Phân Tích & Sinh Prompt Thumbnail (Thumbnail Clone Bot)
+    // 7. Bot 6 — Dịch Ngược REA (/rea), Chấm Điểm CTR & 3 Hook Variants A/B/C
     const thumbRes = await fetch(`${baseUrl}/api/bots/thumbnail/clone`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -755,13 +761,15 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(thumbRes.status, 200);
     const thumbData = await thumbRes.json();
     assert.equal(thumbData.ok, true);
+    assert.ok(thumbData.cloneItem.ctrScore >= 80);
+    assert.equal(thumbData.cloneItem.hookVariants.length, 3);
     assert.ok(thumbData.cloneItem.prompts.midjourney.includes('--ar 16:9'));
     assert.ok(thumbData.cloneItem.prompts.fluxIdeogram.length > 20);
     assert.ok(thumbData.cloneItem.prompts.reaReconstruction.includes('REA 1:1'));
     assert.ok(thumbData.cloneItem.reaDossier && thumbData.cloneItem.reaDossier.binaryEvidence);
     assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
 
-    // 8. Bot 7 (Bot 9) — Săn Từ Khóa Ngách & Trend Tìm Kiếm Thực Tế (/trend theo từ khóa & theo @Handle đối thủ)
+    // 8. Bot 7 (Bot 9) — Săn Từ Khóa Ngách, Điểm Cơ Hội & Dàn Ý Kịch Bản 5 Phần (/trend)
     const trendScan = await store.runTrendHunterScan({
       seedKeyword: 'tiểu sử tỷ phú',
       market: 'vi',
@@ -774,6 +782,8 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(trendScan.seedKeyword, 'tiểu sử tỷ phú');
     assert.ok(trendScan.totalKeywords >= 6);
     assert.ok(trendScan.keywords.some((k) => k.keyword.includes('tự thân làm giàu')));
+    assert.ok(trendScan.keywords[0].opportunityScore >= 75);
+    assert.ok(trendScan.keywords[0].seoPackage.scriptOutline5Parts.includes('Phần 1'));
 
     const compTrendScan = await store.runTrendHunterScan({
       seedKeyword: '@MockCompetitor',
@@ -795,7 +805,7 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(compTrendScan.sourceChannel.handle, '@MockCompetitor');
     assert.ok(compTrendScan.keywords.some((k) => k.keyword.includes('ai automation')));
 
-    // 9. Bot 11 — Cảnh Báo Bật Kiếm Tiền & Bảo Vệ Gà AdSense (/ga & /revenue)
+    // 9. Bot 11 — Đếm Ngược BKT, Bảo Vệ Gà AdSense & RPM (/ga & /revenue)
     store.updateChannel(ch.id, {
       subscribers: 920,
       watchHours: 3800,
@@ -811,9 +821,13 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     const shieldData = await shieldRes.json();
     assert.equal(shieldData.ok, true);
     assert.ok(shieldData.monetizationShield.summary.totalYearlyRevenue >= 3050);
-    assert.ok(shieldData.monetizationShield.bktCandidates.some((c) => c.channelId === ch.id && c.overallPct >= 90));
+    assert.ok(
+      shieldData.monetizationShield.bktCandidates.some(
+        (c) => c.channelId === ch.id && c.overallPct >= 90 && Boolean(c.bktEtaLabel)
+      )
+    );
 
-    // 10. Bot 12 — Đồng Bộ Báo Cáo Đám Mây Tự Động (Notion / Google Sheets / CSV)
+    // 10. Bot 12 — Đồng Bộ Báo Cáo Đám Mây & Bảng Xếp Hạng P&L (Notion / Google Sheets / CSV)
     const cloudRes = await fetch(`${baseUrl}/api/bots/cloud/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -822,6 +836,8 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(cloudRes.status, 200);
     const cloudData = await cloudRes.json();
     assert.equal(cloudData.ok, true);
+    assert.ok(Array.isArray(cloudData.cloudReport.groupLeaderboard));
+    assert.ok(Array.isArray(cloudData.cloudReport.managerLeaderboard));
     assert.ok(cloudData.cloudReport.sheetsTsv.includes('Kênh Test Bot Nổ View'));
     assert.ok(cloudData.cloudReport.notionMarkdown.includes('BÁO CÁO ĐÁM MÂY HỆ THỐNG KÊNH ACB9X'));
     assert.ok(cloudData.cloudReport.csvContent.includes('Kênh Test Bot Nổ View'));

@@ -2541,6 +2541,25 @@ export class StudioStore {
         throw new Error('Tài khoản của bạn chưa được Admin cấp quyền xóa kênh của hệ thống!');
       }
     }
+
+    // Bot 4 Auto-Shield: Tự động chụp Snapshot khôi phục trước khi xóa kênh
+    try {
+      if (!this.state.meta) this.state.meta = {};
+      const center = ensureBotCenterState(this.state.meta);
+      const shieldSnap = buildBackupPayload(
+        this,
+        `🛡️ Auto-Shield trước khi xóa kênh "${targetCh.name || targetCh.id}"`
+      );
+      center.snapshots.unshift(shieldSnap);
+      if (center.snapshots.length > 15) center.snapshots.length = 15;
+      appendBotLog(
+        this.state.meta,
+        'Bot 4 (Auto-Shield)',
+        `Đã tự động chụp Snapshot bảo vệ trước khi xóa kênh "${targetCh.name || targetCh.id}".`,
+        'info'
+      );
+    } catch {}
+
     const [removed] = this.state.channels.splice(idx, 1);
     const beforeVideos = this.state.videos.length;
     this.state.videos = this.state.videos.filter((v) => v.channelId !== id);
@@ -2956,6 +2975,7 @@ export class StudioStore {
       label: snap.label,
       createdAt: snap.createdAt,
       sizeBytes: snap.sizeBytes,
+      diffSummary: snap.diffSummary || 'Bản chụp chuẩn hệ thống',
       counts: snap.counts || {},
     }));
     const rawToken = String(center.config.telegramBotToken || '').trim();

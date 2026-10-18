@@ -5764,6 +5764,13 @@ function renderBotsCenterTab() {
                 <div class="bot-snap-title-row">
                   <span class="bot-snap-badge">${idx === 0 ? '⭐ Mới nhất' : `#${idx + 1}`}</span>
                   <strong>${escapeHtml(snap.label || 'Bản sao lưu hệ thống')}</strong>
+                  ${
+                    snap.diffSummary
+                      ? `<span style="font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: rgba(16,185,129,0.14); color: #059669; font-weight: 700;">${escapeHtml(
+                          snap.diffSummary
+                        )}</span>`
+                      : ''
+                  }
                 </div>
                 <div class="bot-snap-sub">
                   🕒 ${escapeHtml(formatDateTimeVi(snap.createdAt))} · 📦 ${kb} KB ·
@@ -5818,7 +5825,7 @@ function renderBotsCenterTab() {
   setCheck('chk-bot1-notify-viral', cfg.notifyOnViralVideo !== false);
   setCheck('chk-bot1-daily-backup', cfg.autoTelegramBackupDaily !== false);
 
-  // --- BOT 2: CANH NỔ VIEW 24/7 & SỨC KHỎE KÊNH ---
+  // --- BOT 2: CANH NỔ VIEW 24/7, GIA TỐC 24H & KỊCH BẢN PHẦN 2 ---
   setText('bot2-kpi-viral', `${viralCount} video nổ`);
   setText('bot2-kpi-alerts', `${alertCount} cảnh báo`);
 
@@ -5849,23 +5856,62 @@ function renderBotsCenterTab() {
         .slice(0, 12)
         .map(
           (v, idx) => `
-          <div class="bot-viral-item">
-            <div class="bot-viral-left">
-              <span class="bot-viral-rank num">#${idx + 1}</span>
-              <div class="bot-viral-info">
-                <a href="${escapeHtml(v.url || '#')}" target="_blank" rel="noopener" class="bot-viral-title">
-                  ${escapeHtml(v.title)} ↗
-                </a>
-                <div class="bot-viral-sub">
-                  📺 <strong>${escapeHtml(v.channelName)}</strong> (${escapeHtml(v.group)}) ·
-                  👤 ${escapeHtml(v.manager)} · TB kênh: ${formatNumber(v.channelAvgViews)} views
+          <div class="bot-viral-item" style="flex-direction: column; align-items: stretch; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap;">
+              <div class="bot-viral-left" style="flex: 1; min-width: 190px;">
+                <span class="bot-viral-rank num">#${idx + 1}</span>
+                <div class="bot-viral-info">
+                  <a href="${escapeHtml(v.url || '#')}" target="_blank" rel="noopener" class="bot-viral-title">
+                    ${escapeHtml(v.title)} ↗
+                  </a>
+                  <div class="bot-viral-sub">
+                    📺 <strong>${escapeHtml(v.channelName)}</strong> (${escapeHtml(v.group)}) ·
+                    👤 ${escapeHtml(v.manager)} · TB kênh: ${formatNumber(v.channelAvgViews)} views
+                  </div>
                 </div>
               </div>
+              <div class="bot-viral-right num" style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+                ${
+                  v.velocityBadge
+                    ? `<span style="font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: rgba(245,158,11,0.15); color: #d97706;">${escapeHtml(
+                        v.velocityBadge
+                      )}</span>`
+                    : ''
+                }
+                <span class="bot-multiplier-badge">🔥 x${escapeHtml(String(v.outlierMultiplier))} TB</span>
+                <strong class="bot-viral-views">${formatNumber(v.views)} views</strong>
+              </div>
             </div>
-            <div class="bot-viral-right num">
-              <span class="bot-multiplier-badge">🔥 x${escapeHtml(String(v.outlierMultiplier))} TB</span>
-              <strong class="bot-viral-views">${formatNumber(v.views)} views</strong>
-            </div>
+            ${
+              v.part2Title
+                ? `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 5px 8px; border-radius: 7px; background: rgba(16,185,129,0.08); border: 1px dashed rgba(16,185,129,0.3);">
+                    <div style="font-size: 11px; color: var(--text);">
+                      🎬 <strong>Gợi ý làm ngay Phần 2:</strong> <em>${escapeHtml(v.part2Title)}</em>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-xs"
+                        data-clone-thumb-url="${escapeHtml(v.url || v.youtubeVideoId || '')}"
+                        data-clone-thumb-title="${escapeHtml(v.part2Title || v.title)}"
+                        title="Đưa sang Bot 6 (/rea) để Dịch ngược Thumbnail & sinh Prompt cho Phần 2"
+                      >
+                        🔬 Dịch ngược Thumb
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-xs"
+                        data-save-spy-key-title="[Kịch bản Phần 2 - ${escapeHtml(v.channelName)}] ${escapeHtml(v.part2Title)}"
+                        data-save-spy-key-url="${escapeHtml(v.url || '')}"
+                        data-save-spy-key-notes="${escapeHtml(v.part2Outline || '')}"
+                        title="Lưu Tiêu đề & Dàn ý Kịch bản Phần 2 vào Kho Nội Dung"
+                      >
+                        + Kịch bản Phần 2
+                      </button>
+                    </div>
+                  </div>`
+                : ''
+            }
           </div>
         `
         )
@@ -5900,7 +5946,7 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 3: NHẮC LỊCH ĐĂNG VIDEO & CANH KÊNH BỎ QUÊN ---
+  // --- BOT 3: NHẮC LỊCH ĐĂNG VIDEO, KPI QUẢN LÝ & GIỜ VÀNG ĐĂNG BÀI ---
   const schedSummary = scheduleRadar.summary || {};
   setText('bot3-kpi-dead', `${Number(schedSummary.deadCount) || 0} kênh`);
   setText('bot3-kpi-due', `${Number(schedSummary.dueSoonCount) || 0} kênh`);
@@ -5919,6 +5965,23 @@ function renderBotsCenterTab() {
   const schedListEl = document.getElementById('bot3-schedule-list');
   if (schedListEl) {
     const schedItems = Array.isArray(scheduleRadar.scheduleItems) ? scheduleRadar.scheduleItems : [];
+    const managerKpis = Array.isArray(scheduleRadar.managerKpis) ? scheduleRadar.managerKpis : [];
+    const kpiBannerHtml =
+      managerKpis.length > 0
+        ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px 10px;margin-bottom:6px;border-radius:8px;background:rgba(245,158,11,0.09);border:1px solid rgba(245,158,11,0.28);">
+            <span style="font-size:11px;font-weight:800;color:#b45309;">🏆 Điểm Chuyên Cần Quản Lý:</span>
+            ${managerKpis
+              .slice(0, 6)
+              .map(
+                (m) =>
+                  `<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:#ffffff;border:1px solid #fde68a;color:#92400e;">👤 <strong>${escapeHtml(
+                    m.manager
+                  )}</strong>: <strong>${m.consistencyScorePct}%</strong> (${m.onTrackCount}/${m.totalChannels} đúng lịch)</span>`
+              )
+              .join('')}
+          </div>`
+        : '';
+
     if (schedItems.length === 0) {
       schedListEl.innerHTML = `
         <div class="bot-empty-note">
@@ -5926,53 +5989,60 @@ function renderBotsCenterTab() {
         </div>
       `;
     } else {
-      schedListEl.innerHTML = schedItems
-        .map((item) => {
-          const pillBg =
-            item.status === 'dead'
-              ? 'background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;'
-              : item.status === 'due_soon'
-              ? 'background:#fffbeb;color:#b45309;border:1px solid #fde68a;'
-              : 'background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;';
-          return `
-            <div class="bot-viral-item">
-              <div class="bot-viral-left">
-                <div class="bot-viral-info">
-                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <a href="${escapeHtml(item.channelUrl || '#')}" target="_blank" rel="noopener" class="bot-viral-title">
-                      📺 ${escapeHtml(item.channelName)} ↗
-                    </a>
-                    <span style="font-size:0.68rem;font-weight:800;padding:2px 7px;border-radius:999px;${pillBg}">
-                      ${escapeHtml(item.badgeText)}
-                    </span>
-                  </div>
-                  <div class="bot-viral-sub">
-                    📁 ${escapeHtml(item.group)} · 👤 QL: <strong>${escapeHtml(item.manager)}</strong> ·
-                    📅 Video gần nhất: <strong>${escapeHtml(item.lastUploadDate)}</strong>
-                  </div>
-                  <div class="bot-viral-sub" style="color:#475569;margin-top:2px;">
-                    💡 ${escapeHtml(item.recommendation)}
+      schedListEl.innerHTML =
+        kpiBannerHtml +
+        schedItems
+          .map((item) => {
+            const pillBg =
+              item.status === 'dead'
+                ? 'background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;'
+                : item.status === 'due_soon'
+                ? 'background:#fffbeb;color:#b45309;border:1px solid #fde68a;'
+                : 'background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;';
+            return `
+              <div class="bot-viral-item">
+                <div class="bot-viral-left">
+                  <div class="bot-viral-info">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      <a href="${escapeHtml(item.channelUrl || '#')}" target="_blank" rel="noopener" class="bot-viral-title">
+                        📺 ${escapeHtml(item.channelName)} ↗
+                      </a>
+                      <span style="font-size:0.68rem;font-weight:800;padding:2px 7px;border-radius:999px;${pillBg}">
+                        ${escapeHtml(item.badgeText)}
+                      </span>
+                    </div>
+                    <div class="bot-viral-sub">
+                      📁 ${escapeHtml(item.group)} · 👤 QL: <strong>${escapeHtml(item.manager)}</strong> ·
+                      📅 Video gần nhất: <strong>${escapeHtml(item.lastUploadDate)}</strong>
+                      ${
+                        item.primeUploadWindow
+                          ? ` · 🕒 <strong>${escapeHtml(item.primeUploadWindow)}</strong>`
+                          : ''
+                      }
+                    </div>
+                    <div class="bot-viral-sub" style="color:#475569;margin-top:2px;">
+                      💡 ${escapeHtml(item.recommendation)}
+                    </div>
                   </div>
                 </div>
+                <div class="bot-viral-right num">
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-xs"
+                    data-open-schedule-channel="${escapeHtml(item.channelId)}"
+                    title="Mở chi tiết kênh này để kiểm tra và đăng bài"
+                  >
+                    Mở kênh →
+                  </button>
+                </div>
               </div>
-              <div class="bot-viral-right num">
-                <button
-                  type="button"
-                  class="btn btn-secondary btn-xs"
-                  data-open-schedule-channel="${escapeHtml(item.channelId)}"
-                  title="Mở chi tiết kênh này để kiểm tra và đăng bài"
-                >
-                  Mở kênh →
-                </button>
-              </div>
-            </div>
-          `;
-        })
-        .join('');
+            `;
+          })
+          .join('');
     }
   }
 
-  // --- BOT 5: SĂN NGÁCH & DÒ KÊNH ĐỐI THỦ (OUTLIER / NEXLEV HUNTER) ---
+  // --- BOT 5: SĂN NGÁCH, DÒ KÊNH & ƯỚC TÍNH DOANH THU ĐỐI THỦ (OUTLIER / NEXLEV HUNTER) ---
   const totalOutliersFound = competitorScans.reduce(
     (sum, s) => sum + (Number(s.outlierCount) || (Array.isArray(s.outliers) ? s.outliers.length : 0)),
     0
@@ -6028,6 +6098,15 @@ function renderBotsCenterTab() {
                   >
                     🔍 Bóc Tách Từ Khóa Trend Của Kênh Này
                   </button>
+                  ${
+                    scan.estimatedMonthlyRevenueUsd
+                      ? `<span class="bot-mult-badge" style="background: rgba(16,185,129,0.15); color: #059669;">
+                          💵 ~$${Number(scan.estimatedMonthlyRevenueUsd).toLocaleString('vi-VN')}/tháng (RPM $${
+                          scan.estimatedRpmUsd || 1.5
+                        })
+                        </span>`
+                      : ''
+                  }
                   <span class="bot-mult-badge" style="background: rgba(99,102,241,0.16); color: #818cf8;">
                     TB: ${escapeHtml(avgViewsVal.toLocaleString('vi-VN'))} views/bài
                   </span>
@@ -6143,7 +6222,7 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 6: DỊCH NGƯỢC REA (/rea) & SINH PROMPT THUMBNAIL (CLONE BOT) ---
+  // --- BOT 6: DỊCH NGƯỢC REA (/rea), CHẤM ĐIỂM CTR & 3 PHƯƠNG ÁN HOOK A/B/C ---
   const bot6Pill = document.getElementById('bot6-status-pill');
   if (bot6Pill) {
     bot6Pill.textContent =
@@ -6167,6 +6246,12 @@ function renderBotsCenterTab() {
           const hqThumb = item.thumbnailHq || item.hqThumbnailUrl || maxRes;
           const vTitle = item.videoTitle || item.title || 'Chủ đề Thumbnail';
           const hookTxt = item.hookTextSuggestion || item.hookText || '';
+          const ctrScore = item.ctrScore || rea.ctrScore || 92;
+          const hookVariants = Array.isArray(item.hookVariants)
+            ? item.hookVariants
+            : Array.isArray(rea.hookVariants)
+            ? rea.hookVariants
+            : [];
           const hiddenTags = Array.isArray(rea.hiddenVideoTags) ? rea.hiddenVideoTags.slice(0, 8) : [];
           return `
             <div class="bot-viral-item" style="flex-direction: column; align-items: stretch; gap: 8px; border-left: 3px solid #ec4899;">
@@ -6183,8 +6268,11 @@ function renderBotsCenterTab() {
                     : ''
                 }
                 <div style="flex: 1; min-width: 180px;">
-                  <div style="font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 3px;">
-                    🎬 ${escapeHtml(vTitle)}
+                  <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 3px;">
+                    <strong style="font-size: 12.5px; color: var(--text);">🎬 ${escapeHtml(vTitle)}</strong>
+                    <span style="font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: rgba(16,185,129,0.16); color: #059669;">
+                      🎯 CTR dự đoán: ${ctrScore}/100
+                    </span>
                   </div>
                   <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">
                     🔤 Chữ giật tít (Hook Text): <strong style="color: #f472b6;">"${escapeHtml(hookTxt)}"</strong>
@@ -6194,6 +6282,28 @@ function renderBotsCenterTab() {
                         : ''
                     }
                   </div>
+                  ${
+                    hookVariants.length > 0
+                      ? `<div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-bottom: 5px;">
+                          <span style="font-size: 10.5px; color: var(--text-muted);">⚡ 3 Hook A/B/C:</span>
+                          ${hookVariants
+                            .map(
+                              (hv) => `
+                              <button
+                                type="button"
+                                class="btn btn-secondary btn-xs"
+                                style="padding: 1px 6px; font-size: 10.5px;"
+                                data-copy-prompt-text="${escapeHtml(hv.text)}"
+                                title="${escapeHtml(hv.style || '')} — Bấm để Copy chữ Hook ${escapeHtml(hv.code)}"
+                              >
+                                [${escapeHtml(hv.code)}] "${escapeHtml(hv.text)}"
+                              </button>
+                            `
+                            )
+                            .join('')}
+                        </div>`
+                      : ''
+                  }
                   ${
                     rea.binaryEvidence
                       ? `<div style="font-size: 10.5px; color: #38bdf8; margin-bottom: 3px;">
@@ -6248,7 +6358,7 @@ function renderBotsCenterTab() {
                     <button
                       type="button"
                       class="btn btn-secondary btn-xs"
-                      data-save-spy-key-title="[REA Thumbnail] ${escapeHtml(vTitle)}"
+                      data-save-spy-key-title="[REA Thumbnail CTR ${ctrScore}/100] ${escapeHtml(vTitle)}"
                       data-save-spy-key-url="${escapeHtml(item.videoUrl || maxRes || '')}"
                       data-save-spy-key-notes="REA Binary: ${escapeHtml(
                         rea.binaryEvidence || ''
@@ -6281,7 +6391,7 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 7 (BOT 9): SĂN TỪ KHÓA NGÁCH & TREND TÌM KIẾM THỰC TẾ (/trend) ---
+  // --- BOT 7 (BOT 9): SĂN TỪ KHÓA NGÁCH, ĐIỂM CƠ HỘI & DÀN Ý 5 PHẦN (/trend) ---
   const totalMicroNiches = trendScans.reduce((s, it) => s + (Number(it.microNicheCount) || 0), 0);
   setText('bot7-kpi-scans', `${trendScans.length} chủ đề`);
   setText('bot7-kpi-microniche', `${totalMicroNiches} ngách con`);
@@ -6360,13 +6470,22 @@ function renderBotsCenterTab() {
               </div>
               <div style="display: flex; flex-direction: column; gap: 5px;">
                 ${kws
-                  .map(
-                    (k) => `
+                  .map((k) => {
+                    const oppScore = k.opportunityScore || 90;
+                    const seoNotes = k.seoPackage
+                      ? `🎯 Điểm Cơ Hội: ${oppScore}/100 | Phân loại: ${k.intentTag || ''}\n\n🎬 TIÊU ĐỀ GỢI Ý:\n${
+                          k.suggestedTitle || ''
+                        }\n\n📋 DÀN Ý KỊCH BẢN 5 PHẦN:\n${
+                          k.seoPackage.scriptOutline5Parts || ''
+                        }\n\n📝 MÔ TẢ & HASHTAGS CHUẨN SEO:\n${k.seoPackage.descriptionSeo || ''}`
+                      : `Phân loại: ${k.intentTag || ''} | Gợi ý tiêu đề: ${k.suggestedTitle || ''}`;
+                    return `
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; background: rgba(15,23,42,0.45); border: 1px solid rgba(148,163,184,0.12);">
                       <div style="min-width: 0; flex: 1;">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text);">
-                          #${k.rank} · <a href="${escapeHtml(k.youtubeSearchUrl || '#')}" target="_blank" rel="noopener" style="color: #38bdf8; text-decoration: none;">${escapeHtml(k.keyword)}</a>
-                          <span style="font-size: 10.5px; font-weight: 500; color: var(--text-muted); margin-left: 6px;">${escapeHtml(k.intentTag || '')}</span>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                          <span>#${k.rank} · <a href="${escapeHtml(k.youtubeSearchUrl || '#')}" target="_blank" rel="noopener" style="color: #38bdf8; text-decoration: none;">${escapeHtml(k.keyword)}</a></span>
+                          <span style="font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px; background: rgba(16,185,129,0.16); color: #059669;">🎯 Cơ hội: ${oppScore}/100</span>
+                          <span style="font-size: 10.5px; font-weight: 500; color: var(--text-muted);">${escapeHtml(k.intentTag || '')}</span>
                         </div>
                         <div style="font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                           🎬 <em>Tiêu đề gợi ý:</em> ${escapeHtml(k.suggestedTitle || '')}
@@ -6378,24 +6497,24 @@ function renderBotsCenterTab() {
                           class="btn btn-secondary btn-xs"
                           data-clone-thumb-url=""
                           data-clone-thumb-title="${escapeHtml(k.suggestedTitle || k.keyword)}"
-                          title="Đưa sang Bot 6 để tạo bộ 3 Prompt Thumbnail cho tiêu đề này"
+                          title="Đưa sang Bot 6 (/rea) để tạo Prompt Thumbnail cho tiêu đề này"
                         >
-                          🎨 Tạo Thumb
+                          🔬 Tạo Thumb
                         </button>
                         <button
                           type="button"
-                          class="btn btn-secondary btn-xs"
-                          data-save-spy-key-title="[Key Trend ${escapeHtml(String(scan.market || 'vi').toUpperCase())}] ${escapeHtml(k.keyword)}"
+                          class="btn btn-primary btn-xs"
+                          data-save-spy-key-title="[SEO & Dàn Ý 5 Phần - ${oppScore}/100] ${escapeHtml(k.suggestedTitle || k.keyword)}"
                           data-save-spy-key-url="${escapeHtml(k.youtubeSearchUrl || '')}"
-                          data-save-spy-key-notes="Phân loại: ${escapeHtml(k.intentTag || '')} | Gợi ý tiêu đề: ${escapeHtml(k.suggestedTitle || '')}"
-                          title="Lưu từ khóa & tiêu đề gợi ý này vào Kho Nội Dung & Key"
+                          data-save-spy-key-notes="${escapeHtml(seoNotes)}"
+                          title="Lưu trọn bộ Từ khóa + Tiêu đề + Mô tả SEO + Dàn ý kịch bản 5 phần vào Kho Nội Dung"
                         >
-                          + Lưu Key
+                          + Lưu SEO &amp; Dàn ý
                         </button>
                       </div>
                     </div>
-                  `
-                  )
+                  `;
+                  })
                   .join('')}
               </div>
             </div>
@@ -6405,7 +6524,7 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 11: CẢNH BÁO BẬT KIẾM TIỀN & BẢO VỆ GÀ ADSENSE (/ga & /revenue) ---
+  // --- BOT 11: ĐẾM NGƯỢC BKT, BẢO VỆ GÀ ADSENSE & RPM (/ga & /revenue) ---
   const mSum = monetizationShield.summary || {};
   setText(
     'bot11-kpi-bkt',
@@ -6480,6 +6599,13 @@ function renderBotsCenterTab() {
                       </span>
                       <strong>${escapeHtml(c.channelName)}</strong>
                       <span style="font-size: 11px; color: var(--text-muted);">(${escapeHtml(c.group)})</span>
+                      ${
+                        c.bktEtaLabel
+                          ? `<span style="font-size: 10.5px; font-weight: 700; color: ${badgeColor}; margin-left: auto;">${escapeHtml(
+                              c.bktEtaLabel
+                            )}</span>`
+                          : ''
+                      }
                     </div>
                     <div class="bot-viral-meta">
                       👥 ${Number(c.subscribers || 0).toLocaleString('vi-VN')} / 1.000 sub (${c.subPct}%) ·
@@ -6510,6 +6636,11 @@ function renderBotsCenterTab() {
                   <div class="bot-viral-title-row">
                     <span class="bot-mult-badge">🏆 Top ${i + 1} Doanh Thu</span>
                     <strong>${escapeHtml(ch.channelName)}</strong>
+                    ${
+                      ch.rpmUsd
+                        ? `<span style="font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: rgba(217,119,6,0.14); color: #b45309; font-weight: 700;">RPM ~$${ch.rpmUsd}</span>`
+                        : ''
+                    }
                     <strong style="color: #10b981; margin-left: auto;">$${Number(ch.totalYearlyRevenue || 0).toLocaleString('vi-VN')}</strong>
                   </div>
                   <div class="bot-viral-meta">
@@ -6525,8 +6656,9 @@ function renderBotsCenterTab() {
     bot11ListEl.innerHTML = [gaHtml, bktHtml, revHtml].filter(Boolean).join('');
   }
 
-  // --- BOT 12: ĐỒNG BỘ BÁO CÁO ĐÁM MÂY TỰ ĐỘNG (NOTION / GOOGLE SHEETS / CSV) ---
+  // --- BOT 12: ĐỒNG BỘ BÁO CÁO ĐÁM MÂY & BẢNG XẾP HẠNG P&L (NOTION / GOOGLE SHEETS / CSV) ---
   const cRows = Array.isArray(cloudReport.rows) ? cloudReport.rows : [];
+  const grpBoard = Array.isArray(cloudReport.groupLeaderboard) ? cloudReport.groupLeaderboard : [];
   setText('bot12-kpi-rows', `${cRows.length} kênh`);
   setText(
     'bot12-kpi-last-sync',
@@ -6542,30 +6674,49 @@ function renderBotsCenterTab() {
     if (cRows.length === 0) {
       bot12PreviewEl.innerHTML = `<div class="bot-empty-note">Chưa có dữ liệu kênh để xuất báo cáo.</div>`;
     } else {
-      bot12PreviewEl.innerHTML = cRows
-        .slice(0, 8)
-        .map(
-          (r) => `
-          <div class="bot-viral-item" style="border-left: 3px solid #0284c7;">
-            <div class="bot-viral-main">
-              <div class="bot-viral-title-row">
-                <span class="bot-mult-badge" style="background: rgba(2,132,199,0.12); color: #0284c7;">
-                  #${r.stt} · ${escapeHtml(r.group)}
-                </span>
-                <strong>${escapeHtml(r.name)}</strong>
-                <span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(r.handle)}</span>
-                <strong style="margin-left: auto; color: #059669;">$${Number(r.yearlyRevenueUsd || 0).toLocaleString('vi-VN')}</strong>
-              </div>
-              <div class="bot-viral-meta">
-                👤 ${escapeHtml(r.manager)} · 👥 ${Number(r.subscribers || 0).toLocaleString('vi-VN')} sub ·
-                👁️ ${Number(r.totalViews || 0).toLocaleString('vi-VN')} views · 💰 ${escapeHtml(r.monetization)} ·
-                ⏰ ${escapeHtml(r.scheduleStatus)}
+      const grpHtml =
+        grpBoard.length > 0
+          ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px 10px;margin-bottom:6px;border-radius:8px;background:rgba(2,132,199,0.08);border:1px solid rgba(2,132,199,0.25);">
+              <span style="font-size:11px;font-weight:800;color:#0284c7;">🏆 Xếp Hạng P&amp;L Theo Group:</span>
+              ${grpBoard
+                .slice(0, 6)
+                .map(
+                  (g, i) =>
+                    `<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:#ffffff;border:1px solid #bae6fd;color:#0369a1;">#${
+                      i + 1
+                    } <strong>${escapeHtml(g.group)}</strong> (${g.channelCount} kênh): <strong>$${Number(
+                      g.totalRevenueUsd || 0
+                    ).toLocaleString('vi-VN')}</strong></span>`
+                )
+                .join('')}
+            </div>`
+          : '';
+      bot12PreviewEl.innerHTML =
+        grpHtml +
+        cRows
+          .slice(0, 8)
+          .map(
+            (r) => `
+            <div class="bot-viral-item" style="border-left: 3px solid #0284c7;">
+              <div class="bot-viral-main">
+                <div class="bot-viral-title-row">
+                  <span class="bot-mult-badge" style="background: rgba(2,132,199,0.12); color: #0284c7;">
+                    #${r.stt} · ${escapeHtml(r.group)}
+                  </span>
+                  <strong>${escapeHtml(r.name)}</strong>
+                  <span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(r.handle)}</span>
+                  <strong style="margin-left: auto; color: #059669;">$${Number(r.yearlyRevenueUsd || 0).toLocaleString('vi-VN')}</strong>
+                </div>
+                <div class="bot-viral-meta">
+                  👤 ${escapeHtml(r.manager)} · 👥 ${Number(r.subscribers || 0).toLocaleString('vi-VN')} sub ·
+                  👁️ ${Number(r.totalViews || 0).toLocaleString('vi-VN')} views · 💰 ${escapeHtml(r.monetization)} ·
+                  ⏰ ${escapeHtml(r.scheduleStatus)}
+                </div>
               </div>
             </div>
-          </div>
-        `
-        )
-        .join('');
+          `
+          )
+          .join('');
     }
   }
 
