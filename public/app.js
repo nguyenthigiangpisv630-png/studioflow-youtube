@@ -6004,6 +6004,7 @@ function renderBotsCenterTab() {
           const outliers = Array.isArray(scan.outliers) ? scan.outliers : Array.isArray(scan.videos) ? scan.videos : [];
           const topVideos = outliers.length > 0 ? outliers.slice(0, 5) : (scan.allVideos || scan.videos || []).slice(0, 4);
           const hotKw = Array.isArray(scan.hotKeywords) ? scan.hotKeywords : Array.isArray(scan.topKeywords) ? scan.topKeywords : [];
+          const trendingPhrases = Array.isArray(scan.trendingPhrases) ? scan.trendingPhrases : [];
           const avgViewsVal = Number(scan.avgViews ?? scan.avgViewsPerVideo ?? 0);
           return `
             <div class="bot-viral-item" style="flex-direction: column; align-items: stretch; gap: 8px; border-left: 3px solid #6366f1;">
@@ -6018,7 +6019,15 @@ function renderBotsCenterTab() {
                     )} subs
                   </span>
                 </div>
-                <div style="display: flex; gap: 6px; align-items: center;">
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-xs"
+                    data-send-to-bot7-trend="${escapeHtml(scan.handle || scan.channelUrl || scan.channelName)}"
+                    title="Chuyển kênh đối thủ này sang Bot 7 để tự động bóc tách 24 từ khóa tìm kiếm đang Trend của đối thủ"
+                  >
+                    🔍 Bóc Tách Từ Khóa Trend Của Kênh Này
+                  </button>
                   <span class="bot-mult-badge" style="background: rgba(99,102,241,0.16); color: #818cf8;">
                     TB: ${escapeHtml(avgViewsVal.toLocaleString('vi-VN'))} views/bài
                   </span>
@@ -6028,9 +6037,34 @@ function renderBotsCenterTab() {
                 </div>
               </div>
               ${
+                trendingPhrases.length > 0
+                  ? `<div style="display: flex; gap: 5px; flex-wrap: wrap; align-items: center; padding: 6px 8px; border-radius: 8px; background: rgba(79,70,229,0.08); border: 1px dashed rgba(99,102,241,0.3);">
+                      <span style="font-size: 11px; font-weight: 700; color: #4f46e5;">📈 Cụm từ khóa đang Trend của đối thủ:</span>
+                      ${trendingPhrases
+                        .slice(0, 5)
+                        .map(
+                          (p) => `
+                          <button
+                            type="button"
+                            class="btn btn-secondary btn-xs"
+                            style="padding: 2px 8px; font-size: 11px; border-color: rgba(99,102,241,0.35);"
+                            data-send-to-bot7-trend="${escapeHtml(p.phrase)}"
+                            title="Đỉnh x${p.maxMultiplier} TB kênh (${Number(p.totalViews || 0).toLocaleString(
+                              'vi-VN'
+                            )} views) — Bấm để Bot 7 mở rộng 24 từ khóa tìm kiếm thực tế từ cụm này!"
+                          >
+                            🔥 "${escapeHtml(p.phrase)}" (x${p.maxMultiplier}) · Săn Trend →
+                          </button>
+                        `
+                        )
+                        .join('')}
+                    </div>`
+                  : ''
+              }
+              ${
                 hotKw.length > 0
                   ? `<div style="display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
-                      <span style="font-size: 11px; color: var(--text-muted);">🔑 Từ khóa ngách hot:</span>
+                      <span style="font-size: 11px; color: var(--text-muted);">🔑 Từ khóa đơn:</span>
                       ${hotKw
                         .map(
                           (k) => `
@@ -6222,7 +6256,7 @@ function renderBotsCenterTab() {
     if (trendScans.length === 0) {
       bot7ListEl.innerHTML = `
         <div class="bot-empty-note">
-          Chưa có chủ đề nào được quét. Nhập từ khóa gốc (VD: <code>tiểu sử tỷ phú</code>, <code>AI story</code>) ở trên rồi bấm <strong>"🔍 Quét Từ Khóa Trend ngay"</strong>!
+          Chưa có chủ đề nào được quét. Nhập từ khóa gốc (VD: <code>tiểu sử tỷ phú</code>) HOẶC dán <code>@Handle</code> kênh đối thủ (VD: <code>@TinyWrist</code>) ở trên rồi bấm <strong>"🔍 Phân Tích &amp; Săn Từ Khóa Trend"</strong>!
         </div>
       `;
     } else {
@@ -6230,8 +6264,41 @@ function renderBotsCenterTab() {
         .slice(0, 5)
         .map((scan) => {
           const kws = Array.isArray(scan.keywords) ? scan.keywords.slice(0, 8) : [];
+          const srcCh = scan.sourceChannel;
+          const srcBanner = srcCh
+            ? `<div style="padding: 6px 10px; border-radius: 8px; background: rgba(79,70,229,0.1); border: 1px solid rgba(99,102,241,0.3); font-size: 11.5px;">
+                🕵️ <strong>Bóc tách từ Kênh Đối Thủ:</strong> <strong>${escapeHtml(
+                  srcCh.channelName || srcCh.handle
+                )}</strong> (<code>${escapeHtml(srcCh.handle || '')}</code> · TB ${Number(
+                srcCh.avgViews || 0
+              ).toLocaleString('vi-VN')} views/bài)
+                ${
+                  Array.isArray(srcCh.trendingPhrases) && srcCh.trendingPhrases.length > 0
+                    ? `<div style="margin-top: 4px; display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
+                        <span style="color: var(--text-muted);">🔥 Cụm đang nổ của đối thủ:</span>
+                        ${srcCh.trendingPhrases
+                          .slice(0, 4)
+                          .map(
+                            (p) => `
+                            <button
+                              type="button"
+                              class="btn btn-secondary btn-xs"
+                              style="padding: 1px 6px; font-size: 10.5px;"
+                              data-send-to-bot7-trend="${escapeHtml(p.phrase)}"
+                            >
+                              "${escapeHtml(p.phrase)}" (x${p.maxMultiplier})
+                            </button>
+                          `
+                          )
+                          .join('')}
+                      </div>`
+                    : ''
+                }
+              </div>`
+            : '';
           return `
             <div class="bot-viral-item" style="flex-direction: column; align-items: stretch; gap: 8px; border-left: 3px solid #4f46e5;">
+              ${srcBanner}
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <div>
                   <strong style="font-size: 13px; color: var(--text);">
@@ -6662,6 +6729,18 @@ function initBotsCenterEvents() {
         } catch {
           showBanner('📋 Prompt: ' + text);
         }
+      }
+      return;
+    }
+
+    const sendToBot7Btn = e.target.closest('[data-send-to-bot7-trend]');
+    if (sendToBot7Btn) {
+      const val = sendToBot7Btn.dataset.sendToBot7Trend || '';
+      const inpBot7 = document.getElementById('input-bot7-seed');
+      if (inpBot7 && val) {
+        inpBot7.value = val;
+        inpBot7.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('btn-bot7-scan-only')?.click();
       }
       return;
     }
@@ -7192,7 +7271,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=64', { updateViaCache: 'none' })
+      .register('/sw.js?v=65', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

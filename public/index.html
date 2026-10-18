@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=64" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=64" />
+  <link rel="icon" href="/icon.svg?v=65" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=65" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -905,8 +905,8 @@
                   <div class="bot-card-title-wrap">
                     <span class="bot-icon-badge bot-badge-blue" style="background:#eef2ff;border-color:#c7d2fe;">🔍</span>
                     <div>
-                      <h3 class="bot-card-title">Bot 7 — Săn Từ Khóa Ngách &amp; Trend Tìm Kiếm (<code>/trend</code>)</h3>
-                      <p class="bot-card-sub">Quét trực tiếp YouTube Search Autocomplete tìm ngách con (Micro-Niche) &amp; gợi ý tiêu đề CTR cao</p>
+                      <h3 class="bot-card-title">Bot 7 — Săn Từ Khóa Ngách &amp; Bóc Tách Trend Đối Thủ (<code>/trend</code>)</h3>
+                      <p class="bot-card-sub">Nhập từ khóa HOẶC dán @Handle / Link kênh đối thủ để tự tìm cụm từ khóa đang nổ view &amp; mở rộng 24 ngách con</p>
                     </div>
                   </div>
                   <span class="bot-status-pill active" id="bot7-status-pill">🟢 Sẵn sàng săn Trend</span>
@@ -914,7 +914,7 @@
 
                 <div class="bot-kpi-strip">
                   <div class="bot-kpi-box">
-                    <span class="bot-kpi-label">Chủ đề đã quét Trend</span>
+                    <span class="bot-kpi-label">Chủ đề / Kênh đã quét</span>
                     <strong class="bot-kpi-val num" id="bot7-kpi-scans" style="color:#4f46e5;">0 chủ đề</strong>
                   </div>
                   <div class="bot-kpi-box">
@@ -925,12 +925,12 @@
 
                 <div style="display:grid;grid-template-columns:1fr 145px;gap:8px;align-items:end;">
                   <label class="field" style="margin:0;">
-                    <span>Nhập từ khóa gốc cần săn xu hướng tìm kiếm YouTube</span>
+                    <span>Nhập Từ khóa gốc HOẶC @Handle / Link kênh đối thủ cần tìm từ khóa đang Trend</span>
                     <input
                       type="text"
                       id="input-bot7-seed"
                       class="input-control"
-                      placeholder="VD: tiểu sử tỷ phú, AI story, nhạc thư giãn..."
+                      placeholder="VD: @TinyWrist, https://youtube.com/@..., hoặc tiểu sử tỷ phú"
                     />
                   </label>
                   <label class="field" style="margin:0;">
@@ -944,7 +944,7 @@
 
                 <div class="bot-actions-row" style="margin-top:8px;">
                   <button type="button" class="btn btn-primary btn-sm" id="btn-bot7-scan-only">
-                    🔍 Quét Từ Khóa Trend ngay
+                    🔍 Phân Tích &amp; Săn Từ Khóa Trend
                   </button>
                   <button type="button" class="btn btn-secondary btn-sm" id="btn-bot7-scan-and-tg">
                     📲 Quét &amp; Bắn Trend về Telegram
@@ -952,7 +952,7 @@
                 </div>
 
                 <div class="bot-section-divider">
-                  <span>🔑 Từ khóa Khán giả đang gõ tìm &amp; Tiêu đề Gợi ý (1-Click +Lưu Key hoặc Tạo Thumbnail)</span>
+                  <span>🔑 Cụm Từ Khóa Đang Trend Của Đối Thủ &amp; 24 Ngách Tìm Kiếm Thực Tế (1-Click +Lưu Key)</span>
                 </div>
                 <div id="bot7-trend-results" class="bot-viral-list" style="max-height:330px;"></div>
               </div>
@@ -1120,7 +1120,7 @@
             <circle cx="9" cy="14" r="1.5" />
             <circle cx="15" cy="14" r="1.5" />
           </svg>
-          <span>6 Bot</span>
+          <span>9 Bot</span>
         </button>
       </nav>
     </div>
@@ -1475,7 +1475,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=64"></script>
+  <script type="module" src="/app.js?v=65"></script>
 </body>
 </html>
 

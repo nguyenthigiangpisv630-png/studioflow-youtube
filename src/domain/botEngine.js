@@ -990,20 +990,22 @@ export async function pollTelegramBotUpdates(store) {
 // ============================================================================
 // BOT 5: OUTLIER / NEXLEV COMPETITOR HUNTER BOT (SĂN NGÁCH & DÒ KÊNH ĐỐI THỦ)
 // ============================================================================
+const COMPETITOR_STOP_WORDS = new Set([
+  'the', 'and', 'for', 'with', 'this', 'that', 'from', 'your', 'you', 'how', 'why', 'what',
+  'when', 'who', 'where', 'into', 'over', 'after', 'before', 'about', 'video', 'shorts',
+  'official', 'full', 'new', 'part', 'episode', 'của', 'những', 'trong', 'được', 'cách',
+  'làm', 'nhất', 'không', 'người', 'này', 'cho', 'với', 'khi', 'một', 'các', 'trên',
+  'như', 'thế', 'nào', 'đến', 'hay', 'cùng', 'phần', 'tập', 'năm', 'ngày',
+]);
+
 function extractHotKeywordsFromTitles(titles = []) {
-  const stopWords = new Set([
-    'the', 'and', 'for', 'with', 'this', 'that', 'from', 'your', 'you', 'how', 'why', 'what',
-    'when', 'who', 'where', 'into', 'over', 'after', 'before', 'about', 'video', 'shorts',
-    'official', 'full', 'new', 'part', 'episode', 'của', 'những', 'trong', 'được', 'cách',
-    'làm', 'nhất', 'không', 'người', 'này', 'cho', 'với', 'khi', 'một', 'các', 'trên',
-  ]);
   const freq = new Map();
   for (const t of titles) {
     const words = String(t || '')
       .toLowerCase()
       .replace(/[^\p{L}\p{N}\s]/gu, ' ')
       .split(/\s+/)
-      .filter((w) => w.length >= 4 && !stopWords.has(w) && !/^\d+$/.test(w));
+      .filter((w) => w.length >= 4 && !COMPETITOR_STOP_WORDS.has(w) && !/^\d+$/.test(w));
     for (const w of words) {
       freq.set(w, (freq.get(w) || 0) + 1);
     }
@@ -1012,6 +1014,77 @@ function extractHotKeywordsFromTitles(titles = []) {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
     .map(([word, count]) => ({ word, count }));
+}
+
+export function extractTrendingPhrasesFromVideos(videos = [], avgViews = 1) {
+  const safeAvg = Math.max(1, Number(avgViews) || 1);
+  const phraseStats = new Map();
+
+  for (const v of videos) {
+    const rawTitle = String(v.title || '');
+    const views = Math.max(0, Number(v.views) || 0);
+    const mult = Number(v.outlierMultiplier ?? v.multiplier) || Math.round((views / safeAvg) * 10) / 10;
+    const tokens = rawTitle
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length >= 2 && !/^\d+$/.test(w));
+
+    const seenInVideo = new Set();
+    for (let n = 3; n >= 2; n--) {
+      for (let i = 0; i <= tokens.length - n; i++) {
+        const slice = tokens.slice(i, i + n);
+        if (COMPETITOR_STOP_WORDS.has(slice[0]) && COMPETITOR_STOP_WORDS.has(slice[slice.length - 1])) {
+          continue;
+        }
+        const meaningfulCount = slice.filter((w) => w.length >= 3 && !COMPETITOR_STOP_WORDS.has(w)).length;
+        if (meaningfulCount < 1) continue;
+        const phrase = slice.join(' ');
+        if (phrase.length < 6 || seenInVideo.has(phrase)) continue;
+        seenInVideo.add(phrase);
+
+        if (!phraseStats.has(phrase)) {
+          phraseStats.set(phrase, {
+            phrase,
+            videoCount: 0,
+            totalViews: 0,
+            maxMultiplier: 0,
+            sumMultiplier: 0,
+            bestVideoTitle: rawTitle,
+            bestVideoViews: views,
+          });
+        }
+        const entry = phraseStats.get(phrase);
+        entry.videoCount += 1;
+        entry.totalViews += views;
+        entry.sumMultiplier += mult;
+        if (mult > entry.maxMultiplier) entry.maxMultiplier = mult;
+        if (views > entry.bestVideoViews) {
+          entry.bestVideoViews = views;
+          entry.bestVideoTitle = rawTitle;
+        }
+      }
+    }
+  }
+
+  return [...phraseStats.values()]
+    .map((p) => {
+      const avgMultiplier = Math.round((p.sumMultiplier / Math.max(1, p.videoCount)) * 10) / 10;
+      const wordCountBonus = p.phrase.split(' ').length === 3 ? 1.15 : 1.0;
+      const repeatBonus = p.videoCount >= 2 ? 1 + (p.videoCount - 1) * 0.6 : 0.85;
+      const trendScore = Math.round(p.maxMultiplier * repeatBonus * wordCountBonus * 100) / 100;
+      return {
+        phrase: p.phrase,
+        videoCount: p.videoCount,
+        totalViews: p.totalViews,
+        avgMultiplier,
+        maxMultiplier: Math.round(p.maxMultiplier * 10) / 10,
+        trendScore,
+        bestVideoTitle: p.bestVideoTitle,
+      };
+    })
+    .sort((a, b) => b.trendScore - a.trendScore || b.totalViews - a.totalViews)
+    .slice(0, 8);
 }
 
 export async function huntCompetitorChannelOutliers(store, options = {}) {
@@ -1081,6 +1154,7 @@ export async function huntCompetitorChannelOutliers(store, options = {}) {
   const outlierVideos = enrichedVideos.filter((v) => v.outlierMultiplier >= minOutlier);
   const topVideosToReturn = (outlierVideos.length > 0 ? outlierVideos : enrichedVideos).slice(0, 15);
   const topKeywords = extractHotKeywordsFromTitles(topVideosToReturn.map((v) => v.title));
+  const trendingPhrases = extractTrendingPhrasesFromVideos(enrichedVideos, avgViews);
   const category =
     profile.category ||
     inferChannelCategory({
@@ -1107,6 +1181,7 @@ export async function huntCompetitorChannelOutliers(store, options = {}) {
     outlierCount: outlierVideos.length,
     topKeywords,
     hotKeywords: topKeywords,
+    trendingPhrases,
     videos: topVideosToReturn,
     outliers: outlierVideos.slice(0, 15),
     allVideos: enrichedVideos.slice(0, 15),
@@ -1137,6 +1212,19 @@ export function formatTelegramCompetitorReport(scan) {
       ? scan.topKeywords.map((k) => `<code>#${escapeTgHtml(k.word)}</code>`).join(' ')
       : 'Chưa trích xuất';
 
+  const phraseLines =
+    Array.isArray(scan.trendingPhrases) && scan.trendingPhrases.length > 0
+      ? scan.trendingPhrases
+          .slice(0, 5)
+          .map(
+            (p, idx) =>
+              `${idx + 1}. 🔥 <code>${escapeTgHtml(p.phrase)}</code> (Đỉnh <b>x${p.maxMultiplier}</b> · ${p.videoCount} video · ${Number(
+                p.totalViews || 0
+              ).toLocaleString('vi-VN')} views)`
+          )
+          .join('\n')
+      : 'Chưa đủ dữ liệu cụm từ khóa.';
+
   const topVids = (scan.videos || []).slice(0, 6);
   const vidsHtml =
     topVids.length > 0
@@ -1160,12 +1248,15 @@ export function formatTelegramCompetitorReport(scan) {
     `👥 Subscribers: <b>${Number(scan.subscribers || 0).toLocaleString('vi-VN')} sub</b>`,
     `📊 Trung bình kênh: <b>${Number(scan.avgViewsPerVideo || 0).toLocaleString('vi-VN')} views / video</b>`,
     `🔥 Số video Outlier (≥ x${scan.minOutlier}): <b>${scan.outlierCount} video</b>`,
-    `🔑 Từ khóa ngách ăn đề xuất: ${kwStr}`,
+    `🔑 Từ khóa đơn: ${kwStr}`,
+    ``,
+    `📈 <b>CỤM TỪ KHÓA ĐANG TREND MẠNH NHẤT TRÊN KÊNH ĐỐI THỦ:</b>`,
+    phraseLines,
     ``,
     `🏆 <b>TOP VIDEO CẮN ĐỀ XUẤT MẠNH NHẤT CỦA ĐỐI THỦ:</b>`,
     vidsHtml,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `💡 <i>Gõ <code>/thumb Link_Video</code> để Bot 6 bóc tách bố cục &amp; viết sẵn Prompt Thumbnail làm ăn theo!</i>`,
+    `💡 <i>Gõ <code>/trend ${escapeTgHtml(scan.handle)}</code> để bóc tách 24 từ khóa tìm kiếm thực tế từ kênh này, hoặc gõ <code>/thumb Link_Video</code> để lấy Prompt Thumbnail!</i>`,
   ].join('\n');
 }
 
@@ -1414,16 +1505,51 @@ function classifyTrendKeyword(keyword = '', market = 'vi') {
 
 export async function huntYouTubeSearchTrends(store, options = {}) {
   const center = ensureBotCenterState(store.state.meta);
-  const seedKeyword = String(options.seedKeyword || options.query || '').trim();
-  if (!seedKeyword) {
-    throw new Error('Vui lòng nhập Từ khóa gốc cần săn Trend (VD: tiểu sử tỷ phú, AI story, nhạc thư giãn)!');
+  const rawSeed = String(options.seedKeyword || options.query || '').trim();
+  if (!rawSeed) {
+    throw new Error(
+      'Vui lòng nhập Từ khóa gốc hoặc @Handle / Link kênh đối thủ cần phân tích Trend (VD: tiểu sử tỷ phú, @TinyWrist)!'
+    );
   }
 
   const market = String(options.market || center.config.defaultTrendMarket || 'vi').toLowerCase();
   const hl = market === 'en' ? 'en' : 'vi';
   const gl = market === 'en' ? 'US' : 'VN';
 
-  const queryVariations =
+  let seedKeyword = rawSeed;
+  let sourceChannel = null;
+  const isCompetitorChannelInput =
+    rawSeed.startsWith('@') ||
+    /youtube\.com\/|youtu\.be\//i.test(rawSeed) ||
+    Boolean(options.fromCompetitorChannel);
+
+  if (isCompetitorChannelInput) {
+    const compScan = await huntCompetitorChannelOutliers(store, {
+      query: rawSeed,
+      channelFetcher: options.channelFetcher,
+    });
+    const topPhrase =
+      compScan.trendingPhrases?.[0]?.phrase ||
+      compScan.topKeywords?.slice(0, 2).map((k) => k.word).join(' ') ||
+      compScan.channelName;
+    seedKeyword = topPhrase;
+    sourceChannel = {
+      channelName: compScan.channelName,
+      handle: compScan.handle,
+      channelUrl: compScan.channelUrl,
+      subscribers: compScan.subscribers,
+      avgViews: compScan.avgViews,
+      outlierCount: compScan.outlierCount,
+      trendingPhrases: (compScan.trendingPhrases || []).slice(0, 6),
+      topKeywords: (compScan.topKeywords || []).slice(0, 8),
+    };
+  }
+
+  const extraCompetitorPhrases = sourceChannel
+    ? (sourceChannel.trendingPhrases || []).slice(0, 3).map((p) => p.phrase)
+    : [];
+
+  const baseVariations =
     market === 'en'
       ? [
           seedKeyword,
@@ -1440,8 +1566,17 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
           `tại sao ${seedKeyword}`,
         ];
 
+  const queryVariations = [...new Set([...extraCompetitorPhrases, ...baseVariations])].slice(0, 6);
+
   const fetcher = options.suggestFetcher || fetchYouTubeAutocompleteSuggestions;
   const collected = new Set();
+
+  // Nếu dò từ kênh đối thủ, đưa luôn các cụm từ khóa đang nổ view nhất của đối thủ lên đầu danh sách
+  if (sourceChannel && Array.isArray(sourceChannel.trendingPhrases)) {
+    for (const p of sourceChannel.trendingPhrases.slice(0, 4)) {
+      if (p.phrase) collected.add(p.phrase);
+    }
+  }
 
   try {
     const settled = await Promise.allSettled(
@@ -1480,24 +1615,38 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
     for (const fb of fallbackSuffixes) collected.add(fb);
   }
 
+  const competitorPhraseMap = new Map(
+    (sourceChannel?.trendingPhrases || []).map((p) => [p.phrase.toLowerCase(), p])
+  );
+
   const keywords = [...collected].slice(0, 24).map((kw, idx) => {
     const meta = classifyTrendKeyword(kw, market);
+    const compMatch = competitorPhraseMap.get(kw.toLowerCase());
+    const intentTag = compMatch
+      ? `🔥 Đang nổ trên kênh ${sourceChannel.handle} (Đỉnh x${compMatch.maxMultiplier} · ${Number(
+          compMatch.totalViews || 0
+        ).toLocaleString('vi-VN')} views)`
+      : meta.intentTag;
     return {
       rank: idx + 1,
       keyword: kw,
-      intentTag: meta.intentTag,
+      intentTag,
       suggestedTitle: meta.suggestedTitle,
       youtubeSearchUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(kw)}`,
     };
   });
 
   const microNicheCount = keywords.filter((k) => k.intentTag.includes('Ngách con')).length;
-  const risingCount = keywords.filter((k) => k.intentTag.includes('Xu hướng')).length;
+  const risingCount = keywords.filter(
+    (k) => k.intentTag.includes('Xu hướng') || k.intentTag.includes('Đang nổ trên kênh')
+  ).length;
 
   const trendEntry = {
     id: `trend-${crypto.randomUUID().slice(0, 8)}`,
     scannedAt: new Date().toISOString(),
+    rawInput: rawSeed,
     seedKeyword,
+    sourceChannel,
     market,
     totalKeywords: keywords.length,
     microNicheCount,
@@ -1508,7 +1657,7 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
   center.trendScans = [
     trendEntry,
     ...(center.trendScans || []).filter(
-      (it) => String(it.seedKeyword || '').toLowerCase() !== seedKeyword.toLowerCase()
+      (it) => String(it.rawInput || it.seedKeyword || '').toLowerCase() !== rawSeed.toLowerCase()
     ),
   ].slice(0, MAX_TREND_SCANS);
   center.config.lastTrendScanAt = trendEntry.scannedAt;
@@ -1516,7 +1665,9 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
   appendBotLog(
     store.state.meta,
     'Bot 7 (Săn Từ Khóa Trend)',
-    `Đã quét YouTube Search Autocomplete cho "${seedKeyword}" (${market.toUpperCase()}): thu về ${keywords.length} từ khóa tìm kiếm thực tế (${microNicheCount} ngách con)!`,
+    sourceChannel
+      ? `Đã bóc tách kênh đối thủ "${sourceChannel.channelName}" (${sourceChannel.handle}) -> Tìm ra cụm trend "${seedKeyword}" và ${keywords.length} từ khóa tìm kiếm thực tế!`
+      : `Đã quét YouTube Search Autocomplete cho "${seedKeyword}" (${market.toUpperCase()}): thu về ${keywords.length} từ khóa tìm kiếm thực tế (${microNicheCount} ngách con)!`,
     'success'
   );
 
@@ -1534,21 +1685,44 @@ export function formatTelegramTrendReport(trendScan) {
     )
     .join('\n\n');
 
+  const competitorBlock = trendScan.sourceChannel
+    ? [
+        `🕵️ <b>Phân tích từ Kênh Đối Thủ:</b> <b>${escapeTgHtml(
+          trendScan.sourceChannel.channelName
+        )}</b> (<code>${escapeTgHtml(trendScan.sourceChannel.handle)}</code> · TB ${Number(
+          trendScan.sourceChannel.avgViews || 0
+        ).toLocaleString('vi-VN')} views/video)`,
+        `🔥 <b>Top Cụm Từ Khóa Đang Nổ View Của Đối Thủ:</b>`,
+        ...(trendScan.sourceChannel.trendingPhrases || [])
+          .slice(0, 4)
+          .map(
+            (p) =>
+              `  • <code>${escapeTgHtml(p.phrase)}</code> — Đỉnh <b>x${p.maxMultiplier}</b> (${p.videoCount} video · ${Number(
+                p.totalViews || 0
+              ).toLocaleString('vi-VN')} views)`
+          ),
+        ``,
+      ].join('\n')
+    : '';
+
   return [
     `🔍 <b>BÁO CÁO SĂN TỪ KHÓA NGÁCH &amp; TREND TÌM KIẾM YOUTUBE (BOT 7)</b>`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `🎯 Từ khóa gốc: <b>${escapeTgHtml(trendScan.seedKeyword)}</b> (${escapeTgHtml(
+    competitorBlock,
+    `🎯 Chủ đề / Từ khóa gốc: <b>${escapeTgHtml(trendScan.seedKeyword)}</b> (${escapeTgHtml(
       String(trendScan.market || 'vi').toUpperCase()
     )})`,
     `📊 Tổng từ khóa khán giả đang gõ tìm: <b>${trendScan.totalKeywords} từ khóa</b>`,
     `💎 Ngách con ít cạnh tranh (Micro-Niche): <b>${trendScan.microNicheCount} ngách</b>`,
-    `🔥 Xu hướng đang lên: <b>${trendScan.risingCount} từ khóa</b>`,
+    `🔥 Xu hướng &amp; Key nổ view: <b>${trendScan.risingCount} từ khóa</b>`,
     ``,
     `🏆 <b>TOP TỪ KHÓA &amp; TIÊU ĐỀ GỢI Ý LÀM VIDEO NGAY:</b>`,
     rows,
     `━━━━━━━━━━━━━━━━━━━━`,
     `💡 <i>Chạm vào từ khóa để Copy hoặc mở Web bấm 1-Click <b>+ Lưu Key</b> vào Kho nội dung!</i>`,
-  ].join('\n');
+  ]
+    .filter(Boolean)
+    .join('\n');
 }
 
 // ============================================================================

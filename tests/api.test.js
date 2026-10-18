@@ -740,6 +740,8 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(spyScan.outliers[0].videoId, 'vid003');
     assert.ok(spyScan.outliers[0].multiplier >= 2);
     assert.ok(spyScan.hotKeywords.some((k) => k.word === 'automation'));
+    assert.ok(Array.isArray(spyScan.trendingPhrases) && spyScan.trendingPhrases.length > 0);
+    assert.ok(spyScan.trendingPhrases.some((p) => p.phrase.includes('ai automation')));
 
     // 7. Bot 6 — Phân Tích & Sinh Prompt Thumbnail (Thumbnail Clone Bot)
     const thumbRes = await fetch(`${baseUrl}/api/bots/thumbnail/clone`, {
@@ -757,7 +759,7 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(thumbData.cloneItem.prompts.fluxIdeogram.length > 20);
     assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
 
-    // 8. Bot 7 (Bot 9) — Săn Từ Khóa Ngách & Trend Tìm Kiếm Thực Tế (/trend)
+    // 8. Bot 7 (Bot 9) — Săn Từ Khóa Ngách & Trend Tìm Kiếm Thực Tế (/trend theo từ khóa & theo @Handle đối thủ)
     const trendScan = await store.runTrendHunterScan({
       seedKeyword: 'tiểu sử tỷ phú',
       market: 'vi',
@@ -770,6 +772,26 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(trendScan.seedKeyword, 'tiểu sử tỷ phú');
     assert.ok(trendScan.totalKeywords >= 6);
     assert.ok(trendScan.keywords.some((k) => k.keyword.includes('tự thân làm giàu')));
+
+    const compTrendScan = await store.runTrendHunterScan({
+      seedKeyword: '@MockCompetitor',
+      market: 'vi',
+      channelFetcher: async () => ({
+        name: 'Kênh Đối Thủ Test',
+        handle: '@MockCompetitor',
+        channelUrl: 'https://www.youtube.com/@MockCompetitor',
+        subscribers: 50000,
+        recentVideos: [
+          { videoId: 'vid001', title: 'Bí Mật Làm Giàu Ngách AI Automation', views: 10000, publishedText: '5 days ago' },
+          { videoId: 'vid002', title: 'Hướng Dẫn Cơ Bản AI Automation', views: 12000, publishedText: '4 days ago' },
+          { videoId: 'vid003', title: 'Siêu Phẩm AI Automation Nổ Triệu View', views: 95000, publishedText: '1 day ago' },
+        ],
+      }),
+      suggestFetcher: async (q) => [`${q} kiếm tiền youtube 2026`, `${q} cho người mới`],
+    });
+    assert.ok(compTrendScan.sourceChannel);
+    assert.equal(compTrendScan.sourceChannel.handle, '@MockCompetitor');
+    assert.ok(compTrendScan.keywords.some((k) => k.keyword.includes('ai automation')));
 
     // 9. Bot 11 — Cảnh Báo Bật Kiếm Tiền & Bảo Vệ Gà AdSense (/ga & /revenue)
     store.updateChannel(ch.id, {
