@@ -602,3 +602,39 @@ test('Gà kết nối: Cho phép Set Pass (đặt/đổi mật khẩu riêng) v�
   });
 });
 
+
+test('POST /api/ingest/content: tắt khi chưa có khóa, từ chối khóa sai, lưu vào Kho nội dung khi đúng khóa', async () => {
+  const oldKey = process.env.STUDIOFLOW_INGEST_KEY;
+  try {
+    await withTestServer(async ({ baseUrl, store }) => {
+      const post = (key, body) =>
+        fetch(`${baseUrl}/api/ingest/content`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(key ? { 'X-Ingest-Key': key } : {}) },
+          body: JSON.stringify(body),
+        });
+
+      delete process.env.STUDIOFLOW_INGEST_KEY;
+      assert.equal((await post('whatever-key-1234567', { title: 'A' })).status, 503);
+
+      process.env.STUDIOFLOW_INGEST_KEY = 'test-ingest-key-123456';
+      assert.equal((await post('sai-khoa-sai-khoa-1', { title: 'A' })).status, 401);
+      assert.equal((await post('', { title: 'A' })).status, 401);
+      assert.equal((await post('test-ingest-key-123456', { title: '' })).status, 400);
+
+      const ok = await post('test-ingest-key-123456', {
+        title: 'Kịch bản người nổi tiếng',
+        type: 'script',
+        body: 'Nội dung kịch bản hoàn chỉnh',
+        tags: 'celebrity',
+      });
+      assert.equal(ok.status, 201);
+      const item = await ok.json();
+      assert.ok(item.tags.includes('ingest') && item.tags.includes('celebrity'));
+      assert.ok(store.listContentItems({ search: 'Kịch bản người nổi tiếng' }).length >= 1);
+    });
+  } finally {
+    if (oldKey === undefined) delete process.env.STUDIOFLOW_INGEST_KEY;
+    else process.env.STUDIOFLOW_INGEST_KEY = oldKey;
+  }
+});

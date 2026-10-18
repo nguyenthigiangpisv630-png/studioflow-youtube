@@ -62,6 +62,13 @@ Tài liệu bàn giao ngữ cảnh (Handoff Context) để Claude / Claude Code 
 
 ---
 
+### Cổng Ingest (đẩy kết quả từ dự án/Claude bên ngoài lên Kho Nội dung)
+- `POST /api/ingest/content` — không cần đăng nhập, xác thực bằng header `X-Ingest-Key` so với biến môi trường `STUDIOFLOW_INGEST_KEY` (>= 16 ký tự, đặt trên Render; chưa đặt thì endpoint trả `503`). Sai khóa trả `401`, có chống dò khóa như đăng nhập (`429`).
+- Body JSON giống `POST /api/contents` (`title` bắt buộc, `type`, `body`, `tags`, `assetUrl`...). Mục lưu sẽ tự gắn tag `ingest`, tác giả mặc định `Claude Ingest`.
+- Ví dụ: `curl -X POST https://tiphomart.io.vn/api/ingest/content -H "X-Ingest-Key: <KHÓA>" -H "Content-Type: application/json" -d '{"title":"...","type":"script","body":"..."}'`
+
+---
+
 ## 4. Danh mục 10 Bot Thực Chiến Có Thể Tích Hợp Tiếp Theo
 
 Khi người dùng yêu cầu làm Bot số mấy, hãy triển khai theo đúng thiết kế dưới đây:

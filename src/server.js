@@ -2,7 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { StudioStore } from './domain/studioStore.js';
+import { StudioStore, safeCompareStrings } from './domain/studioStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -282,6 +282,33 @@ export function createAppServer({
           recordBruteForceFailure(clientIp);
           throw gaErr;
         }
+      }
+
+      // Cổng nhận kết quả tự động từ dự án/Claude bên ngoài (khóa riêng STUDIOFLOW_INGEST_KEY, không cần đăng nhập)
+      if (pathname === '/api/ingest/content' && method === 'POST') {
+        const ingestKey = String(process.env.STUDIOFLOW_INGEST_KEY || '').trim();
+        if (ingestKey.length < 16) {
+          return sendJson(res, 503, { error: 'Cổng ingest chưa bật: cần đặt STUDIOFLOW_INGEST_KEY (>= 16 ký tự) trên server.' });
+        }
+        checkBruteForceLockout(clientIp);
+        const sentKey = String(req.headers['x-ingest-key'] || '').trim();
+        if (!safeCompareStrings(sentKey, ingestKey)) {
+          recordBruteForceFailure(clientIp);
+          return sendJson(res, 401, { error: 'Khóa ingest không hợp lệ.' });
+        }
+        clearBruteForceFailures(clientIp);
+        const body = await readJsonBody(req);
+        const baseTags = Array.isArray(body.tags)
+          ? body.tags
+          : String(body.tags || '')
+              .split(',')
+              .map((t) => t.trim())
+              .filter(Boolean);
+        const created = store.createContentItem(
+          { ...body, tags: [...new Set([...baseTags, 'ingest'])], author: body.author || 'Claude Ingest' },
+          null
+        );
+        return sendJson(res, 201, created);
       }
 
       const authStatus = store.getAuthStatus(clientToken);
