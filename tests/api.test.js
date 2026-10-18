@@ -132,6 +132,14 @@ test('GET / và /manifest.webmanifest phục vụ giao diện Web và cấu hìn
     const manifest = await manifestRes.json();
     assert.equal(manifest.short_name, 'StudioFlow');
     assert.equal(manifest.display, 'standalone');
+
+    const adminPageRes = await fetch(`${baseUrl}/admin`);
+    assert.equal(adminPageRes.status, 200);
+    const adminHtml = await adminPageRes.text();
+    assert.ok(adminHtml.includes('StudioFlow'));
+
+    const healthRes = await fetch(`${baseUrl}/api/health`);
+    assert.equal(healthRes.status, 200);
   });
 });
 

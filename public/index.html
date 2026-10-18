@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=50" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=50" />
+  <link rel="icon" href="/icon.svg?v=51" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=51" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -496,7 +496,7 @@
     </div>
   </div>
 
-  <!-- MÀN HÌNH ĐĂNG NHẬP MINIMALIST: CONTINUE WITH GOOGLE / OR / ENTER YOUR EMAIL / CONTINUE WITH EMAIL -->
+  <!-- MÀN HÌNH ĐĂNG NHẬP MINIMALIST: TRANG CHỦ (/) CHO GMAIL & TRANG (/admin) CHO QUẢN TRỊ VIÊN -->
   <div id="auth-lock-overlay" class="auth-overlay auth-login-page">
     <div class="claude-auth-shell">
       <div class="claude-auth-hero">
@@ -522,7 +522,7 @@
           <!-- Bảng chọn nhanh tài khoản Google khi bấm Continue with Google -->
           <div id="auth-saved-gmails-box" class="claude-google-chooser" hidden></div>
 
-          <div class="claude-or-divider">
+          <div class="claude-or-divider" id="auth-or-divider">
             <span>OR</span>
           </div>
 
@@ -533,13 +533,13 @@
               id="input-auth-username"
               class="claude-email-input"
               value=""
-              placeholder="Nhập Gmail của bạn (hoặc gõ admin)..."
+              placeholder="Enter your email"
               autocomplete="email"
               required
             />
           </div>
 
-          <!-- Ô mật khẩu chỉ hiện khi đăng nhập Admin hoặc tài khoản có yêu cầu mật khẩu -->
+          <!-- Ô mật khẩu hiện sẵn khi truy cập link /admin -->
           <div class="claude-input-group claude-password-step" id="auth-password-step" hidden>
             <input
               type="password"
@@ -558,32 +558,13 @@
             Continue with email
           </button>
 
-          <div class="claude-admin-switch-row">
-            <button
-              type="button"
-              class="claude-admin-mode-btn"
-              id="btn-switch-admin-login"
-              data-fill-admin-login="true"
-            >
-              👑 Đăng nhập quyền Admin (Quản trị viên)
-            </button>
-            <button
-              type="button"
-              class="claude-admin-mode-btn is-back-gmail"
-              id="btn-switch-gmail-login"
-              data-focus-gmail-login="true"
-              hidden
-            >
-              📧 Quay lại đăng nhập bằng Gmail
-            </button>
-          </div>
-
-          <p class="claude-terms-text">
-            Mỗi địa chỉ Gmail đăng nhập sẽ tự động có
-            <a href="#isolated" data-focus-gmail-login="true">Không gian làm việc tách riêng</a>
-            hoặc bấm
-            <a href="#admin" data-fill-admin-login="true">Admin Login</a>
-            để quản trị toàn hệ thống.
+          <p class="claude-terms-text" id="auth-footer-terms">
+            By continuing, you agree to ACB9x StudioFlow's
+            <a href="/admin" data-fill-admin-login="true">Commercial Terms</a>
+            and
+            <a href="#isolated" data-focus-gmail-login="true">Usage Policy</a>,
+            and acknowledge our
+            <a href="#privacy" data-focus-gmail-login="true">Privacy Policy</a>.
           </p>
         </form>
       </div>
@@ -681,7 +662,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=50"></script>
+  <script type="module" src="/app.js?v=51"></script>
 </body>
 </html>
 

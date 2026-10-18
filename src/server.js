@@ -513,9 +513,13 @@ export function createAppServer({
       }
 
       // =======================================================================
-      // STATIC FILES (WEB & MOBILE PWA)
+      // STATIC FILES (WEB & MOBILE PWA) & /admin PORTAL ROUTE
       // =======================================================================
-      const relativePath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+      const normalizedRoute = pathname.replace(/\/+$/, '') || '/';
+      const relativePath =
+        normalizedRoute === '/' || normalizedRoute === '/admin'
+          ? 'index.html'
+          : pathname.replace(/^\/+/, '');
       const safePath = path.normalize(relativePath).replace(/^(\.\.(\/|\\|$))+/, '');
       const fullPath = path.join(PUBLIC_DIR, safePath);
 

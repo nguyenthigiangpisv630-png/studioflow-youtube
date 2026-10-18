@@ -202,47 +202,98 @@ function setStoredAuthToken(token = '') {
   }
 }
 
-function switchAuthOverlayTab(tabName = 'login') {
-  const isAdminTab = tabName === 'admin';
+function isAdminPortalRoute() {
+  try {
+    const p = (window.location.pathname || '/').replace(/\/+$/, '');
+    return p === '/admin';
+  } catch {
+    return false;
+  }
+}
+
+function switchAuthOverlayTab(tabName = '') {
+  const effectiveTab = tabName || (isAdminPortalRoute() ? 'admin' : 'login');
+  const isAdminTab = effectiveTab === 'admin';
   const userInp = document.getElementById('input-auth-username');
   const passStep = document.getElementById('auth-password-step');
   const passInp = document.getElementById('input-auth-login-pass');
   const submitBtn = document.getElementById('btn-auth-login-submit');
-  const adminBtn = document.getElementById('btn-switch-admin-login');
-  const gmailBtn = document.getElementById('btn-switch-gmail-login');
+  const googleBtn = document.getElementById('btn-continue-google');
+  const orDivider = document.getElementById('auth-or-divider');
+  const titleEl = document.getElementById('login-brand-title');
+  const subEl = document.getElementById('login-brand-sub');
+  const footerEl = document.getElementById('auth-footer-terms');
   const errEl = document.getElementById('auth-login-error');
   if (errEl) errEl.hidden = true;
 
   renderSavedGmailsBox(false);
 
   if (isAdminTab) {
+    try {
+      if (!isAdminPortalRoute()) {
+        window.history.replaceState({}, '', '/admin');
+      }
+    } catch {}
+    if (titleEl) titleEl.textContent = '👑 ACB9x StudioFlow — Admin';
+    if (subEl) {
+      subEl.innerHTML =
+        'Cổng đăng nhập Quản trị viên toàn hệ thống<br />Quản lý kênh, doanh thu và phân quyền tài khoản Gmail.';
+    }
+    if (googleBtn) googleBtn.hidden = true;
+    if (orDivider) orDivider.hidden = true;
     if (userInp) {
       userInp.value = 'admin';
-      userInp.placeholder = 'Tài khoản Quản trị viên (admin)';
+      userInp.readOnly = true;
+      userInp.placeholder = 'admin';
     }
     if (passStep) passStep.hidden = false;
     if (passInp) passInp.placeholder = 'Nhập mật khẩu Admin...';
-    if (submitBtn) submitBtn.textContent = '👑 Đăng nhập Admin';
-    if (adminBtn) adminBtn.hidden = true;
-    if (gmailBtn) gmailBtn.hidden = false;
+    if (submitBtn) submitBtn.textContent = '👑 Đăng nhập Quản trị viên (Admin)';
+    if (footerEl) {
+      footerEl.innerHTML = `
+        Đang ở cổng quản trị <b>/admin</b> ·
+        <a href="/" data-focus-gmail-login="true">Chuyển về trang đăng nhập Gmail (/)</a>
+      `;
+    }
     setTimeout(() => passInp?.focus(), 40);
   } else {
+    try {
+      if (isAdminPortalRoute()) {
+        window.history.replaceState({}, '', '/');
+      }
+    } catch {}
+    if (titleEl) titleEl.textContent = 'ACB9x StudioFlow';
+    if (subEl) {
+      subEl.innerHTML =
+        'Create and manage YouTube channels with frontier<br />StudioFlow analytics and isolated Gmail workspace infrastructure.';
+    }
+    if (googleBtn) googleBtn.hidden = false;
+    if (orDivider) orDivider.hidden = false;
     if (userInp) {
+      userInp.readOnly = false;
       if (userInp.value.trim().toLowerCase() === 'admin') {
         userInp.value = '';
       }
-      userInp.placeholder = 'Nhập Gmail của bạn (hoặc gõ admin)...';
+      userInp.placeholder = 'Enter your email';
     }
     if (passStep) passStep.hidden = true;
     if (passInp) passInp.value = '';
     if (submitBtn) submitBtn.textContent = 'Continue with email';
-    if (adminBtn) adminBtn.hidden = false;
-    if (gmailBtn) gmailBtn.hidden = true;
+    if (footerEl) {
+      footerEl.innerHTML = `
+        By continuing, you agree to ACB9x StudioFlow's
+        <a href="/admin" data-fill-admin-login="true">Commercial Terms</a>
+        and
+        <a href="#isolated" data-focus-gmail-login="true">Usage Policy</a>,
+        and acknowledge our
+        <a href="#privacy" data-focus-gmail-login="true">Privacy Policy</a>.
+      `;
+    }
     setTimeout(() => userInp?.focus(), 40);
   }
 }
 
-function showAuthLockOverlay(visible) {
+function showAuthLockOverlay(visible, forceMode = '') {
   const overlay = document.getElementById('auth-lock-overlay');
   const wrapper = document.getElementById('platform-wrapper');
   if (wrapper) {
@@ -251,7 +302,7 @@ function showAuthLockOverlay(visible) {
   if (!overlay) return;
   overlay.hidden = !visible;
   if (visible) {
-    switchAuthOverlayTab('login');
+    switchAuthOverlayTab(forceMode || (isAdminPortalRoute() ? 'admin' : 'login'));
   }
 }
 
@@ -669,6 +720,10 @@ async function loadOverview() {
 
   if (authStatus.passwordEnabled && !authStatus.authenticated) {
     showAuthLockOverlay(true);
+    return;
+  }
+  if (isAdminPortalRoute() && authStatus.user && authStatus.user.role !== 'admin') {
+    showAuthLockOverlay(true, 'admin');
     return;
   }
   showAuthLockOverlay(false);
@@ -5446,7 +5501,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=50', { updateViaCache: 'none' })
+      .register('/sw.js?v=51', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
