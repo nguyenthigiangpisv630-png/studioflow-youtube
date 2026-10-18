@@ -110,6 +110,18 @@ export function createAppServer({
       }
     }, 1500);
     bootRepairTimer.unref?.();
+
+    // Tự động ping giữ thức (Keep-Alive 24/7) mỗi 8 phút để Render.com không bao giờ rơi vào trạng thái ngủ đông (SERVICE WAKING UP)
+    const keepAliveUrls = [
+      process.env.RENDER_EXTERNAL_URL ? `${process.env.RENDER_EXTERNAL_URL.replace(/\/+$/, '')}/api/health` : '',
+      'https://tiphomart.io.vn/api/health',
+    ].filter(Boolean);
+    const keepAliveTimer = setInterval(() => {
+      for (const pingUrl of keepAliveUrls) {
+        fetch(pingUrl, { method: 'GET', headers: { 'User-Agent': 'StudioFlow-KeepAlive/1.0' } }).catch(() => {});
+      }
+    }, 8 * 60 * 1000);
+    keepAliveTimer.unref?.();
   }
 
   const server = http.createServer(async (req, res) => {
@@ -126,6 +138,10 @@ export function createAppServer({
         });
         res.end();
         return;
+      }
+
+      if (pathname === '/api/health' && method === 'GET') {
+        return sendJson(res, 200, { ok: true, status: 'alive', ts: new Date().toISOString() });
       }
 
       // =======================================================================

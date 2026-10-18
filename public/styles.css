@@ -5176,6 +5176,48 @@ select:focus-visible {
   transform: scale(0.995);
 }
 
+.claude-admin-switch-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.claude-admin-mode-btn {
+  width: 100%;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px dashed #D4AF37;
+  background: linear-gradient(135deg, #FFFDF7 0%, #FEF9C3 100%);
+  color: #78350F;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.claude-admin-mode-btn:hover {
+  background: #FDE68A;
+  border-color: #B45309;
+  color: #451A03;
+}
+
+.claude-admin-mode-btn.is-back-gmail {
+  border-color: #93C5FD;
+  background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+  color: #1E40AF;
+}
+
+.claude-admin-mode-btn.is-back-gmail:hover {
+  background: #DBEAFE;
+  border-color: #3B82F6;
+}
+
 .claude-terms-text {
   font-size: 0.76rem;
   line-height: 1.5;

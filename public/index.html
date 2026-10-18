@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=49" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=49" />
+  <link rel="icon" href="/icon.svg?v=50" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=50" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -533,7 +533,7 @@
               id="input-auth-username"
               class="claude-email-input"
               value=""
-              placeholder="Enter your email"
+              placeholder="Nhập Gmail của bạn (hoặc gõ admin)..."
               autocomplete="email"
               required
             />
@@ -546,7 +546,7 @@
               name="password"
               id="input-auth-login-pass"
               class="claude-email-input"
-              placeholder="Enter password..."
+              placeholder="Nhập mật khẩu Admin..."
               autocomplete="current-password"
             />
           </div>
@@ -558,13 +558,32 @@
             Continue with email
           </button>
 
+          <div class="claude-admin-switch-row">
+            <button
+              type="button"
+              class="claude-admin-mode-btn"
+              id="btn-switch-admin-login"
+              data-fill-admin-login="true"
+            >
+              👑 Đăng nhập quyền Admin (Quản trị viên)
+            </button>
+            <button
+              type="button"
+              class="claude-admin-mode-btn is-back-gmail"
+              id="btn-switch-gmail-login"
+              data-focus-gmail-login="true"
+              hidden
+            >
+              📧 Quay lại đăng nhập bằng Gmail
+            </button>
+          </div>
+
           <p class="claude-terms-text">
-            By continuing, you agree to ACB9x StudioFlow's
-            <a href="#terms" data-fill-admin-login="true" title="Chuyển sang đăng nhập Quản trị viên (Admin)">Admin Access</a>
-            and
-            <a href="#isolated" data-focus-gmail-login="true">Isolated Gmail Workspace</a>,
-            and acknowledge our
-            <a href="#privacy" data-focus-gmail-login="true">Privacy Policy</a>.
+            Mỗi địa chỉ Gmail đăng nhập sẽ tự động có
+            <a href="#isolated" data-focus-gmail-login="true">Không gian làm việc tách riêng</a>
+            hoặc bấm
+            <a href="#admin" data-fill-admin-login="true">Admin Login</a>
+            để quản trị toàn hệ thống.
           </p>
         </form>
       </div>
@@ -662,7 +681,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=49"></script>
+  <script type="module" src="/app.js?v=50"></script>
 </body>
 </html>
 

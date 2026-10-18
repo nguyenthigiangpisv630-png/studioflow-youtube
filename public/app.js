@@ -208,6 +208,8 @@ function switchAuthOverlayTab(tabName = 'login') {
   const passStep = document.getElementById('auth-password-step');
   const passInp = document.getElementById('input-auth-login-pass');
   const submitBtn = document.getElementById('btn-auth-login-submit');
+  const adminBtn = document.getElementById('btn-switch-admin-login');
+  const gmailBtn = document.getElementById('btn-switch-gmail-login');
   const errEl = document.getElementById('auth-login-error');
   if (errEl) errEl.hidden = true;
 
@@ -216,22 +218,26 @@ function switchAuthOverlayTab(tabName = 'login') {
   if (isAdminTab) {
     if (userInp) {
       userInp.value = 'admin';
-      userInp.placeholder = 'Enter your email';
+      userInp.placeholder = 'Tài khoản Quản trị viên (admin)';
     }
     if (passStep) passStep.hidden = false;
-    if (passInp) passInp.placeholder = 'Enter Admin password...';
-    if (submitBtn) submitBtn.textContent = 'Continue as Admin';
+    if (passInp) passInp.placeholder = 'Nhập mật khẩu Admin...';
+    if (submitBtn) submitBtn.textContent = '👑 Đăng nhập Admin';
+    if (adminBtn) adminBtn.hidden = true;
+    if (gmailBtn) gmailBtn.hidden = false;
     setTimeout(() => passInp?.focus(), 40);
   } else {
     if (userInp) {
       if (userInp.value.trim().toLowerCase() === 'admin') {
         userInp.value = '';
       }
-      userInp.placeholder = 'Enter your email';
+      userInp.placeholder = 'Nhập Gmail của bạn (hoặc gõ admin)...';
     }
     if (passStep) passStep.hidden = true;
     if (passInp) passInp.value = '';
     if (submitBtn) submitBtn.textContent = 'Continue with email';
+    if (adminBtn) adminBtn.hidden = false;
+    if (gmailBtn) gmailBtn.hidden = true;
     setTimeout(() => userInp?.focus(), 40);
   }
 }
@@ -3976,15 +3982,17 @@ function setupEventListeners() {
     }
 
     if (e.target.id === 'input-auth-username') {
-      const val = String(e.target.value || '').trim().toLowerCase();
+      const isAdmin = String(e.target.value || '').trim().toLowerCase() === 'admin';
       const passStep = document.getElementById('auth-password-step');
       const submitBtn = document.getElementById('btn-auth-login-submit');
-      if (passStep) {
-        passStep.hidden = val !== 'admin';
-      }
+      const adminBtn = document.getElementById('btn-switch-admin-login');
+      const gmailBtn = document.getElementById('btn-switch-gmail-login');
+      if (passStep) passStep.hidden = !isAdmin;
       if (submitBtn) {
-        submitBtn.textContent = val === 'admin' ? 'Continue as Admin' : 'Continue with email';
+        submitBtn.textContent = isAdmin ? '👑 Đăng nhập Admin' : 'Continue with email';
       }
+      if (adminBtn) adminBtn.hidden = isAdmin;
+      if (gmailBtn) gmailBtn.hidden = !isAdmin;
       return;
     }
 
@@ -5438,7 +5446,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=49', { updateViaCache: 'none' })
+      .register('/sw.js?v=50', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
