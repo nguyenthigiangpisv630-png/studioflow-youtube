@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastDailySyncDate": "2026-10-18",
-    "lastDailySyncAt": "2026-10-18T05:54:38.892Z",
+    "lastDailySyncAt": "2026-10-18T07:55:41.372Z",
     "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b",
     "customGroups": [
       "KÊNH ÂM THỰC",
@@ -16,7 +16,7 @@
         "notifyOnViralVideo": true,
         "autoTelegramBackupDaily": true,
         "lastTelegramReportAt": "2026-10-18T04:08:26.691Z",
-        "lastTelegramUpdateId": 618454765,
+        "lastTelegramUpdateId": 618454771,
         "watchdogEnabled": true,
         "outlierThreshold": 1.5,
         "minViralViews": 500,
@@ -37,6 +37,8 @@
         "lastThumbnailCloneAt": "2026-10-18T04:56:27.036Z",
         "defaultTrendMarket": "vi",
         "lastTrendScanAt": "2026-10-18T06:08:54.877Z",
+        "defaultFootageCategory": "all",
+        "lastFootageScanAt": "2026-10-18T07:38:53.761Z",
         "maxChannelsPerGa": 3,
         "bktAlertThresholdPct": 70,
         "lastAdSenseScanAt": "2026-10-18T05:13:40.942Z",
@@ -1234,6 +1236,13 @@
       ],
       "notifiedViralVideoIds": [],
       "activityLogs": [
+        {
+          "id": "log-4a9c2aac",
+          "botName": "Bot 10 (Săn Footage Đa Nền Tảng)",
+          "message": "Đã săn kho Footage cho \"living live\": 6 video .MP4 tải trực tiếp, 8 video YouTube 4K B-Roll, 10 kho nền tảng (Pexels, Pixabay, Douyin, Bilibili) & 5 phân cảnh Shotlist.",
+          "level": "success",
+          "createdAt": "2026-10-18T07:38:53.767Z"
+        },
         {
           "id": "log-06081208",
           "botName": "Bot 5 (NexLev + vidIQ + SocialBlade + 1of10)",
@@ -2692,6 +2701,409 @@
             }
           ]
         }
+      ],
+      "footageScans": [
+        {
+          "id": "footage-af82adf9",
+          "query": "living live",
+          "category": "all",
+          "categoryLabel": "🎬 Tất cả Nền tảng (4K Stock + YouTube CC-BY + Douyin/TikTok + Tư liệu)",
+          "scannedAt": "2026-10-18T07:38:53.761Z",
+          "queryPack": {
+            "originalQuery": "living live",
+            "categoryCode": "all",
+            "categoryLabel": "🎬 Tất cả Nền tảng (4K Stock + YouTube CC-BY + Douyin/TikTok + Tư liệu)",
+            "englishShortQuery": "living live",
+            "englishCinematicQuery": "living live cinematic 4k b-roll footage",
+            "chineseDouyinQuery": "living live 高清视频素材 无水印 高清素材 4K 混剪 无水印",
+            "archivePublicDomainQuery": "living live documentary archive",
+            "bRollKeywords": [
+              "living live 4k drone aerial shot",
+              "living live slow motion cinematic b-roll",
+              "living live historical archive documentary footage",
+              "living live close up dramatic lighting 4k",
+              "living live time lapse city night 4k",
+              "living live no copyright free stock video"
+            ]
+          },
+          "totalSourcesCount": 24,
+          "directDownloadClips": [
+            {
+              "id": "clip-ia-earth-4k",
+              "title": "[Public Domain MP4] Toàn cảnh Trái Đất & Ánh sáng Đô thị 4K (NASA / Archive.org — \"living live\")",
+              "platform": "Internet Archive (Public Domain .MP4)",
+              "durationText": "00:34",
+              "resolution": "1080p HD / MP4",
+              "licenseBadge": "🟢 Miễn phí Bản quyền 100% (Public Domain / CC0 — An toàn BKT)",
+              "directVideoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+              "fallbackVideoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+              "sourcePageUrl": "https://archive.org/search?query=living%20live&and[]=mediatype%3A%22movies%22",
+              "sceneUsage": "🔥 Cảnh Hook 5s đầu hoặc Cảnh mở màn tầm nhìn toàn cầu / Đế chế / Công nghệ",
+              "filename": "ACB9x-living-live-scene-1.mp4",
+              "downloadApiUrl": "/api/bots/footage/download?url=https%3A%2F%2Fcommondatastorage.googleapis.com%2Fgtv-videos-bucket%2Fsample%2FForBiggerBlazes.mp4&filename=ACB9x-living-live-scene-1.mp4"
+            },
+            {
+              "id": "clip-cc0-cinematic-blaze",
+              "title": "[CC0 Stock MP4] Chuyển động Điện ảnh Tốc độ cao & Ánh sáng Tương phản (\"living live\")",
+              "platform": "Google Cloud Open Media / CC0 MP4",
+              "durationText": "00:15",
+              "resolution": "1080p HD / MP4",
+              "licenseBadge": "🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)",
+              "directVideoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+              "sourcePageUrl": "https://www.pexels.com/search/videos/living%20live/",
+              "sceneUsage": "⚡ Cảnh chuyển đoạn (Transition B-Roll) tăng nhịp độ giữ chân khán giả (Retention)",
+              "filename": "ACB9x-living-live-scene-2.mp4",
+              "downloadApiUrl": "/api/bots/footage/download?url=https%3A%2F%2Fcommondatastorage.googleapis.com%2Fgtv-videos-bucket%2Fsample%2FForBiggerBlazes.mp4&filename=ACB9x-living-live-scene-2.mp4"
+            },
+            {
+              "id": "clip-cc0-escapes",
+              "title": "[CC0 Stock MP4] Toàn cảnh Flycam / Drone Bối cảnh Rộng Điện ảnh (\"living live\")",
+              "platform": "Open Stock B-Roll / Direct MP4",
+              "durationText": "00:15",
+              "resolution": "1080p HD / MP4",
+              "licenseBadge": "🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)",
+              "directVideoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+              "sourcePageUrl": "https://pixabay.com/videos/search/living%20live/",
+              "sceneUsage": "🌍 Cảnh Establishing Shot (00:06 – 00:20) dẫn dắt người xem vào bối cảnh chính",
+              "filename": "ACB9x-living-live-scene-3.mp4",
+              "downloadApiUrl": "/api/bots/footage/download?url=https%3A%2F%2Fcommondatastorage.googleapis.com%2Fgtv-videos-bucket%2Fsample%2FForBiggerEscapes.mp4&filename=ACB9x-living-live-scene-3.mp4"
+            },
+            {
+              "id": "clip-cc0-fun",
+              "title": "[CC0 Stock MP4] Nhịp sống Đô thị & Nhân vật Chuyển động Thực tế (\"living live\")",
+              "platform": "Open Stock B-Roll / Direct MP4",
+              "durationText": "01:00",
+              "resolution": "1080p HD / MP4",
+              "licenseBadge": "🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)",
+              "directVideoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+              "sourcePageUrl": "https://mixkit.co/free-stock-video/",
+              "sceneUsage": "🎬 Cảnh Minh họa Thân bài (00:20 – 00:50) khi Voiceover phân tích dẫn chứng",
+              "filename": "ACB9x-living-live-scene-4.mp4",
+              "downloadApiUrl": "/api/bots/footage/download?url=https%3A%2F%2Fcommondatastorage.googleapis.com%2Fgtv-videos-bucket%2Fsample%2FForBiggerFun.mp4&filename=ACB9x-living-live-scene-4.mp4"
+            },
+            {
+              "id": "clip-cc0-joyrides",
+              "title": "[CC0 Stock MP4] Cảnh Quay Hành Động / Di Chuyển Tốc Độ Cao (\"living live\")",
+              "platform": "Open Stock B-Roll / Direct MP4",
+              "durationText": "00:15",
+              "resolution": "1080p HD / MP4",
+              "licenseBadge": "🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)",
+              "directVideoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+              "sourcePageUrl": "https://coverr.co/s?q=living%20live",
+              "sceneUsage": "🚀 Cảnh Cao trào (Climax B-Roll) đẩy cảm xúc người xem lên đỉnh điểm",
+              "filename": "ACB9x-living-live-scene-5.mp4",
+              "downloadApiUrl": "/api/bots/footage/download?url=https%3A%2F%2Fcommondatastorage.googleapis.com%2Fgtv-videos-bucket%2Fsample%2FForBiggerJoyrides.mp4&filename=ACB9x-living-live-scene-5.mp4"
+            },
+            {
+              "id": "clip-cc0-meltdowns",
+              "title": "[CC0 Stock MP4] Phân Cảnh Kịch Tính / Đối Đầu / Bước Ngoặt (\"living live\")",
+              "platform": "Wikimedia / Open Archive MP4",
+              "durationText": "00:15",
+              "resolution": "1080p HD / MP4",
+              "licenseBadge": "🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)",
+              "directVideoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+              "sourcePageUrl": "https://commons.wikimedia.org/w/index.php?search=living%20live%20video",
+              "sceneUsage": "💥 Cảnh Plot Twist / Bí mật hé lộ giữ chân người xem đến phút cuối",
+              "filename": "ACB9x-living-live-scene-6.mp4",
+              "downloadApiUrl": "/api/bots/footage/download?url=https%3A%2F%2Fcommondatastorage.googleapis.com%2Fgtv-videos-bucket%2Fsample%2FForBiggerMeltdowns.mp4&filename=ACB9x-living-live-scene-6.mp4"
+            }
+          ],
+          "youtubeBrollClips": [
+            {
+              "videoId": "ySy2MkAjC6c",
+              "title": "4K Free Stock Footage – Seoul Street at Night | No Copyright City Video",
+              "channelName": "Free Stock Footage",
+              "handle": "",
+              "views": 359,
+              "durationText": "03:45",
+              "publishedText": "10mo ago",
+              "thumbnailUrl": "https://i.ytimg.com/vi/ySy2MkAjC6c/hqdefault.jpg",
+              "videoUrl": "https://www.youtube.com/watch?v=ySy2MkAjC6c",
+              "embedUrl": "https://www.youtube.com/embed/ySy2MkAjC6c",
+              "licenseBadge": "🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)",
+              "thumbDownloadUrl": "/api/bots/footage/download?url=https%3A%2F%2Fi.ytimg.com%2Fvi%2FySy2MkAjC6c%2Fhqdefault.jpg&filename=footage-thumb-ySy2MkAjC6c.jpg",
+              "ytDlpCommand": "yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=ySy2MkAjC6c\" -o \"footage-ySy2MkAjC6c.%(ext)s\"",
+              "cobaltDownloadUrl": "https://cobalt.tools/?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DySy2MkAjC6c"
+            },
+            {
+              "videoId": "N0JRmr3qLxQ",
+              "title": "Happy Family Playing At Sunset | Premium Video Footage | 4K",
+              "channelName": "Premium Footage Planet",
+              "handle": "",
+              "views": 172909,
+              "durationText": "03:45",
+              "publishedText": "3y ago",
+              "thumbnailUrl": "https://i.ytimg.com/vi/N0JRmr3qLxQ/hqdefault.jpg",
+              "videoUrl": "https://www.youtube.com/watch?v=N0JRmr3qLxQ",
+              "embedUrl": "https://www.youtube.com/embed/N0JRmr3qLxQ",
+              "licenseBadge": "🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)",
+              "thumbDownloadUrl": "/api/bots/footage/download?url=https%3A%2F%2Fi.ytimg.com%2Fvi%2FN0JRmr3qLxQ%2Fhqdefault.jpg&filename=footage-thumb-N0JRmr3qLxQ.jpg",
+              "ytDlpCommand": "yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=N0JRmr3qLxQ\" -o \"footage-N0JRmr3qLxQ.%(ext)s\"",
+              "cobaltDownloadUrl": "https://cobalt.tools/?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DN0JRmr3qLxQ"
+            },
+            {
+              "videoId": "5kLcimat_ew",
+              "title": "Republic Of Korea, autumn, roof tile free stock video  Free for use & download",
+              "channelName": "CineVault 4K",
+              "handle": "",
+              "views": 34,
+              "durationText": "03:45",
+              "publishedText": "3w ago",
+              "thumbnailUrl": "https://i.ytimg.com/vi/5kLcimat_ew/hqdefault.jpg",
+              "videoUrl": "https://www.youtube.com/watch?v=5kLcimat_ew",
+              "embedUrl": "https://www.youtube.com/embed/5kLcimat_ew",
+              "licenseBadge": "🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)",
+              "thumbDownloadUrl": "/api/bots/footage/download?url=https%3A%2F%2Fi.ytimg.com%2Fvi%2F5kLcimat_ew%2Fhqdefault.jpg&filename=footage-thumb-5kLcimat_ew.jpg",
+              "ytDlpCommand": "yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=5kLcimat_ew\" -o \"footage-5kLcimat_ew.%(ext)s\"",
+              "cobaltDownloadUrl": "https://cobalt.tools/?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D5kLcimat_ew"
+            },
+            {
+              "videoId": "_Sl8diqCAFw",
+              "title": "4K Planet Earth Spinning in Space | Free HD Videos - No Copyright",
+              "channelName": "Free HD videos - no copyright",
+              "handle": "",
+              "views": 17881824,
+              "durationText": "03:45",
+              "publishedText": "7y ago",
+              "thumbnailUrl": "https://i.ytimg.com/vi/_Sl8diqCAFw/hqdefault.jpg",
+              "videoUrl": "https://www.youtube.com/watch?v=_Sl8diqCAFw",
+              "embedUrl": "https://www.youtube.com/embed/_Sl8diqCAFw",
+              "licenseBadge": "🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)",
+              "thumbDownloadUrl": "/api/bots/footage/download?url=https%3A%2F%2Fi.ytimg.com%2Fvi%2F_Sl8diqCAFw%2Fhqdefault.jpg&filename=footage-thumb-_Sl8diqCAFw.jpg",
+              "ytDlpCommand": "yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=_Sl8diqCAFw\" -o \"footage-_Sl8diqCAFw.%(ext)s\"",
+              "cobaltDownloadUrl": "https://cobalt.tools/?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D_Sl8diqCAFw"
+            },
+            {
+              "videoId": "tXYTQbQYviU",
+              "title": "Life. Stock Videos | Free 4K B-Roll Teaser for Creators, Editors & Storytellers",
+              "channelName": "Free 4K Stock Videos",
+              "handle": "",
+              "views": 1438,
+              "durationText": "03:45",
+              "publishedText": "1y ago",
+              "thumbnailUrl": "https://i.ytimg.com/vi/tXYTQbQYviU/hqdefault.jpg",
+              "videoUrl": "https://www.youtube.com/watch?v=tXYTQbQYviU",
+              "embedUrl": "https://www.youtube.com/embed/tXYTQbQYviU",
+              "licenseBadge": "🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)",
+              "thumbDownloadUrl": "/api/bots/footage/download?url=https%3A%2F%2Fi.ytimg.com%2Fvi%2FtXYTQbQYviU%2Fhqdefault.jpg&filename=footage-thumb-tXYTQbQYviU.jpg",
+              "ytDlpCommand": "yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=tXYTQbQYviU\" -o \"footage-tXYTQbQYviU.%(ext)s\"",
+              "cobaltDownloadUrl": "https://cobalt.tools/?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DtXYTQbQYviU"
+            },
+            {
+              "videoId": "zzvV8QmJfmU",
+              "title": "FREE 4K Nature Footage | Peaceful Forest River B-Roll | Royalty Free Download (No Copyright)",
+              "channelName": "free2use Production",
+              "handle": "",
+              "views": 63,
+              "durationText": "03:45",
+              "publishedText": "3w ago",
+              "thumbnailUrl": "https://i.ytimg.com/vi/zzvV8QmJfmU/hqdefault.jpg",
+              "videoUrl": "https://www.youtube.com/watch?v=zzvV8QmJfmU",
+              "embedUrl": "https://www.youtube.com/embed/zzvV8QmJfmU",
+              "licenseBadge": "🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)",
+              "thumbDownloadUrl": "/api/bots/footage/download?url=https%3A%2F%2Fi.ytimg.com%2Fvi%2FzzvV8QmJfmU%2Fhqdefault.jpg&filename=footage-thumb-zzvV8QmJfmU.jpg",
+              "ytDlpCommand": "yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=zzvV8QmJfmU\" -o \"footage-zzvV8QmJfmU.%(ext)s\"",
+              "cobaltDownloadUrl": "https://cobalt.tools/?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DzzvV8QmJfmU"
+            },
+            {
+              "videoId": "X2VgUK_Zbak",
+              "title": "Swing, south korea, traditional free stock video  Free for use & download",
+              "channelName": "CineVault 4K",
+              "handle": "",
+              "views": 25,
+              "durationText": "03:45",
+              "publishedText": "2w ago",
+              "thumbnailUrl": "https://i.ytimg.com/vi/X2VgUK_Zbak/hqdefault.jpg",
+              "videoUrl": "https://www.youtube.com/watch?v=X2VgUK_Zbak",
+              "embedUrl": "https://www.youtube.com/embed/X2VgUK_Zbak",
+              "licenseBadge": "🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)",
+              "thumbDownloadUrl": "/api/bots/footage/download?url=https%3A%2F%2Fi.ytimg.com%2Fvi%2FX2VgUK_Zbak%2Fhqdefault.jpg&filename=footage-thumb-X2VgUK_Zbak.jpg",
+              "ytDlpCommand": "yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=X2VgUK_Zbak\" -o \"footage-X2VgUK_Zbak.%(ext)s\"",
+              "cobaltDownloadUrl": "https://cobalt.tools/?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DX2VgUK_Zbak"
+            },
+            {
+              "videoId": "9yU08rIHZT0",
+              "title": "📱 Man Scrolling Phone Alone in Bed | Free 4K Emotional & Sad Night B-Roll",
+              "channelName": "Free 4K Stock Videos",
+              "handle": "",
+              "views": 7687,
+              "durationText": "03:45",
+              "publishedText": "1y ago",
+              "thumbnailUrl": "https://i.ytimg.com/vi/9yU08rIHZT0/hqdefault.jpg",
+              "videoUrl": "https://www.youtube.com/watch?v=9yU08rIHZT0",
+              "embedUrl": "https://www.youtube.com/embed/9yU08rIHZT0",
+              "licenseBadge": "🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)",
+              "thumbDownloadUrl": "/api/bots/footage/download?url=https%3A%2F%2Fi.ytimg.com%2Fvi%2F9yU08rIHZT0%2Fhqdefault.jpg&filename=footage-thumb-9yU08rIHZT0.jpg",
+              "ytDlpCommand": "yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=9yU08rIHZT0\" -o \"footage-9yU08rIHZT0.%(ext)s\"",
+              "cobaltDownloadUrl": "https://cobalt.tools/?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D9yU08rIHZT0"
+            }
+          ],
+          "platformHubs": [
+            {
+              "id": "pexels",
+              "name": "Pexels Videos (4K Stock)",
+              "icon": "🟢",
+              "region": "Quốc tế (Mỹ/Âu)",
+              "licenseType": "Miễn phí 100% Bản quyền (Commercial Free)",
+              "queryUsed": "living live cinematic 4k b-roll footage",
+              "searchUrl": "https://www.pexels.com/search/videos/living%20live/",
+              "downloadTip": "Bấm nút \"Free Download\" góc phải video để tải thẳng file .MP4 4K/FullHD."
+            },
+            {
+              "id": "pixabay",
+              "name": "Pixabay Videos (4K B-Roll)",
+              "icon": "🟢",
+              "region": "Quốc tế (Đức/Mỹ)",
+              "licenseType": "Miễn phí 100% Bản quyền (Pixabay License)",
+              "queryUsed": "living live",
+              "searchUrl": "https://pixabay.com/videos/search/living%20live/",
+              "downloadTip": "Chọn bộ lọc \"4K\" và bấm Download MP4 trực tiếp không cần tài khoản."
+            },
+            {
+              "id": "youtube_cc",
+              "name": "YouTube Creative Commons (CC-BY)",
+              "icon": "🔵",
+              "region": "Toàn cầu (Đã bật bộ lọc CC-BY)",
+              "licenseType": "Giấy phép CC-BY (Cho phép tái sử dụng hợp pháp)",
+              "queryUsed": "living live 4k b-roll footage",
+              "searchUrl": "https://www.youtube.com/results?search_query=living%20live%204k%20b-roll%20no%20copyright%20footage&sp=EgIwAQ%253D%253D",
+              "downloadTip": "Đã gắn mã lọc sp=EgIwAQ== chỉ hiện video YouTube cho phép Reup / Tái sử dụng."
+            },
+            {
+              "id": "douyin",
+              "name": "Douyin 抖音 (Kho Footage Trung Quốc)",
+              "icon": "🟣",
+              "region": "Trung Quốc (Đã tự dịch Tiếng Trung)",
+              "licenseType": "Nguồn Ngoại Quốc (Cắt < 3.5s + Lật hình + Zoom 108%)",
+              "queryUsed": "living live 高清视频素材 无水印 高清素材 4K 混剪 无水印",
+              "searchUrl": "https://www.douyin.com/search/living%20live%20%E9%AB%98%E6%B8%85%E8%A7%86%E9%A2%91%E7%B4%A0%E6%9D%90%20%E6%97%A0%E6%B0%B4%E5%8D%B0%20%E9%AB%98%E6%B8%85%E7%B4%A0%E6%9D%90%204K%20%E6%B7%B7%E5%89%AA%20%E6%97%A0%E6%B0%B4%E5%8D%B0?type=video",
+              "downloadTip": "Kho video 4K khổng lồ chưa ai reup ở VN. Copy link dán vào SnapDouyin / Cobalt để tải không logo."
+            },
+            {
+              "id": "bilibili",
+              "name": "Bilibili 哔哩哔哩 (Tư liệu 4K / 3D / Lịch sử)",
+              "icon": "🟣",
+              "region": "Trung Quốc (Đã tự dịch Tiếng Trung)",
+              "licenseType": "Tư liệu Dài / 3D / Lịch sử (Fair-Use Edit)",
+              "queryUsed": "living live 高清视频素材 无水印 高清素材 4K 混剪 无水印",
+              "searchUrl": "https://search.bilibili.com/all?keyword=living%20live%20%E9%AB%98%E6%B8%85%E8%A7%86%E9%A2%91%E7%B4%A0%E6%9D%90%20%E6%97%A0%E6%B0%B4%E5%8D%B0%20%E9%AB%98%E6%B8%85%E7%B4%A0%E6%9D%90%204K%20%E6%B7%B7%E5%89%AA%20%E6%97%A0%E6%B0%B4%E5%8D%B0",
+              "downloadTip": "Cực mạnh cho ngách Lịch sử, Tài chính, Giải thích 3D, Tỷ phú, Khoa học."
+            },
+            {
+              "id": "archive_org",
+              "name": "Internet Archive (Archive.org Movies)",
+              "icon": "🟢",
+              "region": "Hoa Kỳ (Thư viện Quốc gia)",
+              "licenseType": "Public Domain (Phạm vi Công cộng — Không bản quyền)",
+              "queryUsed": "living live documentary archive",
+              "searchUrl": "https://archive.org/search?query=living%20live%20documentary%20archive&and[]=mediatype%3A%22movies%22",
+              "downloadTip": "Trong khung \"DOWNLOAD OPTIONS\" bên phải, bấm \"MPEG4\" để tải thẳng file .MP4 gốc."
+            },
+            {
+              "id": "wikimedia",
+              "name": "Wikimedia Commons Video (CC0 / CC-BY)",
+              "icon": "🟢",
+              "region": "Quốc tế (Wikipedia Media)",
+              "licenseType": "Public Domain / CC-BY (Tự do thương mại)",
+              "queryUsed": "living live video",
+              "searchUrl": "https://commons.wikimedia.org/w/index.php?search=living%20live%20filetype%3Avideo&title=Special:MediaSearch&type=video",
+              "downloadTip": "Kho tư liệu nhân vật, địa danh, lịch sử, khoa học chuẩn bách khoa toàn thư."
+            },
+            {
+              "id": "mixkit",
+              "name": "Mixkit by Envato (Stock Điện ảnh)",
+              "icon": "🟢",
+              "region": "Úc / Quốc tế",
+              "licenseType": "Miễn phí 100% Bản quyền (Envato Free License)",
+              "queryUsed": "living live",
+              "searchUrl": "https://mixkit.co/free-stock-video/living-live/",
+              "downloadTip": "Bấm \"Download Free HD Video\" tải ngay lập tức không watermark."
+            },
+            {
+              "id": "coverr",
+              "name": "Coverr.co (Cinematic B-Roll 4K)",
+              "icon": "🟢",
+              "region": "Quốc tế",
+              "licenseType": "Miễn phí Thương mại & YouTube BKT",
+              "queryUsed": "living live",
+              "searchUrl": "https://coverr.co/s?q=living%20live",
+              "downloadTip": "Chuyên cảnh quay điện ảnh trầm tối (Dark Cinematic), Luxury, Công nghệ, Văn phòng."
+            },
+            {
+              "id": "tiktok_reddit",
+              "name": "TikTok & Reddit Viral Clips",
+              "icon": "🟠",
+              "region": "Toàn cầu (Săn Hook 5s đầu)",
+              "licenseType": "Fair-Use Commentary (Cắt ngắn làm Hook mở đầu)",
+              "queryUsed": "living live viral moment",
+              "searchUrl": "https://www.tiktok.com/search/video?q=living%20live",
+              "downloadTip": "Lấy 3–4 giây ấn tượng nhất làm Hook mở đầu (00:00–00:05) tăng giữ chân khán giả > 75%."
+            }
+          ],
+          "shotlist5Scenes": [
+            {
+              "sceneNumber": 1,
+              "timeRange": "00:00 – 00:05 (5s Hook Mở Đầu)",
+              "sceneRole": "⚡ Cảnh Hook Cú Tát Thị Giác (Chống vuốt bỏ 5 giây đầu)",
+              "visualGuideVi": "Ghép 2–3 cắt cảnh nhanh (1.5s/cảnh) ấn tượng nhất về \"living live\" kèm hiệu ứng âm thanh Whoosh + Rung nhẹ camera.",
+              "suggestedPlatform": "Douyin 抖音 / Pexels 4K / YouTube CC-BY",
+              "searchKeywordEn": "living live dramatic reveal slow motion 4k",
+              "aiVideoPrompt": "Cinematic 4K ultra-detailed opening hook shot of living live, dramatic volumetric lighting, slow motion camera push-in, high contrast, IMAX documentary style, 16:9 --ar 16:9"
+            },
+            {
+              "sceneNumber": 2,
+              "timeRange": "00:05 – 00:25 (20s Bối Cảnh Toàn Cục)",
+              "sceneRole": "🌍 Cảnh Establishing Shot (Giới thiệu bối cảnh & Quy mô)",
+              "visualGuideVi": "Cảnh quay Flycam / Drone từ trên cao hoặc tư liệu lịch sử toàn cảnh mở ra thế giới của \"living live\".",
+              "suggestedPlatform": "Pexels 4K / Pixabay / Internet Archive",
+              "searchKeywordEn": "living live aerial drone establishing shot 4k",
+              "aiVideoPrompt": "Sweeping aerial drone shot over living live, golden hour atmospheric lighting, hyper-realistic 8k resolution, smooth gimbal movement, Netflix documentary aesthetic --ar 16:9"
+            },
+            {
+              "sceneNumber": 3,
+              "timeRange": "00:25 – 01:30 (Thân Bài 1 — Bằng Chứng & Số Liệu)",
+              "sceneRole": "📊 Cảnh B-Roll Minh Họa Dẫn Chứng & Phân Tích Chuyên Sâu",
+              "visualGuideVi": "Cảnh quay cận cảnh (Close-up) chi tiết, biểu đồ chuyển động hoặc cảnh làm việc/hoạt động thực tế liên quan đến \"living live\".",
+              "suggestedPlatform": "Bilibili 哔哩哔哩 / Coverr / Wikimedia Commons",
+              "searchKeywordEn": "living live close up details cinematic b-roll",
+              "aiVideoPrompt": "Macro close-up cinematic shot representing living live, shallow depth of field, moody rim lighting, subtle camera pan, photorealistic film grain, 4k 60fps --ar 16:9"
+            },
+            {
+              "sceneNumber": 4,
+              "timeRange": "01:30 – 03:00 (Thân Bài 2 — Bước Ngoặt / Cao Trào)",
+              "sceneRole": "🔥 Cảnh Climax / Plot Twist (Sự thật ít ai ngờ tới)",
+              "visualGuideVi": "Tăng tốc độ cắt cảnh (1.8s–2.5s/cảnh), tông màu trầm kịch tính, minh họa cú lội ngược dòng hoặc bí mật đằng sau \"living live\".",
+              "suggestedPlatform": "YouTube 4K B-Roll / Douyin 抖音 / Mixkit",
+              "searchKeywordEn": "living live dark dramatic tension cinematic 4k",
+              "aiVideoPrompt": "Intense dramatic cinematic scene of living live, dark moody atmosphere, chiaroscuro lighting, slow zoom in on subject, suspenseful documentary tone, 4k resolution --ar 16:9"
+            },
+            {
+              "sceneNumber": 5,
+              "timeRange": "Phút Cuối (Kết Bài & Kêu Gọi Xem Tiếp Phần 2)",
+              "sceneRole": "🎯 Cảnh Outro Dư Âm & Giữ Chân Sang Video Tiếp Theo (End-Screen)",
+              "visualGuideVi": "Cảnh quay rộng, nhịp chậm lắng đọng để chèn 2 khung End-Screen dẫn sang video cùng ngách \"living live\".",
+              "suggestedPlatform": "Pexels / Pixabay / AI Video (Kling / Runway)",
+              "searchKeywordEn": "living live sunset horizon cinematic wide shot",
+              "aiVideoPrompt": "Wide cinematic horizon shot symbolizing the future of living live, warm cinematic glow, slow pull-back camera motion, clean space for end screen overlay, 4k --ar 16:9"
+            }
+          ],
+          "fairUseShield": [
+            "✂️ Quy tắc 3.5 Giây (Anti-Content ID): Tuyệt đối không để 1 đoạn footage ngoại quốc chạy liên tục quá 3.5 giây — luôn cắt chuyển góc máy hoặc chèn B-Roll phụ.",
+            "🔍 Quy tắc Zoom 108% & Lật Ngang (Horizontal Flip): Với cảnh lấy từ Douyin / Bilibili / YouTube (không có chữ trên hình), hãy lật ngang (Flip) và phóng nhẹ 106%–110% để thay đổi mã khung hình.",
+            "🎨 Phủ Lớp Color LUT & Film Grain (3%): Áp 1 lớp màu điện ảnh đồng nhất cho toàn video để vừa sang trọng vừa xóa dấu vết hash video gốc.",
+            "🎙️ Voiceover + SFX Độc Quyền 100%: Tắt hoàn toàn âm thanh gốc của footage tải về, chỉ dùng giọng đọc của kênh + nhạc nền miễn phí bản quyền + hiệu ứng âm thanh (Whoosh, Riser, Hit).",
+            "📝 Chèn Text Callout / Số Liệu Động: Cứ mỗi 12–15 giây chèn 1 dòng chữ tóm tắt từ khóa hoặc con số lên màn hình — YouTube đánh giá đây là \"Giá trị biên tập sáng tạo cao (High Transformative Value)\" giúp duyệt BKT 100%."
+          ],
+          "downloadPackages": {
+            "safeSlug": "living-live",
+            "batchDownloaderFilename": "ACB9x-Auto-Download-living-live.bat",
+            "batchDownloaderBat": "@echo off\r\nchcp 65001 >nul\r\necho =====================================================================\r\necho   ACB9X STUDIOFLOW - CONG CU TU DONG TAI KHO FOOTAGE 4K (.MP4)\r\necho   Chu de: living live (living live)\r\necho =====================================================================\r\nset \"OUT_DIR=ACB9x_Footage_living-live\"\r\nif not exist \"%OUT_DIR%\" mkdir \"%OUT_DIR%\"\r\necho.\r\necho [1/2] Dang tai truc tiep 6 video MP4 Mien Phi Ban Quyen (Public Domain / CC0)...\r\ncurl -L --fail --silent --show-error \"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4\" -o \"%OUT_DIR%\\ACB9x-living-live-scene-1.mp4\" && echo   + Da tai xong: ACB9x-living-live-scene-1.mp4\r\ncurl -L --fail --silent --show-error \"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4\" -o \"%OUT_DIR%\\ACB9x-living-live-scene-2.mp4\" && echo   + Da tai xong: ACB9x-living-live-scene-2.mp4\r\ncurl -L --fail --silent --show-error \"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4\" -o \"%OUT_DIR%\\ACB9x-living-live-scene-3.mp4\" && echo   + Da tai xong: ACB9x-living-live-scene-3.mp4\r\ncurl -L --fail --silent --show-error \"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4\" -o \"%OUT_DIR%\\ACB9x-living-live-scene-4.mp4\" && echo   + Da tai xong: ACB9x-living-live-scene-4.mp4\r\ncurl -L --fail --silent --show-error \"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4\" -o \"%OUT_DIR%\\ACB9x-living-live-scene-5.mp4\" && echo   + Da tai xong: ACB9x-living-live-scene-5.mp4\r\ncurl -L --fail --silent --show-error \"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4\" -o \"%OUT_DIR%\\ACB9x-living-live-scene-6.mp4\" && echo   + Da tai xong: ACB9x-living-live-scene-6.mp4\r\necho.\r\necho [2/2] Kiem tra yt-dlp de tai them 8 video YouTube 4K B-Roll / CC-BY...\r\nwhere yt-dlp >nul 2>nul\r\nif %ERRORLEVEL% EQU 0 (\r\n  yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=ySy2MkAjC6c\" -o \"%OUT_DIR%\\yt-broll-1-%(id)s.%(ext)s\"\r\n  yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=N0JRmr3qLxQ\" -o \"%OUT_DIR%\\yt-broll-2-%(id)s.%(ext)s\"\r\n  yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=5kLcimat_ew\" -o \"%OUT_DIR%\\yt-broll-3-%(id)s.%(ext)s\"\r\n  yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=_Sl8diqCAFw\" -o \"%OUT_DIR%\\yt-broll-4-%(id)s.%(ext)s\"\r\n  yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=tXYTQbQYviU\" -o \"%OUT_DIR%\\yt-broll-5-%(id)s.%(ext)s\"\r\n  yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=zzvV8QmJfmU\" -o \"%OUT_DIR%\\yt-broll-6-%(id)s.%(ext)s\"\r\n  yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=X2VgUK_Zbak\" -o \"%OUT_DIR%\\yt-broll-7-%(id)s.%(ext)s\"\r\n  yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=9yU08rIHZT0\" -o \"%OUT_DIR%\\yt-broll-8-%(id)s.%(ext)s\"\r\n) else (\r\n  echo   [!] May chua cai yt-dlp. Da tai xong cac file .MP4 Public Domain trong thu muc %OUT_DIR%!\r\n  echo   [!] De tai them YouTube 4K bang 1 lenh, hay go: winget install yt-dlp.yt-dlp\r\n)\r\necho.\r\necho =====================================================================\r\necho   HOAN TAT! Mo thu muc \"%OUT_DIR%\" de lay toan bo video .MP4!\r\necho =====================================================================\r\nexplorer \"%OUT_DIR%\"\r\npause",
+            "shotlistFilename": "ACB9x-Footage-Shotlist-living-live.txt",
+            "shotlistTxt": "========================================================================\n🎬 HỒ SƠ KHO FOOTAGE ĐA NỀN TẢNG & SHOTLIST B-ROLL (BOT 10 - ACB9X STUDIOFLOW)\n========================================================================\n• Chủ đề gốc: living live\n• Danh mục: 🎬 Tất cả Nền tảng (4K Stock + YouTube CC-BY + Douyin/TikTok + Tư liệu)\n• Từ khóa Tiếng Anh (Stock 4K): living live cinematic 4k b-roll footage\n• Từ khóa Tiếng Trung (Douyin/Bilibili): living live 高清视频素材 无水印 高清素材 4K 混剪 无水印\n• Thời gian quét: 2026-10-18T07:38:53.761Z\n\n------------------------------------------------------------------------\n1. DANH SÁCH VIDEO .MP4 TẢI TRỰC TIẾP (PUBLIC DOMAIN / CC0 - AN TOÀN BKT 100%)\n------------------------------------------------------------------------\n#1. [Public Domain MP4] Toàn cảnh Trái Đất & Ánh sáng Đô thị 4K (NASA / Archive.org — \"living live\")\n   - Nền tảng: Internet Archive (Public Domain .MP4) (1080p HD / MP4 · 00:34)\n   - Giấy phép: 🟢 Miễn phí Bản quyền 100% (Public Domain / CC0 — An toàn BKT)\n   - Link tải .MP4 trực tiếp: https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4\n   - Gợi ý dựng: 🔥 Cảnh Hook 5s đầu hoặc Cảnh mở màn tầm nhìn toàn cầu / Đế chế / Công nghệ\n#2. [CC0 Stock MP4] Chuyển động Điện ảnh Tốc độ cao & Ánh sáng Tương phản (\"living live\")\n   - Nền tảng: Google Cloud Open Media / CC0 MP4 (1080p HD / MP4 · 00:15)\n   - Giấy phép: 🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\n   - Link tải .MP4 trực tiếp: https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4\n   - Gợi ý dựng: ⚡ Cảnh chuyển đoạn (Transition B-Roll) tăng nhịp độ giữ chân khán giả (Retention)\n#3. [CC0 Stock MP4] Toàn cảnh Flycam / Drone Bối cảnh Rộng Điện ảnh (\"living live\")\n   - Nền tảng: Open Stock B-Roll / Direct MP4 (1080p HD / MP4 · 00:15)\n   - Giấy phép: 🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\n   - Link tải .MP4 trực tiếp: https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4\n   - Gợi ý dựng: 🌍 Cảnh Establishing Shot (00:06 – 00:20) dẫn dắt người xem vào bối cảnh chính\n#4. [CC0 Stock MP4] Nhịp sống Đô thị & Nhân vật Chuyển động Thực tế (\"living live\")\n   - Nền tảng: Open Stock B-Roll / Direct MP4 (1080p HD / MP4 · 01:00)\n   - Giấy phép: 🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\n   - Link tải .MP4 trực tiếp: https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4\n   - Gợi ý dựng: 🎬 Cảnh Minh họa Thân bài (00:20 – 00:50) khi Voiceover phân tích dẫn chứng\n#5. [CC0 Stock MP4] Cảnh Quay Hành Động / Di Chuyển Tốc Độ Cao (\"living live\")\n   - Nền tảng: Open Stock B-Roll / Direct MP4 (1080p HD / MP4 · 00:15)\n   - Giấy phép: 🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\n   - Link tải .MP4 trực tiếp: https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4\n   - Gợi ý dựng: 🚀 Cảnh Cao trào (Climax B-Roll) đẩy cảm xúc người xem lên đỉnh điểm\n#6. [CC0 Stock MP4] Phân Cảnh Kịch Tính / Đối Đầu / Bước Ngoặt (\"living live\")\n   - Nền tảng: Wikimedia / Open Archive MP4 (1080p HD / MP4 · 00:15)\n   - Giấy phép: 🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\n   - Link tải .MP4 trực tiếp: https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4\n   - Gợi ý dựng: 💥 Cảnh Plot Twist / Bí mật hé lộ giữ chân người xem đến phút cuối\n\n------------------------------------------------------------------------\n2. 10 KHO FOOTAGE ĐA NỀN TẢNG QUỐC TẾ & TRUNG QUỐC (PEXELS · PIXABAY · DOUYIN · BILIBILI)\n------------------------------------------------------------------------\n#1. Pexels Videos (4K Stock) [Quốc tế (Mỹ/Âu)]\n   - Từ khóa đã nạp: living live cinematic 4k b-roll footage\n   - Link mở kho: https://www.pexels.com/search/videos/living%20live/\n   - Mẹo tải nhanh: Bấm nút \"Free Download\" góc phải video để tải thẳng file .MP4 4K/FullHD.\n#2. Pixabay Videos (4K B-Roll) [Quốc tế (Đức/Mỹ)]\n   - Từ khóa đã nạp: living live\n   - Link mở kho: https://pixabay.com/videos/search/living%20live/\n   - Mẹo tải nhanh: Chọn bộ lọc \"4K\" và bấm Download MP4 trực tiếp không cần tài khoản.\n#3. YouTube Creative Commons (CC-BY) [Toàn cầu (Đã bật bộ lọc CC-BY)]\n   - Từ khóa đã nạp: living live 4k b-roll footage\n   - Link mở kho: https://www.youtube.com/results?search_query=living%20live%204k%20b-roll%20no%20copyright%20footage&sp=EgIwAQ%253D%253D\n   - Mẹo tải nhanh: Đã gắn mã lọc sp=EgIwAQ== chỉ hiện video YouTube cho phép Reup / Tái sử dụng.\n#4. Douyin 抖音 (Kho Footage Trung Quốc) [Trung Quốc (Đã tự dịch Tiếng Trung)]\n   - Từ khóa đã nạp: living live 高清视频素材 无水印 高清素材 4K 混剪 无水印\n   - Link mở kho: https://www.douyin.com/search/living%20live%20%E9%AB%98%E6%B8%85%E8%A7%86%E9%A2%91%E7%B4%A0%E6%9D%90%20%E6%97%A0%E6%B0%B4%E5%8D%B0%20%E9%AB%98%E6%B8%85%E7%B4%A0%E6%9D%90%204K%20%E6%B7%B7%E5%89%AA%20%E6%97%A0%E6%B0%B4%E5%8D%B0?type=video\n   - Mẹo tải nhanh: Kho video 4K khổng lồ chưa ai reup ở VN. Copy link dán vào SnapDouyin / Cobalt để tải không logo.\n#5. Bilibili 哔哩哔哩 (Tư liệu 4K / 3D / Lịch sử) [Trung Quốc (Đã tự dịch Tiếng Trung)]\n   - Từ khóa đã nạp: living live 高清视频素材 无水印 高清素材 4K 混剪 无水印\n   - Link mở kho: https://search.bilibili.com/all?keyword=living%20live%20%E9%AB%98%E6%B8%85%E8%A7%86%E9%A2%91%E7%B4%A0%E6%9D%90%20%E6%97%A0%E6%B0%B4%E5%8D%B0%20%E9%AB%98%E6%B8%85%E7%B4%A0%E6%9D%90%204K%20%E6%B7%B7%E5%89%AA%20%E6%97%A0%E6%B0%B4%E5%8D%B0\n   - Mẹo tải nhanh: Cực mạnh cho ngách Lịch sử, Tài chính, Giải thích 3D, Tỷ phú, Khoa học.\n#6. Internet Archive (Archive.org Movies) [Hoa Kỳ (Thư viện Quốc gia)]\n   - Từ khóa đã nạp: living live documentary archive\n   - Link mở kho: https://archive.org/search?query=living%20live%20documentary%20archive&and[]=mediatype%3A%22movies%22\n   - Mẹo tải nhanh: Trong khung \"DOWNLOAD OPTIONS\" bên phải, bấm \"MPEG4\" để tải thẳng file .MP4 gốc.\n#7. Wikimedia Commons Video (CC0 / CC-BY) [Quốc tế (Wikipedia Media)]\n   - Từ khóa đã nạp: living live video\n   - Link mở kho: https://commons.wikimedia.org/w/index.php?search=living%20live%20filetype%3Avideo&title=Special:MediaSearch&type=video\n   - Mẹo tải nhanh: Kho tư liệu nhân vật, địa danh, lịch sử, khoa học chuẩn bách khoa toàn thư.\n#8. Mixkit by Envato (Stock Điện ảnh) [Úc / Quốc tế]\n   - Từ khóa đã nạp: living live\n   - Link mở kho: https://mixkit.co/free-stock-video/living-live/\n   - Mẹo tải nhanh: Bấm \"Download Free HD Video\" tải ngay lập tức không watermark.\n#9. Coverr.co (Cinematic B-Roll 4K) [Quốc tế]\n   - Từ khóa đã nạp: living live\n   - Link mở kho: https://coverr.co/s?q=living%20live\n   - Mẹo tải nhanh: Chuyên cảnh quay điện ảnh trầm tối (Dark Cinematic), Luxury, Công nghệ, Văn phòng.\n#10. TikTok & Reddit Viral Clips [Toàn cầu (Săn Hook 5s đầu)]\n   - Từ khóa đã nạp: living live viral moment\n   - Link mở kho: https://www.tiktok.com/search/video?q=living%20live\n   - Mẹo tải nhanh: Lấy 3–4 giây ấn tượng nhất làm Hook mở đầu (00:00–00:05) tăng giữ chân khán giả > 75%.\n\n------------------------------------------------------------------------\n3. DANH SÁCH VIDEO YOUTUBE 4K B-ROLL & CREATIVE COMMONS (CC-BY)\n------------------------------------------------------------------------\n#1. 4K Free Stock Footage – Seoul Street at Night | No Copyright City Video (03:45 · 359 views)\n   - Kênh: Free Stock Footage\n   - Link YouTube: https://www.youtube.com/watch?v=ySy2MkAjC6c\n   - Lệnh tải 4K: yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=ySy2MkAjC6c\" -o \"footage-ySy2MkAjC6c.%(ext)s\"\n#2. Happy Family Playing At Sunset | Premium Video Footage | 4K (03:45 · 172.909 views)\n   - Kênh: Premium Footage Planet\n   - Link YouTube: https://www.youtube.com/watch?v=N0JRmr3qLxQ\n   - Lệnh tải 4K: yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=N0JRmr3qLxQ\" -o \"footage-N0JRmr3qLxQ.%(ext)s\"\n#3. Republic Of Korea, autumn, roof tile free stock video  Free for use & download (03:45 · 34 views)\n   - Kênh: CineVault 4K\n   - Link YouTube: https://www.youtube.com/watch?v=5kLcimat_ew\n   - Lệnh tải 4K: yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=5kLcimat_ew\" -o \"footage-5kLcimat_ew.%(ext)s\"\n#4. 4K Planet Earth Spinning in Space | Free HD Videos - No Copyright (03:45 · 17.881.824 views)\n   - Kênh: Free HD videos - no copyright\n   - Link YouTube: https://www.youtube.com/watch?v=_Sl8diqCAFw\n   - Lệnh tải 4K: yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=_Sl8diqCAFw\" -o \"footage-_Sl8diqCAFw.%(ext)s\"\n#5. Life. Stock Videos | Free 4K B-Roll Teaser for Creators, Editors & Storytellers (03:45 · 1.438 views)\n   - Kênh: Free 4K Stock Videos\n   - Link YouTube: https://www.youtube.com/watch?v=tXYTQbQYviU\n   - Lệnh tải 4K: yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=tXYTQbQYviU\" -o \"footage-tXYTQbQYviU.%(ext)s\"\n#6. FREE 4K Nature Footage | Peaceful Forest River B-Roll | Royalty Free Download (No Copyright) (03:45 · 63 views)\n   - Kênh: free2use Production\n   - Link YouTube: https://www.youtube.com/watch?v=zzvV8QmJfmU\n   - Lệnh tải 4K: yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=zzvV8QmJfmU\" -o \"footage-zzvV8QmJfmU.%(ext)s\"\n#7. Swing, south korea, traditional free stock video  Free for use & download (03:45 · 25 views)\n   - Kênh: CineVault 4K\n   - Link YouTube: https://www.youtube.com/watch?v=X2VgUK_Zbak\n   - Lệnh tải 4K: yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=X2VgUK_Zbak\" -o \"footage-X2VgUK_Zbak.%(ext)s\"\n#8. 📱 Man Scrolling Phone Alone in Bed | Free 4K Emotional & Sad Night B-Roll (03:45 · 7.687 views)\n   - Kênh: Free 4K Stock Videos\n   - Link YouTube: https://www.youtube.com/watch?v=9yU08rIHZT0\n   - Lệnh tải 4K: yt-dlp -f \"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" \"https://www.youtube.com/watch?v=9yU08rIHZT0\" -o \"footage-9yU08rIHZT0.%(ext)s\"\n\n------------------------------------------------------------------------\n4. BẢNG PHÂN CẢNH B-ROLL 5 PHÂN ĐOẠN (SHOTLIST 5 ĐẠI CẢNH) & PROMPT VIDEO AI (KLING / RUNWAY / SORA)\n------------------------------------------------------------------------\n[Cảnh 1] 00:00 – 00:05 (5s Hook Mở Đầu) — ⚡ Cảnh Hook Cú Tát Thị Giác (Chống vuốt bỏ 5 giây đầu)\n   - Hướng dẫn dựng: Ghép 2–3 cắt cảnh nhanh (1.5s/cảnh) ấn tượng nhất về \"living live\" kèm hiệu ứng âm thanh Whoosh + Rung nhẹ camera.\n   - Nguồn gợi ý: Douyin 抖音 / Pexels 4K / YouTube CC-BY (Key: \"living live dramatic reveal slow motion 4k\")\n   - Prompt tạo Video AI: Cinematic 4K ultra-detailed opening hook shot of living live, dramatic volumetric lighting, slow motion camera push-in, high contrast, IMAX documentary style, 16:9 --ar 16:9\n[Cảnh 2] 00:05 – 00:25 (20s Bối Cảnh Toàn Cục) — 🌍 Cảnh Establishing Shot (Giới thiệu bối cảnh & Quy mô)\n   - Hướng dẫn dựng: Cảnh quay Flycam / Drone từ trên cao hoặc tư liệu lịch sử toàn cảnh mở ra thế giới của \"living live\".\n   - Nguồn gợi ý: Pexels 4K / Pixabay / Internet Archive (Key: \"living live aerial drone establishing shot 4k\")\n   - Prompt tạo Video AI: Sweeping aerial drone shot over living live, golden hour atmospheric lighting, hyper-realistic 8k resolution, smooth gimbal movement, Netflix documentary aesthetic --ar 16:9\n[Cảnh 3] 00:25 – 01:30 (Thân Bài 1 — Bằng Chứng & Số Liệu) — 📊 Cảnh B-Roll Minh Họa Dẫn Chứng & Phân Tích Chuyên Sâu\n   - Hướng dẫn dựng: Cảnh quay cận cảnh (Close-up) chi tiết, biểu đồ chuyển động hoặc cảnh làm việc/hoạt động thực tế liên quan đến \"living live\".\n   - Nguồn gợi ý: Bilibili 哔哩哔哩 / Coverr / Wikimedia Commons (Key: \"living live close up details cinematic b-roll\")\n   - Prompt tạo Video AI: Macro close-up cinematic shot representing living live, shallow depth of field, moody rim lighting, subtle camera pan, photorealistic film grain, 4k 60fps --ar 16:9\n[Cảnh 4] 01:30 – 03:00 (Thân Bài 2 — Bước Ngoặt / Cao Trào) — 🔥 Cảnh Climax / Plot Twist (Sự thật ít ai ngờ tới)\n   - Hướng dẫn dựng: Tăng tốc độ cắt cảnh (1.8s–2.5s/cảnh), tông màu trầm kịch tính, minh họa cú lội ngược dòng hoặc bí mật đằng sau \"living live\".\n   - Nguồn gợi ý: YouTube 4K B-Roll / Douyin 抖音 / Mixkit (Key: \"living live dark dramatic tension cinematic 4k\")\n   - Prompt tạo Video AI: Intense dramatic cinematic scene of living live, dark moody atmosphere, chiaroscuro lighting, slow zoom in on subject, suspenseful documentary tone, 4k resolution --ar 16:9\n[Cảnh 5] Phút Cuối (Kết Bài & Kêu Gọi Xem Tiếp Phần 2) — 🎯 Cảnh Outro Dư Âm & Giữ Chân Sang Video Tiếp Theo (End-Screen)\n   - Hướng dẫn dựng: Cảnh quay rộng, nhịp chậm lắng đọng để chèn 2 khung End-Screen dẫn sang video cùng ngách \"living live\".\n   - Nguồn gợi ý: Pexels / Pixabay / AI Video (Kling / Runway) (Key: \"living live sunset horizon cinematic wide shot\")\n   - Prompt tạo Video AI: Wide cinematic horizon shot symbolizing the future of living live, warm cinematic glow, slow pull-back camera motion, clean space for end screen overlay, 4k --ar 16:9\n\n------------------------------------------------------------------------\n5. CHECKLIST LÁCH CONTENT ID & CHỐNG REUSE CONTENT KHI BẬT KIẾM TIỀN\n------------------------------------------------------------------------\n1. ✂️ Quy tắc 3.5 Giây (Anti-Content ID): Tuyệt đối không để 1 đoạn footage ngoại quốc chạy liên tục quá 3.5 giây — luôn cắt chuyển góc máy hoặc chèn B-Roll phụ.\n2. 🔍 Quy tắc Zoom 108% & Lật Ngang (Horizontal Flip): Với cảnh lấy từ Douyin / Bilibili / YouTube (không có chữ trên hình), hãy lật ngang (Flip) và phóng nhẹ 106%–110% để thay đổi mã khung hình.\n3. 🎨 Phủ Lớp Color LUT & Film Grain (3%): Áp 1 lớp màu điện ảnh đồng nhất cho toàn video để vừa sang trọng vừa xóa dấu vết hash video gốc.\n4. 🎙️ Voiceover + SFX Độc Quyền 100%: Tắt hoàn toàn âm thanh gốc của footage tải về, chỉ dùng giọng đọc của kênh + nhạc nền miễn phí bản quyền + hiệu ứng âm thanh (Whoosh, Riser, Hit).\n5. 📝 Chèn Text Callout / Số Liệu Động: Cứ mỗi 12–15 giây chèn 1 dòng chữ tóm tắt từ khóa hoặc con số lên màn hình — YouTube đánh giá đây là \"Giá trị biên tập sáng tạo cao (High Transformative Value)\" giúp duyệt BKT 100%.",
+            "csvFilename": "ACB9x-Footage-Links-living-live.csv",
+            "footageCsv": "﻿\"Loai Nguon\",\"Ten Video / Nen Tang\",\"Giay Phep / Vung\",\"Tu Khoa / Thoi Luong\",\"Link Truy Cap / Tai MP4\",\"Goi Y Dung / Prompt AI\"\r\n\"1. Video MP4 Truc Tiep (Direct MP4 Clip)\",\"[Public Domain MP4] Toàn cảnh Trái Đất & Ánh sáng Đô thị 4K (NASA / Archive.org — \"\"living live\"\")\",\"🟢 Miễn phí Bản quyền 100% (Public Domain / CC0 — An toàn BKT)\",\"00:34\",\"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4\",\"🔥 Cảnh Hook 5s đầu hoặc Cảnh mở màn tầm nhìn toàn cầu / Đế chế / Công nghệ\"\r\n\"1. Video MP4 Truc Tiep (Direct MP4 Clip)\",\"[CC0 Stock MP4] Chuyển động Điện ảnh Tốc độ cao & Ánh sáng Tương phản (\"\"living live\"\")\",\"🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\",\"00:15\",\"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4\",\"⚡ Cảnh chuyển đoạn (Transition B-Roll) tăng nhịp độ giữ chân khán giả (Retention)\"\r\n\"1. Video MP4 Truc Tiep (Direct MP4 Clip)\",\"[CC0 Stock MP4] Toàn cảnh Flycam / Drone Bối cảnh Rộng Điện ảnh (\"\"living live\"\")\",\"🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\",\"00:15\",\"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4\",\"🌍 Cảnh Establishing Shot (00:06 – 00:20) dẫn dắt người xem vào bối cảnh chính\"\r\n\"1. Video MP4 Truc Tiep (Direct MP4 Clip)\",\"[CC0 Stock MP4] Nhịp sống Đô thị & Nhân vật Chuyển động Thực tế (\"\"living live\"\")\",\"🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\",\"01:00\",\"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4\",\"🎬 Cảnh Minh họa Thân bài (00:20 – 00:50) khi Voiceover phân tích dẫn chứng\"\r\n\"1. Video MP4 Truc Tiep (Direct MP4 Clip)\",\"[CC0 Stock MP4] Cảnh Quay Hành Động / Di Chuyển Tốc Độ Cao (\"\"living live\"\")\",\"🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\",\"00:15\",\"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4\",\"🚀 Cảnh Cao trào (Climax B-Roll) đẩy cảm xúc người xem lên đỉnh điểm\"\r\n\"1. Video MP4 Truc Tiep (Direct MP4 Clip)\",\"[CC0 Stock MP4] Phân Cảnh Kịch Tính / Đối Đầu / Bước Ngoặt (\"\"living live\"\")\",\"🟢 Miễn phí Thương mại (CC0 — Tải trực tiếp .MP4)\",\"00:15\",\"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4\",\"💥 Cảnh Plot Twist / Bí mật hé lộ giữ chân người xem đến phút cuối\"\r\n\"2. Kho Da Nen Tang\",\"Pexels Videos (4K Stock)\",\"Miễn phí 100% Bản quyền (Commercial Free)\",\"living live cinematic 4k b-roll footage\",\"https://www.pexels.com/search/videos/living%20live/\",\"Bấm nút \"\"Free Download\"\" góc phải video để tải thẳng file .MP4 4K/FullHD.\"\r\n\"2. Kho Da Nen Tang\",\"Pixabay Videos (4K B-Roll)\",\"Miễn phí 100% Bản quyền (Pixabay License)\",\"living live\",\"https://pixabay.com/videos/search/living%20live/\",\"Chọn bộ lọc \"\"4K\"\" và bấm Download MP4 trực tiếp không cần tài khoản.\"\r\n\"2. Kho Da Nen Tang\",\"YouTube Creative Commons (CC-BY)\",\"Giấy phép CC-BY (Cho phép tái sử dụng hợp pháp)\",\"living live 4k b-roll footage\",\"https://www.youtube.com/results?search_query=living%20live%204k%20b-roll%20no%20copyright%20footage&sp=EgIwAQ%253D%253D\",\"Đã gắn mã lọc sp=EgIwAQ== chỉ hiện video YouTube cho phép Reup / Tái sử dụng.\"\r\n\"2. Kho Da Nen Tang\",\"Douyin 抖音 (Kho Footage Trung Quốc)\",\"Nguồn Ngoại Quốc (Cắt < 3.5s + Lật hình + Zoom 108%)\",\"living live 高清视频素材 无水印 高清素材 4K 混剪 无水印\",\"https://www.douyin.com/search/living%20live%20%E9%AB%98%E6%B8%85%E8%A7%86%E9%A2%91%E7%B4%A0%E6%9D%90%20%E6%97%A0%E6%B0%B4%E5%8D%B0%20%E9%AB%98%E6%B8%85%E7%B4%A0%E6%9D%90%204K%20%E6%B7%B7%E5%89%AA%20%E6%97%A0%E6%B0%B4%E5%8D%B0?type=video\",\"Kho video 4K khổng lồ chưa ai reup ở VN. Copy link dán vào SnapDouyin / Cobalt để tải không logo.\"\r\n\"2. Kho Da Nen Tang\",\"Bilibili 哔哩哔哩 (Tư liệu 4K / 3D / Lịch sử)\",\"Tư liệu Dài / 3D / Lịch sử (Fair-Use Edit)\",\"living live 高清视频素材 无水印 高清素材 4K 混剪 无水印\",\"https://search.bilibili.com/all?keyword=living%20live%20%E9%AB%98%E6%B8%85%E8%A7%86%E9%A2%91%E7%B4%A0%E6%9D%90%20%E6%97%A0%E6%B0%B4%E5%8D%B0%20%E9%AB%98%E6%B8%85%E7%B4%A0%E6%9D%90%204K%20%E6%B7%B7%E5%89%AA%20%E6%97%A0%E6%B0%B4%E5%8D%B0\",\"Cực mạnh cho ngách Lịch sử, Tài chính, Giải thích 3D, Tỷ phú, Khoa học.\"\r\n\"2. Kho Da Nen Tang\",\"Internet Archive (Archive.org Movies)\",\"Public Domain (Phạm vi Công cộng — Không bản quyền)\",\"living live documentary archive\",\"https://archive.org/search?query=living%20live%20documentary%20archive&and[]=mediatype%3A%22movies%22\",\"Trong khung \"\"DOWNLOAD OPTIONS\"\" bên phải, bấm \"\"MPEG4\"\" để tải thẳng file .MP4 gốc.\"\r\n\"2. Kho Da Nen Tang\",\"Wikimedia Commons Video (CC0 / CC-BY)\",\"Public Domain / CC-BY (Tự do thương mại)\",\"living live video\",\"https://commons.wikimedia.org/w/index.php?search=living%20live%20filetype%3Avideo&title=Special:MediaSearch&type=video\",\"Kho tư liệu nhân vật, địa danh, lịch sử, khoa học chuẩn bách khoa toàn thư.\"\r\n\"2. Kho Da Nen Tang\",\"Mixkit by Envato (Stock Điện ảnh)\",\"Miễn phí 100% Bản quyền (Envato Free License)\",\"living live\",\"https://mixkit.co/free-stock-video/living-live/\",\"Bấm \"\"Download Free HD Video\"\" tải ngay lập tức không watermark.\"\r\n\"2. Kho Da Nen Tang\",\"Coverr.co (Cinematic B-Roll 4K)\",\"Miễn phí Thương mại & YouTube BKT\",\"living live\",\"https://coverr.co/s?q=living%20live\",\"Chuyên cảnh quay điện ảnh trầm tối (Dark Cinematic), Luxury, Công nghệ, Văn phòng.\"\r\n\"2. Kho Da Nen Tang\",\"TikTok & Reddit Viral Clips\",\"Fair-Use Commentary (Cắt ngắn làm Hook mở đầu)\",\"living live viral moment\",\"https://www.tiktok.com/search/video?q=living%20live\",\"Lấy 3–4 giây ấn tượng nhất làm Hook mở đầu (00:00–00:05) tăng giữ chân khán giả > 75%.\"\r\n\"3. YouTube 4K B-Roll\",\"4K Free Stock Footage – Seoul Street at Night | No Copyright City Video\",\"🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)\",\"03:45\",\"https://www.youtube.com/watch?v=ySy2MkAjC6c\",\"yt-dlp -f \"\"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\"\" \"\"https://www.youtube.com/watch?v=ySy2MkAjC6c\"\" -o \"\"footage-ySy2MkAjC6c.%(ext)s\"\"\"\r\n\"3. YouTube 4K B-Roll\",\"Happy Family Playing At Sunset | Premium Video Footage | 4K\",\"🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)\",\"03:45\",\"https://www.youtube.com/watch?v=N0JRmr3qLxQ\",\"yt-dlp -f \"\"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\"\" \"\"https://www.youtube.com/watch?v=N0JRmr3qLxQ\"\" -o \"\"footage-N0JRmr3qLxQ.%(ext)s\"\"\"\r\n\"3. YouTube 4K B-Roll\",\"Republic Of Korea, autumn, roof tile free stock video  Free for use & download\",\"🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)\",\"03:45\",\"https://www.youtube.com/watch?v=5kLcimat_ew\",\"yt-dlp -f \"\"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\"\" \"\"https://www.youtube.com/watch?v=5kLcimat_ew\"\" -o \"\"footage-5kLcimat_ew.%(ext)s\"\"\"\r\n\"3. YouTube 4K B-Roll\",\"4K Planet Earth Spinning in Space | Free HD Videos - No Copyright\",\"🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)\",\"03:45\",\"https://www.youtube.com/watch?v=_Sl8diqCAFw\",\"yt-dlp -f \"\"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\"\" \"\"https://www.youtube.com/watch?v=_Sl8diqCAFw\"\" -o \"\"footage-_Sl8diqCAFw.%(ext)s\"\"\"\r\n\"3. YouTube 4K B-Roll\",\"Life. Stock Videos | Free 4K B-Roll Teaser for Creators, Editors & Storytellers\",\"🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)\",\"03:45\",\"https://www.youtube.com/watch?v=tXYTQbQYviU\",\"yt-dlp -f \"\"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\"\" \"\"https://www.youtube.com/watch?v=tXYTQbQYviU\"\" -o \"\"footage-tXYTQbQYviU.%(ext)s\"\"\"\r\n\"3. YouTube 4K B-Roll\",\"FREE 4K Nature Footage | Peaceful Forest River B-Roll | Royalty Free Download (No Copyright)\",\"🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)\",\"03:45\",\"https://www.youtube.com/watch?v=zzvV8QmJfmU\",\"yt-dlp -f \"\"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\"\" \"\"https://www.youtube.com/watch?v=zzvV8QmJfmU\"\" -o \"\"footage-zzvV8QmJfmU.%(ext)s\"\"\"\r\n\"3. YouTube 4K B-Roll\",\"Swing, south korea, traditional free stock video  Free for use & download\",\"🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)\",\"03:45\",\"https://www.youtube.com/watch?v=X2VgUK_Zbak\",\"yt-dlp -f \"\"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\"\" \"\"https://www.youtube.com/watch?v=X2VgUK_Zbak\"\" -o \"\"footage-X2VgUK_Zbak.%(ext)s\"\"\"\r\n\"3. YouTube 4K B-Roll\",\"📱 Man Scrolling Phone Alone in Bed | Free 4K Emotional & Sad Night B-Roll\",\"🔵 YouTube 4K B-Roll / CC-BY (Cắt < 3.5s + Zoom 108% an toàn Fair-Use)\",\"03:45\",\"https://www.youtube.com/watch?v=9yU08rIHZT0\",\"yt-dlp -f \"\"bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\"\" \"\"https://www.youtube.com/watch?v=9yU08rIHZT0\"\" -o \"\"footage-9yU08rIHZT0.%(ext)s\"\"\"\r\n\"4. Shotlist & AI Prompt\",\"00:00 – 00:05 (5s Hook Mở Đầu) - ⚡ Cảnh Hook Cú Tát Thị Giác (Chống vuốt bỏ 5 giây đầu)\",\"Douyin 抖音 / Pexels 4K / YouTube CC-BY\",\"living live dramatic reveal slow motion 4k\",\"\",\"Cinematic 4K ultra-detailed opening hook shot of living live, dramatic volumetric lighting, slow motion camera push-in, high contrast, IMAX documentary style, 16:9 --ar 16:9\"\r\n\"4. Shotlist & AI Prompt\",\"00:05 – 00:25 (20s Bối Cảnh Toàn Cục) - 🌍 Cảnh Establishing Shot (Giới thiệu bối cảnh & Quy mô)\",\"Pexels 4K / Pixabay / Internet Archive\",\"living live aerial drone establishing shot 4k\",\"\",\"Sweeping aerial drone shot over living live, golden hour atmospheric lighting, hyper-realistic 8k resolution, smooth gimbal movement, Netflix documentary aesthetic --ar 16:9\"\r\n\"4. Shotlist & AI Prompt\",\"00:25 – 01:30 (Thân Bài 1 — Bằng Chứng & Số Liệu) - 📊 Cảnh B-Roll Minh Họa Dẫn Chứng & Phân Tích Chuyên Sâu\",\"Bilibili 哔哩哔哩 / Coverr / Wikimedia Commons\",\"living live close up details cinematic b-roll\",\"\",\"Macro close-up cinematic shot representing living live, shallow depth of field, moody rim lighting, subtle camera pan, photorealistic film grain, 4k 60fps --ar 16:9\"\r\n\"4. Shotlist & AI Prompt\",\"01:30 – 03:00 (Thân Bài 2 — Bước Ngoặt / Cao Trào) - 🔥 Cảnh Climax / Plot Twist (Sự thật ít ai ngờ tới)\",\"YouTube 4K B-Roll / Douyin 抖音 / Mixkit\",\"living live dark dramatic tension cinematic 4k\",\"\",\"Intense dramatic cinematic scene of living live, dark moody atmosphere, chiaroscuro lighting, slow zoom in on subject, suspenseful documentary tone, 4k resolution --ar 16:9\"\r\n\"4. Shotlist & AI Prompt\",\"Phút Cuối (Kết Bài & Kêu Gọi Xem Tiếp Phần 2) - 🎯 Cảnh Outro Dư Âm & Giữ Chân Sang Video Tiếp Theo (End-Screen)\",\"Pexels / Pixabay / AI Video (Kling / Runway)\",\"living live sunset horizon cinematic wide shot\",\"\",\"Wide cinematic horizon shot symbolizing the future of living live, warm cinematic glow, slow pull-back camera motion, clean space for end screen overlay, 4k --ar 16:9\""
+          }
+        }
       ]
     }
   },
@@ -2703,7 +3115,7 @@
       "channelUrl": "https://www.youtube.com/@FOOD75-h2q",
       "subscribers": 4,
       "totalVideos": 3,
-      "totalViews": 976,
+      "totalViews": 986,
       "firstVideoDate": "2026-10-01",
       "category": "Ẩm thực & Đời sống",
       "manager": "",
@@ -2712,7 +3124,7 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-18T05:54:38.568Z",
+      "updatedAt": "2026-10-18T07:55:40.944Z",
       "group": "KÊNH ÂM THỰC",
       "watchHours": 0,
       "realtimeViews48h": 0,
@@ -2733,7 +3145,7 @@
           "id": "vid-6c66a438",
           "youtubeVideoId": "d5giUxqaVy8",
           "title": "10 Wild Foods and Drinks Andre the Giant Used to Hide His Pain",
-          "views": 305,
+          "views": 309,
           "likes": 13,
           "comments": 2,
           "publishedAt": "2026-10-01"
@@ -2742,7 +3154,7 @@
           "id": "vid-0a472fab",
           "youtubeVideoId": "JrTFXCWmaaA",
           "title": "12 Wild Things Hulk Hogan Put in His Body Before His Heart Gave Out",
-          "views": 217,
+          "views": 223,
           "likes": 10,
           "comments": 2,
           "publishedAt": "2026-10-03"
@@ -2782,8 +3194,8 @@
       "monetization": "pending",
       "strikeCount": 0,
       "statusNote": "Kênh mới khởi tạo trên hệ thống.",
-      "updatedAt": "2026-10-18T05:54:38.878Z",
-      "totalViews": 35451,
+      "updatedAt": "2026-10-18T07:55:41.350Z",
+      "totalViews": 36283,
       "watchHours": 2200,
       "group": "NGƯỜI NỔI TIẾNG",
       "realtimeViews48h": 0,
@@ -2795,27 +3207,27 @@
           "id": "vid-42078c14",
           "youtubeVideoId": "UEQ5XifO7L8",
           "title": "How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked",
-          "views": 24000,
+          "views": 24848,
           "likes": 1008,
-          "comments": 96,
+          "comments": 8,
           "publishedAt": "2026-09-29"
         },
         {
           "id": "vid-3dfb07a0",
           "youtubeVideoId": "LGu_sMQ-ANo",
           "title": "Stephen Fry, Brian Cox & 13 More British TV Stars You Underestimated",
-          "views": 4000,
+          "views": 4065,
           "likes": 168,
-          "comments": 16,
+          "comments": 2,
           "publishedAt": "2026-10-04"
         },
         {
           "id": "vid-790f40ec",
           "youtubeVideoId": "IJ79UvSykBE",
           "title": "12 OLD HOLLYWOOD GIANTS: #12 STOOD ABOUT 7'7\" TALL",
-          "views": 3200,
+          "views": 3249,
           "likes": 134,
-          "comments": 13,
+          "comments": 2,
           "publishedAt": "2026-09-30"
         }
       ],
@@ -3203,16 +3615,16 @@
         },
         {
           "date": "2026-10-18",
-          "views": 223,
+          "views": 243,
           "likes": 10,
           "comments": 2,
-          "dailyViewsDelta": 85
+          "dailyViewsDelta": 105
         }
       ],
-      "currentViews": 223,
+      "currentViews": 243,
       "currentLikes": 10,
       "currentComments": 2,
-      "dailyViewsDelta": 85,
+      "dailyViewsDelta": 105,
       "lastUpdatedDate": "2026-10-18"
     },
     {
@@ -3279,16 +3691,16 @@
         },
         {
           "date": "2026-10-18",
-          "views": 217,
+          "views": 223,
           "likes": 10,
           "comments": 2,
-          "dailyViewsDelta": 12
+          "dailyViewsDelta": 18
         }
       ],
-      "currentViews": 217,
+      "currentViews": 223,
       "currentLikes": 10,
       "currentComments": 2,
-      "dailyViewsDelta": 12,
+      "dailyViewsDelta": 18,
       "lastUpdatedDate": "2026-10-18"
     },
     {
@@ -3317,16 +3729,16 @@
         },
         {
           "date": "2026-10-18",
-          "views": 305,
+          "views": 309,
           "likes": 13,
           "comments": 2,
-          "dailyViewsDelta": 8
+          "dailyViewsDelta": 12
         }
       ],
-      "currentViews": 305,
+      "currentViews": 309,
       "currentLikes": 13,
       "currentComments": 2,
-      "dailyViewsDelta": 8,
+      "dailyViewsDelta": 12,
       "lastUpdatedDate": "2026-10-18"
     },
     {
@@ -3469,16 +3881,16 @@
         },
         {
           "date": "2026-10-18",
-          "views": 3200,
+          "views": 3249,
           "likes": 134,
-          "comments": 13,
-          "dailyViewsDelta": 0
+          "comments": 2,
+          "dailyViewsDelta": 49
         }
       ],
-      "currentViews": 3200,
+      "currentViews": 3249,
       "currentLikes": 134,
-      "currentComments": 13,
-      "dailyViewsDelta": 0,
+      "currentComments": 2,
+      "dailyViewsDelta": 49,
       "lastUpdatedDate": "2026-10-18"
     },
     {
@@ -3507,16 +3919,16 @@
         },
         {
           "date": "2026-10-18",
-          "views": 24000,
+          "views": 24848,
           "likes": 1008,
-          "comments": 96,
-          "dailyViewsDelta": 0
+          "comments": 8,
+          "dailyViewsDelta": 848
         }
       ],
-      "currentViews": 24000,
+      "currentViews": 24848,
       "currentLikes": 1008,
-      "currentComments": 96,
-      "dailyViewsDelta": 0,
+      "currentComments": 8,
+      "dailyViewsDelta": 848,
       "lastUpdatedDate": "2026-10-18"
     },
     {
@@ -3773,16 +4185,16 @@
         },
         {
           "date": "2026-10-18",
-          "views": 453,
+          "views": 454,
           "likes": 19,
           "comments": 2,
-          "dailyViewsDelta": 1
+          "dailyViewsDelta": 2
         }
       ],
-      "currentViews": 453,
+      "currentViews": 454,
       "currentLikes": 19,
       "currentComments": 2,
-      "dailyViewsDelta": 1,
+      "dailyViewsDelta": 2,
       "lastUpdatedDate": "2026-10-18"
     },
     {
@@ -3811,16 +4223,16 @@
         },
         {
           "date": "2026-10-18",
-          "views": 4000,
+          "views": 4065,
           "likes": 168,
-          "comments": 16,
-          "dailyViewsDelta": 0
+          "comments": 2,
+          "dailyViewsDelta": 65
         }
       ],
-      "currentViews": 4000,
+      "currentViews": 4065,
       "currentLikes": 168,
-      "currentComments": 16,
-      "dailyViewsDelta": 0,
+      "currentComments": 2,
+      "dailyViewsDelta": 65,
       "lastUpdatedDate": "2026-10-18"
     }
   ],

@@ -961,10 +961,10 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(
       footageData.footageScan.aiAgentDirector &&
         Array.isArray(footageData.footageScan.aiAgentDirector.agents) &&
-        footageData.footageScan.aiAgentDirector.agents.length === 4
+        footageData.footageScan.aiAgentDirector.agents.length === 5
     );
 
-    // 12. Bot 10 — Bóc tách File Excel/Sheet/Notion/Kịch Bản Dựng Từng Cảnh + AI Agent + Nút Again (Re-roll)
+    // 12. Bot 10 — Bóc tách File Excel/Sheet/Notion/Kịch Bản Dựng Từng Cảnh + AI Agent + Nút Again (Re-roll) + QC 1 Lượt
     const scriptRes = await fetch(`${baseUrl}/api/bots/footage/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -991,6 +991,13 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(
       scriptData.footageScan.scriptScenesBreakdown[0].matchedClip.filename.includes('Scene-01-') &&
         scriptData.footageScan.scriptScenesBreakdown[0].matchedClip.filename.includes('-v2.mp4')
+    );
+    assert.ok(
+      scriptData.footageScan.scriptScenesBreakdown[0].qcReport &&
+        scriptData.footageScan.scriptScenesBreakdown[0].qcReport.qcPassed === true &&
+        scriptData.footageScan.scriptScenesBreakdown[0].qcReport.qcScore >= 90 &&
+        scriptData.footageScan.scriptScenesBreakdown[0].qcReport.previewImageUrl.startsWith('https://i.ytimg.com/vi/') &&
+        scriptData.footageScan.scriptScenesBreakdown[0].qcReport.finalApprovedLink.startsWith('https://www.youtube.com/watch?v=')
     );
     assert.ok(
       scriptData.footageScan.scriptScenesBreakdown[0].agentDirectorNote.cameraAngle.length > 0
