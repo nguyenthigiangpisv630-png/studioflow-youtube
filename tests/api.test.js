@@ -1000,6 +1000,28 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
         scriptData.footageScan.scriptScenesBreakdown[0].qcReport.finalApprovedLink.startsWith('https://www.youtube.com/watch?v=')
     );
     assert.ok(
+      Array.isArray(scriptData.footageScan.editorialPhotos) &&
+        scriptData.footageScan.editorialPhotos.length >= 6 &&
+        scriptData.footageScan.editorialPhotos[0].gettyPhotosUrl.startsWith('https://www.gettyimages.com/photos/') &&
+        scriptData.footageScan.editorialPhotos[0].imdbUrl.startsWith('https://www.imdb.com/') &&
+        scriptData.footageScan.editorialPhotos[0].alamyUrl.startsWith('https://www.alamy.com/stock-photo/') &&
+        scriptData.footageScan.editorialPhotos[0].istockPhotosUrl.startsWith('https://www.istockphoto.com/search/2/image')
+    );
+    assert.ok(
+      scriptData.footageScan.platformHubs.length >= 14 &&
+        scriptData.footageScan.platformHubs.some((p) => p.id === 'getty_images') &&
+        scriptData.footageScan.platformHubs.some((p) => p.id === 'imdb_stills') &&
+        scriptData.footageScan.platformHubs.some((p) => p.id === 'alamy_stock') &&
+        scriptData.footageScan.platformHubs.some((p) => p.id === 'istockphoto')
+    );
+    assert.ok(
+      scriptData.footageScan.scriptScenesBreakdown[0].editorialPhoto &&
+        scriptData.footageScan.scriptScenesBreakdown[0].platformLinks.gettyPhotosUrl.startsWith('https://www.gettyimages.com/photos/') &&
+        scriptData.footageScan.scriptScenesBreakdown[0].platformLinks.imdbUrl.startsWith('https://www.imdb.com/') &&
+        scriptData.footageScan.scriptScenesBreakdown[0].platformLinks.alamyUrl.startsWith('https://www.alamy.com/stock-photo/') &&
+        scriptData.footageScan.scriptScenesBreakdown[0].platformLinks.istockPhotosUrl.startsWith('https://www.istockphoto.com/search/2/image')
+    );
+    assert.ok(
       scriptData.footageScan.scriptScenesBreakdown[0].agentDirectorNote.cameraAngle.length > 0
     );
     assert.ok(
