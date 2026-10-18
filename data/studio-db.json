@@ -9,19 +9,19 @@
     ],
     "botCenter": {
       "config": {
-        "telegramEnabled": false,
-        "telegramBotToken": "",
-        "telegramChatId": "",
+        "telegramEnabled": true,
+        "telegramBotToken": "8835900254:AAFI4azbjysINfBn6jh-s6YG85G9KkivoxU",
+        "telegramChatId": "723401181",
         "notifyOnNewUser": true,
         "notifyOnViralVideo": true,
         "autoTelegramBackupDaily": true,
-        "lastTelegramReportAt": null,
-        "lastTelegramUpdateId": 0,
+        "lastTelegramReportAt": "2026-10-18T04:08:26.691Z",
+        "lastTelegramUpdateId": 618454746,
         "watchdogEnabled": true,
         "outlierThreshold": 1.5,
         "minViralViews": 500,
         "staleDaysThreshold": 5,
-        "lastWatchdogScanAt": null,
+        "lastWatchdogScanAt": "2026-10-18T04:11:39.386Z",
         "autoBackupEnabled": true,
         "cloudBackupWebhookUrl": "",
         "lastBackupAt": "2026-10-18T04:04:09.984Z",
@@ -1216,6 +1216,41 @@
       ],
       "notifiedViralVideoIds": [],
       "activityLogs": [
+        {
+          "id": "log-8424f7c2",
+          "botName": "Bot 4 -> Telegram",
+          "message": "Đã bắn file Sao lưu dữ liệu bất tử (.json) sang Telegram (Chat ID: 723401181).",
+          "level": "success",
+          "createdAt": "2026-10-18T04:08:27.669Z"
+        },
+        {
+          "id": "log-2f98b373",
+          "botName": "Bot 4 (Telegram Cloud)",
+          "message": "Đã gửi file studioflow-backup-2026-10-18.json (35.66 KB) vào Telegram an toàn!",
+          "level": "success",
+          "createdAt": "2026-10-18T04:08:27.669Z"
+        },
+        {
+          "id": "log-cb55f504",
+          "botName": "Bot 1 (Telegram)",
+          "message": "Đã bắn Báo cáo tổng hợp Hệ thống về Telegram (Chat ID: 723401181).",
+          "level": "success",
+          "createdAt": "2026-10-18T04:08:26.691Z"
+        },
+        {
+          "id": "log-049a453b",
+          "botName": "Bot 1 (Telegram)",
+          "message": "Đã tự động dò thấy Chat ID: 723401181 (acb9x) cho Bot @undefined.",
+          "level": "success",
+          "createdAt": "2026-10-18T04:08:26.263Z"
+        },
+        {
+          "id": "log-d44bde24",
+          "botName": "Bot Center",
+          "message": "Đã lưu cấu hình Trung tâm Bot (Bot 1 Telegram + Bot 2 Canh nổ view + Bot 4 Sao lưu bất tử).",
+          "level": "success",
+          "createdAt": "2026-10-18T04:08:26.262Z"
+        },
         {
           "id": "log-9b7dd09f",
           "botName": "Bot 4 (Backup)",

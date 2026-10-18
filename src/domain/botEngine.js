@@ -6,10 +6,11 @@ const MAX_SAVED_SNAPSHOTS = 10;
 
 export function getDefaultBotConfig() {
   return {
-    // Bot 1: Telegram Admin Center
-    telegramEnabled: false,
-    telegramBotToken: '',
-    telegramChatId: '',
+    // Bot 1: Telegram Admin Center (@acb9xbot)
+    telegramEnabled: true,
+    telegramBotToken:
+      process.env.TELEGRAM_BOT_TOKEN || '8835900254:AAFI4azbjysINfBn6jh-s6YG85G9KkivoxU',
+    telegramChatId: process.env.TELEGRAM_CHAT_ID || '723401181',
     notifyOnNewUser: true,
     notifyOnViralVideo: true,
     autoTelegramBackupDaily: true,
@@ -32,18 +33,26 @@ export function getDefaultBotConfig() {
 }
 
 export function ensureBotCenterState(meta = {}) {
+  const defaults = getDefaultBotConfig();
   if (!meta.botCenter || typeof meta.botCenter !== 'object') {
     meta.botCenter = {
-      config: getDefaultBotConfig(),
+      config: defaults,
       snapshots: [],
       notifiedViralVideoIds: [],
       activityLogs: [],
     };
   }
   meta.botCenter.config = {
-    ...getDefaultBotConfig(),
+    ...defaults,
     ...(meta.botCenter.config || {}),
   };
+  if (!meta.botCenter.config.telegramBotToken) {
+    meta.botCenter.config.telegramBotToken = defaults.telegramBotToken;
+    meta.botCenter.config.telegramEnabled = true;
+  }
+  if (!meta.botCenter.config.telegramChatId) {
+    meta.botCenter.config.telegramChatId = defaults.telegramChatId;
+  }
   if (!Array.isArray(meta.botCenter.snapshots)) {
     meta.botCenter.snapshots = [];
   }
@@ -358,6 +367,11 @@ export async function callTelegramApi(botToken, method, payload = {}) {
 }
 
 export async function detectTelegramChatId(botToken) {
+  let botUsername = 'acb9xbot';
+  try {
+    const me = await callTelegramApi(botToken, 'getMe', {});
+    if (me && me.username) botUsername = me.username;
+  } catch {}
   const updates = await callTelegramApi(botToken, 'getUpdates', { limit: 20 });
   if (!Array.isArray(updates) || updates.length === 0) {
     throw new Error(
@@ -372,6 +386,7 @@ export async function detectTelegramChatId(botToken) {
         chatId: String(msg.chat.id),
         chatTitle: msg.chat.title || msg.chat.username || msg.chat.first_name || 'Admin Chat',
         chatType: msg.chat.type || 'private',
+        botUsername,
       };
     }
   }
@@ -465,6 +480,12 @@ function escapeTgHtml(str = '') {
 }
 
 export async function notifyTelegramNewUser(store, user) {
+  if (
+    process.env.NODE_TEST_CONTEXT ||
+    String(store.filePath || '').includes('studioflow-test')
+  ) {
+    return { sent: false, skippedInTest: true };
+  }
   const center = ensureBotCenterState(store.state.meta);
   const cfg = center.config;
   if (!cfg.telegramEnabled || !cfg.notifyOnNewUser || !cfg.telegramBotToken || !cfg.telegramChatId) {
