@@ -6375,3 +6375,12 @@ select:focus-visible {
   justify-content: space-between !important;
 }
 
+/* Ẩn hoàn toàn nút Continue with Google & vạch OR trên màn hình đăng nhập */
+.claude-google-btn,
+#btn-continue-google,
+.claude-or-divider,
+#auth-or-divider,
+.claude-google-chooser,
+#auth-saved-gmails-box {
+  display: none !important;
+}

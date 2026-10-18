@@ -242,7 +242,9 @@ function switchAuthOverlayTab(tabName = '') {
     btn.classList.toggle('active', btn.dataset.authTab === effectiveTab);
   });
 
-  renderSavedGmailsBox(false);
+  googleBtn?.remove();
+  orDivider?.remove();
+  document.getElementById('auth-saved-gmails-box')?.remove();
 
   if (isAdminTab) {
     try {
@@ -5538,7 +5540,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=55', { updateViaCache: 'none' })
+      .register('/sw.js?v=56', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
