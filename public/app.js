@@ -2367,11 +2367,6 @@ function renderYoutubeChannelsBoard() {
   const headerHtml = `
     <div class="channel-row-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
       <div>${escapeHtml(folderTitle)}</div>
-      ${
-        groupFilter !== 'all'
-          ? `<button type="button" class="btn btn-secondary btn-xs" data-clear-all-yt-filters="true">📁 Xem tất cả kênh (${state.channels.length})</button>`
-          : ''
-      }
     </div>
   `;
 
@@ -5669,7 +5664,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=58', { updateViaCache: 'none' })
+      .register('/sw.js?v=59', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
