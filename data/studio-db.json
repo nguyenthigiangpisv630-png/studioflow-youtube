@@ -16,12 +16,12 @@
         "notifyOnViralVideo": true,
         "autoTelegramBackupDaily": true,
         "lastTelegramReportAt": "2026-10-18T04:08:26.691Z",
-        "lastTelegramUpdateId": 618454759,
+        "lastTelegramUpdateId": 618454765,
         "watchdogEnabled": true,
         "outlierThreshold": 1.5,
         "minViralViews": 500,
         "staleDaysThreshold": 5,
-        "lastWatchdogScanAt": "2026-10-18T04:15:11.222Z",
+        "lastWatchdogScanAt": "2026-10-18T06:35:22.046Z",
         "scheduleBotEnabled": true,
         "targetUploadEveryDays": 2,
         "deadChannelDays": 5,
@@ -32,11 +32,11 @@
         "lastBackupAt": "2026-10-18T04:04:09.984Z",
         "lastCloudSyncStatus": "",
         "competitorMinOutlier": 1.3,
-        "lastCompetitorScanAt": "2026-10-18T04:52:43.103Z",
+        "lastCompetitorScanAt": "2026-10-18T06:36:07.754Z",
         "defaultThumbnailStyle": "viral_3d",
         "lastThumbnailCloneAt": "2026-10-18T04:56:27.036Z",
         "defaultTrendMarket": "vi",
-        "lastTrendScanAt": "2026-10-18T05:12:11.047Z",
+        "lastTrendScanAt": "2026-10-18T06:08:54.877Z",
         "maxChannelsPerGa": 3,
         "bktAlertThresholdPct": 70,
         "lastAdSenseScanAt": "2026-10-18T05:13:40.942Z",
@@ -1235,6 +1235,20 @@
       "notifiedViralVideoIds": [],
       "activityLogs": [
         {
+          "id": "log-06081208",
+          "botName": "Bot 5 (NexLev + vidIQ + SocialBlade + 1of10)",
+          "message": "Đã dò \"LivingLive\" (@LivingLive): Hạng SocialBlade A, TB 10 views/bài, ⚡ 1 VPH, vidIQ 77/100, thu nhập $10 – $22/tháng!",
+          "level": "success",
+          "createdAt": "2026-10-18T06:36:07.754Z"
+        },
+        {
+          "id": "log-2ed67466",
+          "botName": "Bot 7 (vidIQ + NexLev Trend)",
+          "message": "Đã quét vidIQ Keyword Inspector cho \"living live\" (VI): 10 từ khóa (0 Key Vàng vidIQ ≥ 85/100)!",
+          "level": "success",
+          "createdAt": "2026-10-18T06:08:54.877Z"
+        },
+        {
           "id": "log-1f9d36f8",
           "botName": "Bot 7 (Săn Từ Khóa Trend)",
           "message": "Đã quét YouTube Search Autocomplete cho \"How People Live In\" (VI): thu về 17 từ khóa tìm kiếm thực tế (5 ngách con)!",
@@ -1306,6 +1320,202 @@
         }
       ],
       "competitorScans": [
+        {
+          "id": "spy-e1c94aee",
+          "scannedAt": "2026-10-18T06:36:07.754Z",
+          "query": "living live",
+          "channelName": "LivingLive",
+          "handle": "@LivingLive",
+          "channelUrl": "https://www.youtube.com/@LivingLive",
+          "subscribers": 5,
+          "totalViews": 20,
+          "totalVideos": 2,
+          "avgViewsPerVideo": 10,
+          "avgViews": 10,
+          "category": "Du lịch & Khám phá",
+          "marketLabel": "🌎 US / Global",
+          "estimatedRpmUsd": 3.8,
+          "estimatedMonthlyRevenueUsd": 15,
+          "estimatedYearlyRevenueUsd": 180,
+          "nexlevDossier": {
+            "avgVph": 1,
+            "maxVph": 1,
+            "maxViewsToSubRatio": 0,
+            "diamondOutlierCount": 0,
+            "isFaceless": true,
+            "facelessScore": 94,
+            "facelessVerdict": "🤖 Faceless / AI Cash-Cow (94% dễ nhân bản công nghiệp)",
+            "productionStyle": "Giọng đọc AI / Thuyết minh + Stock Footage, 3D Visual & Motion Graphics",
+            "nicheDifficulty": "🟢 Khả Thi (Cần tối ưu Hook 30s đầu & Thumbnail CTR)"
+          },
+          "vidiqAudit": {
+            "seoScore": 77,
+            "engagementGrade": "A",
+            "channelKeywords": [
+              "lovelife",
+              "du lịch & khám phá",
+              "livinglive"
+            ],
+            "recommendedTags": [
+              "lovelife",
+              "du lịch & khám phá",
+              "livinglive"
+            ],
+            "tagsCsv": "lovelife, du lịch & khám phá, livinglive"
+          },
+          "socialBladeDossier": {
+            "grade": "A",
+            "projectedSubs30d": 150,
+            "projectedViews30d": 80,
+            "projectedViews90d": 240,
+            "monthlyEarningsRange": "$10 – $22/tháng",
+            "yearlyEarningsRange": "$120 – $264/năm"
+          },
+          "oneOfTenDossier": {
+            "bestOneOfTenTitle": "LoveLife",
+            "best1of10Video": {
+              "youtubeVideoId": "fRubvZv5--E",
+              "videoId": "fRubvZv5--E",
+              "title": "LoveLife",
+              "views": 16,
+              "publishedAt": "",
+              "publishedText": "",
+              "hoursAlive": 96,
+              "vph": 1,
+              "viewsToSubRatio": 0,
+              "isDiamondOutlier": false,
+              "nexlevBadge": "⚡ 1 VPH · x0 Sub",
+              "outlierMultiplier": 1.6,
+              "multiplier": 1.6,
+              "isOutlier": true,
+              "videoUrl": "https://www.youtube.com/watch?v=fRubvZv5--E",
+              "thumbnailUrl": "https://i.ytimg.com/vi/fRubvZv5--E/hqdefault.jpg",
+              "maxResThumbnailUrl": "https://i.ytimg.com/vi/fRubvZv5--E/maxresdefault.jpg",
+              "oneOfTenRank": 1,
+              "oneOfTenBadge": "🏆 1/10 Đỉnh Nhất (1of10)"
+            },
+            "bestOneOfTenMultiplier": 1.6,
+            "deadTopicsToAvoid": [
+              {
+                "title": "DogLife",
+                "views": 4,
+                "multiplier": 0.4,
+                "outlierMultiplier": 0.4
+              }
+            ]
+          },
+          "viewstatsDossier": {
+            "sweetSpotDuration": "12–18 phút (Độ dài vàng Viewstats ăn đề xuất US/Global x3.1)",
+            "winningTitleFormula": "Con số cụ thể + Bí mật/Nghịch lý + Nhân vật/Ngách (Chuẩn Viewstats MrBeast)",
+            "uploadCadence": "TB 2–3 ngày / video"
+          },
+          "discoveredCompetitors": [],
+          "minOutlier": 1.3,
+          "outlierCount": 1,
+          "topKeywords": [
+            {
+              "word": "lovelife",
+              "count": 1
+            }
+          ],
+          "hotKeywords": [
+            {
+              "word": "lovelife",
+              "count": 1
+            }
+          ],
+          "trendingPhrases": [],
+          "videos": [
+            {
+              "youtubeVideoId": "fRubvZv5--E",
+              "videoId": "fRubvZv5--E",
+              "title": "LoveLife",
+              "views": 16,
+              "publishedAt": "",
+              "publishedText": "",
+              "hoursAlive": 96,
+              "vph": 1,
+              "viewsToSubRatio": 0,
+              "isDiamondOutlier": false,
+              "nexlevBadge": "⚡ 1 VPH · x0 Sub",
+              "outlierMultiplier": 1.6,
+              "multiplier": 1.6,
+              "isOutlier": true,
+              "videoUrl": "https://www.youtube.com/watch?v=fRubvZv5--E",
+              "thumbnailUrl": "https://i.ytimg.com/vi/fRubvZv5--E/hqdefault.jpg",
+              "maxResThumbnailUrl": "https://i.ytimg.com/vi/fRubvZv5--E/maxresdefault.jpg",
+              "oneOfTenRank": 1,
+              "oneOfTenBadge": "🏆 1/10 Đỉnh Nhất (1of10)"
+            }
+          ],
+          "outliers": [
+            {
+              "youtubeVideoId": "fRubvZv5--E",
+              "videoId": "fRubvZv5--E",
+              "title": "LoveLife",
+              "views": 16,
+              "publishedAt": "",
+              "publishedText": "",
+              "hoursAlive": 96,
+              "vph": 1,
+              "viewsToSubRatio": 0,
+              "isDiamondOutlier": false,
+              "nexlevBadge": "⚡ 1 VPH · x0 Sub",
+              "outlierMultiplier": 1.6,
+              "multiplier": 1.6,
+              "isOutlier": true,
+              "videoUrl": "https://www.youtube.com/watch?v=fRubvZv5--E",
+              "thumbnailUrl": "https://i.ytimg.com/vi/fRubvZv5--E/hqdefault.jpg",
+              "maxResThumbnailUrl": "https://i.ytimg.com/vi/fRubvZv5--E/maxresdefault.jpg",
+              "oneOfTenRank": 1,
+              "oneOfTenBadge": "🏆 1/10 Đỉnh Nhất (1of10)"
+            }
+          ],
+          "allVideos": [
+            {
+              "youtubeVideoId": "fRubvZv5--E",
+              "videoId": "fRubvZv5--E",
+              "title": "LoveLife",
+              "views": 16,
+              "publishedAt": "",
+              "publishedText": "",
+              "hoursAlive": 96,
+              "vph": 1,
+              "viewsToSubRatio": 0,
+              "isDiamondOutlier": false,
+              "nexlevBadge": "⚡ 1 VPH · x0 Sub",
+              "outlierMultiplier": 1.6,
+              "multiplier": 1.6,
+              "isOutlier": true,
+              "videoUrl": "https://www.youtube.com/watch?v=fRubvZv5--E",
+              "thumbnailUrl": "https://i.ytimg.com/vi/fRubvZv5--E/hqdefault.jpg",
+              "maxResThumbnailUrl": "https://i.ytimg.com/vi/fRubvZv5--E/maxresdefault.jpg",
+              "oneOfTenRank": 1,
+              "oneOfTenBadge": "🏆 1/10 Đỉnh Nhất (1of10)"
+            },
+            {
+              "youtubeVideoId": "Tdk1kV7EH2M",
+              "videoId": "Tdk1kV7EH2M",
+              "title": "DogLife",
+              "views": 4,
+              "publishedAt": "2025-10-18",
+              "publishedText": "2025-10-18",
+              "hoursAlive": 8767,
+              "vph": 1,
+              "viewsToSubRatio": 0,
+              "isDiamondOutlier": false,
+              "nexlevBadge": "⚡ 1 VPH · x0 Sub",
+              "outlierMultiplier": 0.4,
+              "multiplier": 0.4,
+              "isOutlier": false,
+              "videoUrl": "https://www.youtube.com/watch?v=Tdk1kV7EH2M",
+              "thumbnailUrl": "https://i.ytimg.com/vi/Tdk1kV7EH2M/hqdefault.jpg",
+              "maxResThumbnailUrl": "https://i.ytimg.com/vi/Tdk1kV7EH2M/maxresdefault.jpg",
+              "oneOfTenRank": 2,
+              "oneOfTenBadge": "🔥 2/10 Nổ Mạnh"
+            }
+          ]
+        },
         {
           "id": "spy-28862447",
           "scannedAt": "2026-10-18T04:52:43.103Z",
@@ -2076,6 +2286,282 @@
         }
       ],
       "trendScans": [
+        {
+          "id": "trend-d1adeabd",
+          "scannedAt": "2026-10-18T06:08:54.877Z",
+          "rawInput": "living live",
+          "seedKeyword": "living live",
+          "sourceChannel": null,
+          "nicheCompetitors": [
+            {
+              "channelName": "Alan Jackson",
+              "handle": "@AlanJackson",
+              "channelUrl": "https://www.youtube.com/channel/UCChNoYrjZP3ymvjh2BKBPbA",
+              "videoCountInTop": 1,
+              "totalViewsInTop": 263403785,
+              "bestVideoTitle": "Alan Jackson - Livin' On Love (Official Music Video)",
+              "bestVideoViews": 263403785
+            },
+            {
+              "channelName": "Sierra Kidd",
+              "handle": "@SierraKidd",
+              "channelUrl": "https://www.youtube.com/channel/UCwmaDLI9Wt1CO8B_HXKamiQ",
+              "videoCountInTop": 1,
+              "totalViewsInTop": 39941084,
+              "bestVideoTitle": "Cheriimoya - Living Life, In The Night (feat. Sierra Kidd)",
+              "bestVideoViews": 39941084
+            },
+            {
+              "channelName": "Pizza Music",
+              "handle": "@pizzamusic6344",
+              "channelUrl": "https://www.youtube.com/@pizzamusic6344",
+              "videoCountInTop": 1,
+              "totalViewsInTop": 17135494,
+              "bestVideoTitle": "Cheriimoya, Sierra Kidd - Living Life In The Night",
+              "bestVideoViews": 17135494
+            },
+            {
+              "channelName": "7clouds Country",
+              "handle": "@7cloudsCountry",
+              "channelUrl": "https://www.youtube.com/@7cloudsCountry",
+              "videoCountInTop": 1,
+              "totalViewsInTop": 8311159,
+              "bestVideoTitle": "Alan Jackson - Livin' On Love (Lyrics)",
+              "bestVideoViews": 8311159
+            },
+            {
+              "channelName": "Will Stetson",
+              "handle": "@willstetson",
+              "channelUrl": "https://www.youtube.com/@willstetson",
+              "videoCountInTop": 1,
+              "totalViewsInTop": 7311262,
+              "bestVideoTitle": "Live in Life - Will Stetson [MV] 【Hu Tao Fansong】",
+              "bestVideoViews": 7311262
+            },
+            {
+              "channelName": "Passenger",
+              "handle": "@Passenger",
+              "channelUrl": "https://www.youtube.com/channel/UCFHtCB_FWXQ8GpjgfYcD8-g",
+              "videoCountInTop": 1,
+              "totalViewsInTop": 3558027,
+              "bestVideoTitle": "Passenger - Life’s For The Living (Feat. Foy Vance - Anniversary Edition) [Official Video]",
+              "bestVideoViews": 3558027
+            }
+          ],
+          "vidiqSummary": {
+            "avgVolumeScore": 79,
+            "avgCompetitionScore": 29,
+            "bestOverallScore": 80,
+            "goldenKeywordCount": 0,
+            "masterTagsCsv": "living live in the night, living life, living live in the night slow, living life in the night vietsub, living life in the night remix, living life in the night edit, living life of a noob, living life in the night 1 hour, living life in the night slowed reverb, living life in the night nightcore"
+          },
+          "market": "vi",
+          "totalKeywords": 10,
+          "microNicheCount": 9,
+          "risingCount": 0,
+          "keywords": [
+            {
+              "rank": 1,
+              "keyword": "living live in the night",
+              "intentTag": "💎 Ngách con ít cạnh tranh (Micro-Niche)",
+              "opportunityScore": 96,
+              "vidiqVolumeScore": 82,
+              "vidiqVolumeLabel": "🟢 Cao",
+              "vidiqCompetitionScore": 22,
+              "vidiqCompetitionLabel": "💎 Rất thấp (Dễ ăn đề xuất)",
+              "vidiqOverallScore": 80,
+              "vidiqTagsCsv": "living live in the night, living live, living live in the night 2026, bí mật living live in the night, sự thật về living live, living, live, in, the, night",
+              "suggestedTitle": "Bí Mật Đằng Sau \"living live in the night\" Khiến Hàng Triệu Người Kinh Ngạc",
+              "seoPackage": {
+                "descriptionSeo": "Bí Mật Đằng Sau \"living live in the night\" Khiến Hàng Triệu Người Kinh Ngạc — Video phân tích chuyên sâu về \"living live in the night\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living live in the night\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 80/100): living live in the night, living live, living live in the night 2026, bí mật living live in the night, sự thật về living live, living, live, in, the, night\n#livingliveinthenight #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livingliveinthenight #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living live in the night, living live, living live in the night 2026, bí mật living live in the night, sự thật về living live, living, live, in, the, night",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living live in the night\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living live in the night\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living live in the night\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20live%20in%20the%20night"
+            },
+            {
+              "rank": 2,
+              "keyword": "living life",
+              "intentTag": "⚡ Từ khóa gốc lưu lượng cao",
+              "opportunityScore": 82,
+              "vidiqVolumeScore": 85,
+              "vidiqVolumeLabel": "🔥 Cực cao",
+              "vidiqCompetitionScore": 50,
+              "vidiqCompetitionLabel": "🟡 Trung bình",
+              "vidiqOverallScore": 76,
+              "vidiqTagsCsv": "living life, living live, living life 2026, bí mật living life, sự thật về living live, living, life",
+              "suggestedTitle": "Top 5 Sự Thật Về \"living life\" Bạn Cần Biết Ngay Hôm Nay",
+              "seoPackage": {
+                "descriptionSeo": "Top 5 Sự Thật Về \"living life\" Bạn Cần Biết Ngay Hôm Nay — Video phân tích chuyên sâu về \"living life\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living life\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 76/100): living life, living live, living life 2026, bí mật living life, sự thật về living live, living, life\n#livinglife #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livinglife #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living life, living live, living life 2026, bí mật living life, sự thật về living live, living, life",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living life\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living life\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living life\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20life"
+            },
+            {
+              "rank": 3,
+              "keyword": "living live in the night slow",
+              "intentTag": "💎 Ngách con ít cạnh tranh (Micro-Niche)",
+              "opportunityScore": 96,
+              "vidiqVolumeScore": 81,
+              "vidiqVolumeLabel": "🟢 Cao",
+              "vidiqCompetitionScore": 26,
+              "vidiqCompetitionLabel": "💎 Rất thấp (Dễ ăn đề xuất)",
+              "vidiqOverallScore": 78,
+              "vidiqTagsCsv": "living live in the night slow, living live, living live in the night slow 2026, bí mật living live in the night slow, sự thật về living live, living, live, in, the, night",
+              "suggestedTitle": "Bí Mật Đằng Sau \"living live in the night slow\" Khiến Hàng Triệu Người Kinh Ngạc",
+              "seoPackage": {
+                "descriptionSeo": "Bí Mật Đằng Sau \"living live in the night slow\" Khiến Hàng Triệu Người Kinh Ngạc — Video phân tích chuyên sâu về \"living live in the night slow\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living live in the night slow\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 78/100): living live in the night slow, living live, living live in the night slow 2026, bí mật living live in the night slow, sự thật về living live, living, live, in, the, night\n#livingliveinthenight #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livingliveinthenight #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living live in the night slow, living live, living live in the night slow 2026, bí mật living live in the night slow, sự thật về living live, living, live, in, the, night",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living live in the night slow\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living live in the night slow\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living live in the night slow\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20live%20in%20the%20night%20slow"
+            },
+            {
+              "rank": 4,
+              "keyword": "living life in the night vietsub",
+              "intentTag": "💎 Ngách con ít cạnh tranh (Micro-Niche)",
+              "opportunityScore": 96,
+              "vidiqVolumeScore": 80,
+              "vidiqVolumeLabel": "🟢 Cao",
+              "vidiqCompetitionScore": 28,
+              "vidiqCompetitionLabel": "💎 Rất thấp (Dễ ăn đề xuất)",
+              "vidiqOverallScore": 76,
+              "vidiqTagsCsv": "living life in the night vietsub, living live, living life in the night vietsub 2026, bí mật living life in the night vietsub, sự thật về living live, living, life, in, the, night",
+              "suggestedTitle": "Bí Mật Đằng Sau \"living life in the night vietsub\" Khiến Hàng Triệu Người Kinh Ngạc",
+              "seoPackage": {
+                "descriptionSeo": "Bí Mật Đằng Sau \"living life in the night vietsub\" Khiến Hàng Triệu Người Kinh Ngạc — Video phân tích chuyên sâu về \"living life in the night vietsub\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living life in the night vietsub\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 76/100): living life in the night vietsub, living live, living life in the night vietsub 2026, bí mật living life in the night vietsub, sự thật về living live, living, life, in, the, night\n#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living life in the night vietsub, living live, living life in the night vietsub 2026, bí mật living life in the night vietsub, sự thật về living live, living, life, in, the, night",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living life in the night vietsub\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living life in the night vietsub\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living life in the night vietsub\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20life%20in%20the%20night%20vietsub"
+            },
+            {
+              "rank": 5,
+              "keyword": "living life in the night remix",
+              "intentTag": "💎 Ngách con ít cạnh tranh (Micro-Niche)",
+              "opportunityScore": 96,
+              "vidiqVolumeScore": 79,
+              "vidiqVolumeLabel": "🟢 Cao",
+              "vidiqCompetitionScore": 30,
+              "vidiqCompetitionLabel": "🟢 Thấp",
+              "vidiqOverallScore": 76,
+              "vidiqTagsCsv": "living life in the night remix, living live, living life in the night remix 2026, bí mật living life in the night remix, sự thật về living live, living, life, in, the, night",
+              "suggestedTitle": "Bí Mật Đằng Sau \"living life in the night remix\" Khiến Hàng Triệu Người Kinh Ngạc",
+              "seoPackage": {
+                "descriptionSeo": "Bí Mật Đằng Sau \"living life in the night remix\" Khiến Hàng Triệu Người Kinh Ngạc — Video phân tích chuyên sâu về \"living life in the night remix\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living life in the night remix\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 76/100): living life in the night remix, living live, living life in the night remix 2026, bí mật living life in the night remix, sự thật về living live, living, life, in, the, night\n#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living life in the night remix, living live, living life in the night remix 2026, bí mật living life in the night remix, sự thật về living live, living, life, in, the, night",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living life in the night remix\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living life in the night remix\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living life in the night remix\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20life%20in%20the%20night%20remix"
+            },
+            {
+              "rank": 6,
+              "keyword": "living life in the night edit",
+              "intentTag": "💎 Ngách con ít cạnh tranh (Micro-Niche)",
+              "opportunityScore": 95,
+              "vidiqVolumeScore": 78,
+              "vidiqVolumeLabel": "🟢 Cao",
+              "vidiqCompetitionScore": 22,
+              "vidiqCompetitionLabel": "💎 Rất thấp (Dễ ăn đề xuất)",
+              "vidiqOverallScore": 78,
+              "vidiqTagsCsv": "living life in the night edit, living live, living life in the night edit 2026, bí mật living life in the night edit, sự thật về living live, living, life, in, the, night",
+              "suggestedTitle": "Bí Mật Đằng Sau \"living life in the night edit\" Khiến Hàng Triệu Người Kinh Ngạc",
+              "seoPackage": {
+                "descriptionSeo": "Bí Mật Đằng Sau \"living life in the night edit\" Khiến Hàng Triệu Người Kinh Ngạc — Video phân tích chuyên sâu về \"living life in the night edit\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living life in the night edit\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 78/100): living life in the night edit, living live, living life in the night edit 2026, bí mật living life in the night edit, sự thật về living live, living, life, in, the, night\n#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living life in the night edit, living live, living life in the night edit 2026, bí mật living life in the night edit, sự thật về living live, living, life, in, the, night",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living life in the night edit\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living life in the night edit\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living life in the night edit\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20life%20in%20the%20night%20edit"
+            },
+            {
+              "rank": 7,
+              "keyword": "living life of a noob",
+              "intentTag": "💎 Ngách con ít cạnh tranh (Micro-Niche)",
+              "opportunityScore": 95,
+              "vidiqVolumeScore": 78,
+              "vidiqVolumeLabel": "🟢 Cao",
+              "vidiqCompetitionScore": 24,
+              "vidiqCompetitionLabel": "💎 Rất thấp (Dễ ăn đề xuất)",
+              "vidiqOverallScore": 77,
+              "vidiqTagsCsv": "living life of a noob, living live, living life of a noob 2026, bí mật living life of a noob, sự thật về living live, living, life, of, noob",
+              "suggestedTitle": "Bí Mật Đằng Sau \"living life of a noob\" Khiến Hàng Triệu Người Kinh Ngạc",
+              "seoPackage": {
+                "descriptionSeo": "Bí Mật Đằng Sau \"living life of a noob\" Khiến Hàng Triệu Người Kinh Ngạc — Video phân tích chuyên sâu về \"living life of a noob\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living life of a noob\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 77/100): living life of a noob, living live, living life of a noob 2026, bí mật living life of a noob, sự thật về living live, living, life, of, noob\n#livinglifeofnoob #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livinglifeofnoob #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living life of a noob, living live, living life of a noob 2026, bí mật living life of a noob, sự thật về living live, living, life, of, noob",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living life of a noob\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living life of a noob\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living life of a noob\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20life%20of%20a%20noob"
+            },
+            {
+              "rank": 8,
+              "keyword": "living life in the night 1 hour",
+              "intentTag": "💎 Ngách con ít cạnh tranh (Micro-Niche)",
+              "opportunityScore": 95,
+              "vidiqVolumeScore": 77,
+              "vidiqVolumeLabel": "🟢 Cao",
+              "vidiqCompetitionScore": 26,
+              "vidiqCompetitionLabel": "💎 Rất thấp (Dễ ăn đề xuất)",
+              "vidiqOverallScore": 76,
+              "vidiqTagsCsv": "living life in the night 1 hour, living live, living life in the night 1 hour 2026, bí mật living life in the night 1 hour, sự thật về living live, living, life, in, the, night",
+              "suggestedTitle": "Bí Mật Đằng Sau \"living life in the night 1 hour\" Khiến Hàng Triệu Người Kinh Ngạc",
+              "seoPackage": {
+                "descriptionSeo": "Bí Mật Đằng Sau \"living life in the night 1 hour\" Khiến Hàng Triệu Người Kinh Ngạc — Video phân tích chuyên sâu về \"living life in the night 1 hour\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living life in the night 1 hour\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 76/100): living life in the night 1 hour, living live, living life in the night 1 hour 2026, bí mật living life in the night 1 hour, sự thật về living live, living, life, in, the, night\n#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living life in the night 1 hour, living live, living life in the night 1 hour 2026, bí mật living life in the night 1 hour, sự thật về living live, living, life, in, the, night",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living life in the night 1 hour\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living life in the night 1 hour\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living life in the night 1 hour\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20life%20in%20the%20night%201%20hour"
+            },
+            {
+              "rank": 9,
+              "keyword": "living life in the night slowed reverb",
+              "intentTag": "💎 Ngách con ít cạnh tranh (Micro-Niche)",
+              "opportunityScore": 95,
+              "vidiqVolumeScore": 76,
+              "vidiqVolumeLabel": "🟢 Cao",
+              "vidiqCompetitionScore": 28,
+              "vidiqCompetitionLabel": "💎 Rất thấp (Dễ ăn đề xuất)",
+              "vidiqOverallScore": 76,
+              "vidiqTagsCsv": "living life in the night slowed reverb, living live, living life in the night slowed reverb 2026, bí mật living life in the night slowed reverb, sự thật về living live, living, life, in, the, night",
+              "suggestedTitle": "Bí Mật Đằng Sau \"living life in the night slowed reverb\" Khiến Hàng Triệu Người Kinh Ngạc",
+              "seoPackage": {
+                "descriptionSeo": "Bí Mật Đằng Sau \"living life in the night slowed reverb\" Khiến Hàng Triệu Người Kinh Ngạc — Video phân tích chuyên sâu về \"living life in the night slowed reverb\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living life in the night slowed reverb\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 76/100): living life in the night slowed reverb, living live, living life in the night slowed reverb 2026, bí mật living life in the night slowed reverb, sự thật về living live, living, life, in, the, night\n#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living life in the night slowed reverb, living live, living life in the night slowed reverb 2026, bí mật living life in the night slowed reverb, sự thật về living live, living, life, in, the, night",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living life in the night slowed reverb\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living life in the night slowed reverb\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living life in the night slowed reverb\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20life%20in%20the%20night%20slowed%20reverb"
+            },
+            {
+              "rank": 10,
+              "keyword": "living life in the night nightcore",
+              "intentTag": "💎 Ngách con ít cạnh tranh (Micro-Niche)",
+              "opportunityScore": 95,
+              "vidiqVolumeScore": 75,
+              "vidiqVolumeLabel": "🟢 Cao",
+              "vidiqCompetitionScore": 30,
+              "vidiqCompetitionLabel": "🟢 Thấp",
+              "vidiqOverallScore": 76,
+              "vidiqTagsCsv": "living life in the night nightcore, living live, living life in the night nightcore 2026, bí mật living life in the night nightcore, sự thật về living live, living, life, in, the, night",
+              "suggestedTitle": "Bí Mật Đằng Sau \"living life in the night nightcore\" Khiến Hàng Triệu Người Kinh Ngạc",
+              "seoPackage": {
+                "descriptionSeo": "Bí Mật Đằng Sau \"living life in the night nightcore\" Khiến Hàng Triệu Người Kinh Ngạc — Video phân tích chuyên sâu về \"living life in the night nightcore\".\n⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh \"living life in the night nightcore\" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.\n🏷️ Từ khóa SEO (vidIQ 76/100): living life in the night nightcore, living live, living life in the night nightcore 2026, bí mật living life in the night nightcore, sự thật về living live, living, life, in, the, night\n#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "hashtags": "#livinglifeinthenight #livinglive #xuhuong2026 #bimat",
+                "vidiqTagsCsv": "living life in the night nightcore, living live, living life in the night nightcore 2026, bí mật living life in the night nightcore, sự thật về living live, living, life, in, the, night",
+                "scriptOutline5Parts": "🎯 [Phần 1 - Hook 30s đầu]: Đặt câu hỏi sốc hoặc nghịch lý xoay quanh \"living life in the night nightcore\" khiến khán giả không thể rời mắt.\n📖 [Phần 2 - Bối cảnh & Khởi nguồn]: Vì sao \"living life in the night nightcore\" lại trở thành tâm điểm tìm kiếm? Những sai lầm 90% người xem đang hiểu nhầm.\n⚡ [Phần 3 - Nút thắt & Bằng chứng đắt giá]: Phân tích 3 số liệu / câu chuyện thực tế chứng minh sức ảnh hưởng của \"living life in the night nightcore\".\n🕵️ [Phần 4 - Góc khuất / Giải mật độc quyền]: Tiết lộ bài học đắt giá nhất mà các kênh khác chưa từng nói tới.\n🚀 [Phần 5 - Tổng kết & Câu hỏi kéo Bình luận]: Tóm gọn thông điệp trong 1 câu đinh + Mời khán giả bình luận quan điểm để đẩy đề xuất YouTube."
+              },
+              "youtubeSearchUrl": "https://www.youtube.com/results?search_query=living%20life%20in%20the%20night%20nightcore"
+            }
+          ]
+        },
         {
           "id": "trend-5d311b90",
           "scannedAt": "2026-10-18T05:12:11.047Z",

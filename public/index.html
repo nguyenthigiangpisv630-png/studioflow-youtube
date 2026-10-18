@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=69" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=69" />
+  <link rel="icon" href="/icon.svg?v=70" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=70" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -899,17 +899,17 @@
                 <div id="bot6-thumbnail-list" class="bot-viral-list" style="max-height:330px;"></div>
               </div>
 
-              <!-- ==================== BOT 7 (BOT 9): SĂN TỪ KHÓA NGÁCH & TREND TÌM KIẾM THỰC TẾ (/trend) ==================== -->
+              <!-- ==================== BOT 7 (BOT 9): SĂN TỪ KHÓA NGÁCH, GỢI Ý NGÁCH ĐẠI DƯƠNG XANH ÍT CẠNH TRANH & 12 THỊ TRƯỜNG (/trend) ==================== -->
               <div class="bot-card panel-box">
                 <div class="bot-card-header">
                   <div class="bot-card-title-wrap">
                     <span class="bot-icon-badge bot-badge-blue" style="background:#eef2ff;border-color:#c7d2fe;">🔍</span>
                     <div>
-                      <h3 class="bot-card-title">Bot 7 — Săn Từ Khóa vidIQ + Google Trends &amp; Lời Thoại 30s (<code>/trend</code>)</h3>
-                      <p class="bot-card-sub">Chấm 3 điểm vidIQ, Sóng Google Trends, Kênh thống trị ngách NexLev &amp; Lời thoại 30s ElevenLabs/Subscribr</p>
+                      <h3 class="bot-card-title">Bot 7 — Săn Từ Khóa vidIQ + Gợi Ý Ngách Ít Cạnh Tranh &amp; 12 Thị Trường (<code>/trend</code>)</h3>
+                      <p class="bot-card-sub">Tự động gợi ý 5 Ngách Đại Dương Xanh ít cạnh tranh, chấm điểm vidIQ, Sóng Google Trends &amp; săn 12 thị trường RPM cao</p>
                     </div>
                   </div>
-                  <span class="bot-status-pill active" id="bot7-status-pill">🟢 vidIQ + Subscribr</span>
+                  <span class="bot-status-pill active" id="bot7-status-pill">💎 Blue-Ocean + 12 Thị Trường</span>
                 </div>
 
                 <div class="bot-kpi-strip">
@@ -918,43 +918,53 @@
                     <strong class="bot-kpi-val num" id="bot7-kpi-scans" style="color:#4f46e5;">0 chủ đề</strong>
                   </div>
                   <div class="bot-kpi-box">
-                    <span class="bot-kpi-label">Ngách con phát hiện</span>
+                    <span class="bot-kpi-label">Ngách con ít cạnh tranh</span>
                     <strong class="bot-kpi-val num" id="bot7-kpi-microniche" style="color:#059669;">0 ngách con</strong>
                   </div>
                 </div>
 
-                <div style="display:grid;grid-template-columns:1fr 145px;gap:8px;align-items:end;">
+                <div style="display:grid;grid-template-columns:1fr 220px;gap:8px;align-items:end;">
                   <label class="field" style="margin:0;">
-                    <span>Nhập Từ khóa gốc HOẶC @Handle / Link kênh đối thủ cần chấm điểm vidIQ &amp; săn Trend</span>
+                    <span>Nhập Từ khóa gốc HOẶC @Handle / Link kênh đối thủ cần săn Ngách Ít Cạnh Tranh &amp; chấm điểm vidIQ</span>
                     <input
                       type="text"
                       id="input-bot7-seed"
                       class="input-control"
-                      placeholder="VD: @TinyWrist, https://youtube.com/@..., hoặc tiểu sử tỷ phú"
+                      placeholder="VD: tiểu sử tỷ phú, billionaire luxury, 歴史, hoặc @TinyWrist"
                     />
                   </label>
                   <label class="field" style="margin:0;">
-                    <span>Thị trường YouTube</span>
+                    <span>🌍 Chọn Thị trường &amp; RPM (12 Quốc gia)</span>
                     <select id="select-bot7-market" class="input-control">
-                      <option value="vi">🇻🇳 Việt Nam (VI)</option>
-                      <option value="en">🇺🇸 Quốc tế / US (EN)</option>
+                      <option value="vi">🇻🇳 Việt Nam (RPM $0.8–$2.5)</option>
+                      <option value="en">🇺🇸 Hoa Kỳ / Quốc tế (RPM $8–$18)</option>
+                      <option value="gb">🇬🇧 Anh Quốc / UK (RPM $7–$15)</option>
+                      <option value="au">🇦🇺 Úc &amp; Canada (RPM $9–$20)</option>
+                      <option value="jp">🇯🇵 Nhật Bản / JP (RPM $6–$14)</option>
+                      <option value="kr">🇰🇷 Hàn Quốc / KR (RPM $5–$12)</option>
+                      <option value="de">🇩🇪 Đức &amp; Châu Âu (RPM $8–$16)</option>
+                      <option value="fr">🇫🇷 Pháp / FR (RPM $6–$13)</option>
+                      <option value="es">🇪🇸 Tây Ban Nha &amp; LatAm ($3–$8)</option>
+                      <option value="pt">🇧🇷 Bồ Đào Nha &amp; Brazil ($2.5–$6)</option>
+                      <option value="in">🇮🇳 Ấn Độ / IN (RPM $1.5–$4)</option>
+                      <option value="id">🇮🇩 Indonesia &amp; ĐNÁ ($1.2–$3)</option>
                     </select>
                   </label>
                 </div>
 
                 <div class="bot-actions-row" style="margin-top:8px;">
                   <button type="button" class="btn btn-primary btn-sm" id="btn-bot7-scan-only">
-                    🔍 Chấm Điểm vidIQ &amp; Săn Từ Khóa Trend
+                    💎 Tìm Ngách Ít Cạnh Tranh &amp; Chấm Điểm vidIQ
                   </button>
                   <button type="button" class="btn btn-secondary btn-sm" id="btn-bot7-scan-and-tg">
-                    📲 Quét &amp; Bắn Báo cáo vidIQ về Telegram
+                    📲 Quét &amp; Bắn Báo cáo 12 Thị Trường về Telegram
                   </button>
                 </div>
 
                 <div class="bot-section-divider">
-                  <span>🔑 Bảng Điểm vidIQ · Sóng Google Trends · Lời Thoại 30s ElevenLabs &amp; Dàn Ý 5 Phần</span>
+                  <span>💎 Top 5 Ngách Đại Dương Xanh Ít Cạnh Tranh · Bảng Điểm vidIQ · Lời Thoại 30s &amp; Dàn Ý 5 Phần</span>
                 </div>
-                <div id="bot7-trend-results" class="bot-viral-list" style="max-height:330px;"></div>
+                <div id="bot7-trend-results" class="bot-viral-list" style="max-height:380px;"></div>
               </div>
 
               <!-- ==================== BOT 11: CẢNH BÁO BẬT KIẾM TIỀN & BẢO VỆ GÀ ADSENSE (/ga & /revenue) ==================== -->
@@ -1475,7 +1485,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=69"></script>
+  <script type="module" src="/app.js?v=70"></script>
 </body>
 </html>
 

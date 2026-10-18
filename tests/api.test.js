@@ -794,7 +794,7 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(thumbData.cloneItem.reaDossier && thumbData.cloneItem.reaDossier.binaryEvidence);
     assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
 
-    // 8. Bot 7 (Bot 9) — Săn Từ Khóa vidIQ + Google Trends + Subscribr 30s Script (/trend)
+    // 8. Bot 7 (Bot 9) — Săn Từ Khóa vidIQ + Ngách Đại Dương Xanh Ít Cạnh Tranh + 12 Thị Trường (/trend)
     const trendScan = await store.runTrendHunterScan({
       seedKeyword: 'tiểu sử tỷ phú',
       market: 'vi',
@@ -806,6 +806,11 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     });
     assert.equal(trendScan.seedKeyword, 'tiểu sử tỷ phú');
     assert.ok(trendScan.totalKeywords >= 6);
+    assert.ok(trendScan.marketInfo && trendScan.marketInfo.code === 'vi');
+    assert.ok(Array.isArray(trendScan.blueOceanNiches) && trendScan.blueOceanNiches.length === 5);
+    assert.ok(trendScan.blueOceanNiches[0].competitionScore <= 25);
+    assert.ok(trendScan.blueOceanNiches[0].opportunityScore >= 90);
+    assert.ok(trendScan.blueOceanNiches[0].subNicheKeyword.includes('tiểu sử tỷ phú'));
     assert.ok(trendScan.keywords.some((k) => k.keyword.includes('tự thân làm giàu')));
     assert.ok(trendScan.keywords[0].opportunityScore >= 75);
     assert.ok(trendScan.keywords[0].vidiqVolumeScore >= 60);
@@ -818,6 +823,18 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(trendScan.vidiqSummary && trendScan.vidiqSummary.bestOverallScore >= 75);
     assert.ok(trendScan.vidiqSummary.masterTagsCsv.includes('tiểu sử tỷ phú'));
     assert.ok(trendScan.keywords[0].seoPackage.scriptOutline5Parts.includes('Phần 1'));
+
+    // Kiểm thử đa thị trường quốc tế RPM cao (Nhật Bản JP & Đức DE)
+    const jpTrendScan = await store.runTrendHunterScan({
+      seedKeyword: '歴史 ミステリー',
+      market: 'jp',
+      suggestFetcher: async (q) => [`${q} 2026`, `${q} 真相`],
+    });
+    assert.equal(jpTrendScan.market, 'jp');
+    assert.ok(jpTrendScan.marketInfo.label.includes('Nhật Bản'));
+    assert.ok(jpTrendScan.marketInfo.rpmRange.includes('$6.0'));
+    assert.equal(jpTrendScan.blueOceanNiches.length, 5);
+    assert.ok(jpTrendScan.blueOceanNiches[0].subNicheKeyword.includes('歴史 ミステリー'));
 
     const compTrendScan = await store.runTrendHunterScan({
       seedKeyword: '@MockCompetitor',

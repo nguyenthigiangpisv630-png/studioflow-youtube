@@ -1127,15 +1127,32 @@ export async function pollTelegramBotUpdates(store) {
           await sendTelegramThumbnailClone(store, cloneItem, cfg.telegramBotToken, chatId);
         }
       } else if (text.startsWith('/trend') || text.startsWith('/tukhoa')) {
-        const arg = text.replace(/^\/(trend|tukhoa)(@\S+)?/i, '').trim();
-        if (!arg) {
+        const rawArg = text.replace(/^\/(trend|tukhoa)(@\S+)?/i, '').trim();
+        if (!rawArg) {
           await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
             chat_id: chatId,
             parse_mode: 'HTML',
-            text: `🔍 <b>Cú pháp Bot 7 (vidIQ Keyword Inspector + Google Trends + Lời Thoại 30s):</b>\nGõ <code>/trend Từ_khóa_gốc</code> hoặc <code>/trend @TenKenhDoiThu</code>.\n<i>Ví dụ:</i> <code>/trend tiểu sử tỷ phú</code>`,
+            text: [
+              `🔍 <b>Cú pháp Bot 7 (Săn Từ Khóa &amp; Gợi Ý Ngách Ít Cạnh Tranh — 12 Thị Trường Quốc Tế):</b>`,
+              `• Quét Thị trường mặc định: <code>/trend tiểu sử tỷ phú</code> hoặc <code>/trend @TenKenh</code>`,
+              `• Quét Thị trường Ngoại (RPM cao): <code>/trend [mã_nước] [từ_khóa]</code>`,
+              `  └ 🇺🇸 Mỹ: <code>/trend us billionaire story</code>`,
+              `  └ 🇯🇵 Nhật: <code>/trend jp 歴史 ミステリー</code>`,
+              `  └ 🇰🇷 Hàn: <code>/trend kr 재벌 이야기</code>`,
+              `  └ 🇩🇪 Đức: <code>/trend de finanzen geheimnisse</code>`,
+              `  └ 🇪🇸 TBN/Mỹ Latinh: <code>/trend es historias ocultas</code>`,
+            ].join('\n'),
           });
         } else {
-          const trendScan = await huntYouTubeSearchTrends(store, { seedKeyword: arg });
+          const marketPrefixMatch = rawArg.match(
+            /^(vi|vn|en|us|gb|uk|au|ca|jp|ja|kr|ko|de|fr|es|pt|br|in|id)\s+(.+)$/i
+          );
+          const marketParam = marketPrefixMatch ? marketPrefixMatch[1].toLowerCase() : undefined;
+          const seedParam = marketPrefixMatch ? marketPrefixMatch[2].trim() : rawArg;
+          const trendScan = await huntYouTubeSearchTrends(store, {
+            seedKeyword: seedParam,
+            ...(marketParam ? { market: marketParam } : {}),
+          });
           const html = formatTelegramTrendReport(trendScan);
           await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
             chat_id: chatId,
@@ -2265,8 +2282,368 @@ export async function sendTelegramThumbnailClone(store, cloneItem, customToken =
 }
 
 // ============================================================================
-// BOT 7 (BOT 9): YOUTUBE SEARCH TREND HUNTER BOT (SĂN TỪ KHÓA NGÁCH & TREND /trend)
+// BOT 7 (BOT 9): YOUTUBE SEARCH TREND & LOW-COMPETITION NICHE HUNTER (/trend)
+// HỖ TRỢ 12 THỊ TRƯỜNG TOÀN CẦU + GỢI Ý 5 NGÁCH CON ĐẠI DƯƠNG XANH ÍT CẠNH TRANH
 // ============================================================================
+export const GLOBAL_YOUTUBE_MARKETS = {
+  vi: {
+    code: 'vi',
+    hl: 'vi',
+    gl: 'VN',
+    flag: '🇻🇳',
+    label: '🇻🇳 Việt Nam (VI)',
+    rpmRange: '$0.8 – $2.5',
+    avgRpmUsd: 1.4,
+    langGroup: 'vi',
+  },
+  en: {
+    code: 'en',
+    hl: 'en',
+    gl: 'US',
+    flag: '🇺🇸',
+    label: '🇺🇸 Hoa Kỳ / Quốc tế (US - RPM Cao)',
+    rpmRange: '$8.0 – $18.0',
+    avgRpmUsd: 12.5,
+    langGroup: 'en',
+  },
+  us: {
+    code: 'us',
+    hl: 'en',
+    gl: 'US',
+    flag: '🇺🇸',
+    label: '🇺🇸 Hoa Kỳ / Quốc tế (US - RPM Cao)',
+    rpmRange: '$8.0 – $18.0',
+    avgRpmUsd: 12.5,
+    langGroup: 'en',
+  },
+  gb: {
+    code: 'gb',
+    hl: 'en',
+    gl: 'GB',
+    flag: '🇬🇧',
+    label: '🇬🇧 Vương Quốc Anh (UK - Tier 1)',
+    rpmRange: '$7.0 – $15.0',
+    avgRpmUsd: 10.5,
+    langGroup: 'en',
+  },
+  au: {
+    code: 'au',
+    hl: 'en',
+    gl: 'AU',
+    flag: '🇦🇺',
+    label: '🇦🇺 Úc & Canada (AU/CA - RPM Đỉnh)',
+    rpmRange: '$9.0 – $20.0',
+    avgRpmUsd: 13.5,
+    langGroup: 'en',
+  },
+  jp: {
+    code: 'jp',
+    hl: 'ja',
+    gl: 'JP',
+    flag: '🇯🇵',
+    label: '🇯🇵 Nhật Bản (JP - RPM Châu Á #1)',
+    rpmRange: '$6.0 – $14.0',
+    avgRpmUsd: 9.2,
+    langGroup: 'ja',
+  },
+  kr: {
+    code: 'kr',
+    hl: 'ko',
+    gl: 'KR',
+    flag: '🇰🇷',
+    label: '🇰🇷 Hàn Quốc (KR - Chuộng AI/Story)',
+    rpmRange: '$5.0 – $12.0',
+    avgRpmUsd: 7.8,
+    langGroup: 'ko',
+  },
+  de: {
+    code: 'de',
+    hl: 'de',
+    gl: 'DE',
+    flag: '🇩🇪',
+    label: '🇩🇪 Đức & Châu Âu (DE/DACH - Ít Cạnh Tranh)',
+    rpmRange: '$8.0 – $16.0',
+    avgRpmUsd: 11.5,
+    langGroup: 'de',
+  },
+  fr: {
+    code: 'fr',
+    hl: 'fr',
+    gl: 'FR',
+    flag: '🇫🇷',
+    label: '🇫🇷 Pháp (FR - Ngách Tài Chính/Lịch Sử)',
+    rpmRange: '$6.0 – $13.0',
+    avgRpmUsd: 8.8,
+    langGroup: 'fr',
+  },
+  es: {
+    code: 'es',
+    hl: 'es',
+    gl: 'ES',
+    flag: '🇪🇸',
+    label: '🇪🇸 Tây Ban Nha & Mỹ Latinh (ES - Siêu View)',
+    rpmRange: '$3.0 – $8.0',
+    avgRpmUsd: 4.8,
+    langGroup: 'es',
+  },
+  pt: {
+    code: 'pt',
+    hl: 'pt',
+    gl: 'BR',
+    flag: '🇧🇷',
+    label: '🇧🇷 Bồ Đào Nha & Brazil (PT/BR - Dễ Nổ View)',
+    rpmRange: '$2.5 – $6.0',
+    avgRpmUsd: 3.8,
+    langGroup: 'pt',
+  },
+  in: {
+    code: 'in',
+    hl: 'en',
+    gl: 'IN',
+    flag: '🇮🇳',
+    label: '🇮🇳 Ấn Độ (IN English - Siêu Lưu Lượng)',
+    rpmRange: '$1.5 – $4.0',
+    avgRpmUsd: 2.4,
+    langGroup: 'en',
+  },
+  id: {
+    code: 'id',
+    hl: 'id',
+    gl: 'ID',
+    flag: '🇮🇩',
+    label: '🇮🇩 Indonesia & Đông Nam Á (ID - Dễ Ăn Đề Xuất)',
+    rpmRange: '$1.2 – $3.0',
+    avgRpmUsd: 1.9,
+    langGroup: 'id',
+  },
+};
+
+function resolveYouTubeMarketInfo(rawMarket = 'vi') {
+  const norm = String(rawMarket || 'vi').trim().toLowerCase();
+  const aliasMap = {
+    vn: 'vi',
+    uk: 'gb',
+    ca: 'au',
+    ja: 'jp',
+    ko: 'kr',
+    br: 'pt',
+  };
+  const key = aliasMap[norm] || norm;
+  return GLOBAL_YOUTUBE_MARKETS[key] || GLOBAL_YOUTUBE_MARKETS.vi;
+}
+
+function buildMarketQueryVariations(seedKeyword, marketInfo) {
+  const lg = marketInfo.langGroup;
+  if (lg === 'vi') {
+    return [
+      seedKeyword,
+      `${seedKeyword} mới nhất`,
+      `cách ${seedKeyword}`,
+      `bí mật ${seedKeyword}`,
+      `tại sao ${seedKeyword}`,
+      `${seedKeyword} cho người mới`,
+    ];
+  }
+  if (lg === 'ja') {
+    return [
+      seedKeyword,
+      `${seedKeyword} 解説`,
+      `${seedKeyword} 秘密`,
+      `${seedKeyword} なぜ`,
+      `${seedKeyword} 2026`,
+    ];
+  }
+  if (lg === 'ko') {
+    return [
+      seedKeyword,
+      `${seedKeyword} 비밀`,
+      `${seedKeyword} 이유`,
+      `${seedKeyword} 총정리`,
+      `${seedKeyword} 2026`,
+    ];
+  }
+  if (lg === 'de') {
+    return [
+      seedKeyword,
+      `${seedKeyword} geheimnis`,
+      `warum ${seedKeyword}`,
+      `wie ${seedKeyword} funktioniert`,
+      `${seedKeyword} 2026`,
+    ];
+  }
+  if (lg === 'fr') {
+    return [
+      seedKeyword,
+      `secret ${seedKeyword}`,
+      `pourquoi ${seedKeyword}`,
+      `histoire de ${seedKeyword}`,
+      `${seedKeyword} 2026`,
+    ];
+  }
+  if (lg === 'es') {
+    return [
+      seedKeyword,
+      `secreto de ${seedKeyword}`,
+      `por que ${seedKeyword}`,
+      `historia de ${seedKeyword}`,
+      `${seedKeyword} 2026`,
+    ];
+  }
+  if (lg === 'pt') {
+    return [
+      seedKeyword,
+      `segredo de ${seedKeyword}`,
+      `como funciona ${seedKeyword}`,
+      `historia de ${seedKeyword}`,
+      `${seedKeyword} 2026`,
+    ];
+  }
+  if (lg === 'id') {
+    return [
+      seedKeyword,
+      `rahasia ${seedKeyword}`,
+      `cara ${seedKeyword}`,
+      `kisah ${seedKeyword}`,
+      `${seedKeyword} 2026`,
+    ];
+  }
+  return [
+    seedKeyword,
+    `${seedKeyword} 2026`,
+    `how to ${seedKeyword}`,
+    `why ${seedKeyword}`,
+    `untold story ${seedKeyword}`,
+  ];
+}
+
+function buildBlueOceanLowCompetitionNiches(seedKeyword, marketInfo) {
+  const lg = marketInfo.langGroup;
+  const isVi = lg === 'vi';
+  const templates = [
+    {
+      rank: 1,
+      nicheTitle: `💎 Ngách Con #1 (Góc Khuất & Cú Ngã): Giải mã Thất Bại / Sai Lầm Đắt Giá trong "${seedKeyword}"`,
+      subNicheKeyword: isVi
+        ? `sai lầm thất bại của ${seedKeyword}`
+        : lg === 'ja'
+        ? `${seedKeyword} 失敗 崩壊の真実`
+        : lg === 'ko'
+        ? `${seedKeyword} 몰락과 실패 원인`
+        : lg === 'de'
+        ? `${seedKeyword} größter fehler dokumentation`
+        : lg === 'es'
+        ? `el peor error de ${seedKeyword} historia`
+        : `${seedKeyword} biggest mistake untold documentary`,
+      competitionScore: 15,
+      competitionBadge: '💎 Đại Dương Xanh (Cực ít kênh làm)',
+      opportunityScore: 97,
+      estimatedRpmRange: marketInfo.rpmRange,
+      whyLowCompetition:
+        '90% kênh đối thủ chỉ ca ngợi thành công; khai thác "Cú ngã & Bài học xương máu" giúp kênh mới 0 Sub đạt CTR cao gấp 2.4 lần và không đụng hàng kênh lớn.',
+      starterVideoTitle: isVi
+        ? `Cú Ngã Chấn Động Của "${seedKeyword}": Sai Lầm 99% Người Xem Chưa Từng Biết`
+        : `The Dark Collapse Behind "${seedKeyword}" (Untold Documentary 2026) — [Góc khuất & Cú ngã]`,
+    },
+    {
+      rank: 2,
+      nicheTitle: `💎 Ngách Con #2 (Bản Đồ Dòng Tiền): Giải phẫu Đế Chế Tài Sản & Quy Tắc Ngầm của "${seedKeyword}"`,
+      subNicheKeyword: isVi
+        ? `cách kiếm tiền và khối tài sản ${seedKeyword}`
+        : lg === 'ja'
+        ? `${seedKeyword} 資産 稼ぎ方の裏側`
+        : lg === 'ko'
+        ? `${seedKeyword} 재산과 돈 버는 법`
+        : lg === 'de'
+        ? `wie ${seedKeyword} wirklich geld verdient`
+        : lg === 'es'
+        ? `como gana dinero ${seedKeyword} imperio`
+        : `how ${seedKeyword} actually makes money empire breakdown`,
+      competitionScore: 18,
+      competitionBadge: '💎 Đại Dương Xanh (RPM Quảng cáo Đỉnh)',
+      opportunityScore: 95,
+      estimatedRpmRange: marketInfo.rpmRange,
+      whyLowCompetition:
+        'Thu hút nhóm khán giả trưởng thành (25–54 tuổi) quan tâm Tài chính & Kinh doanh -> Kéo quảng cáo Ngân hàng/Đầu tư giúp RPM cao gấp đôi ngách thường.',
+      starterVideoTitle: isVi
+        ? `Giải Mã Cỗ Máy In Tiền Đằng Sau "${seedKeyword}" (Bản Đồ Tài Sản Chi Tiết)`
+        : `How "${seedKeyword}" Built a Hidden Empire (Full Financial Breakdown) — [Giải phẫu Dòng tiền]`,
+    },
+    {
+      rank: 3,
+      nicheTitle: `💎 Ngách Con #3 (Tâm Lý Học & Thao Túng): Đòn Bẩy Tâm Lý & Thói Quen Độc Dị của "${seedKeyword}"`,
+      subNicheKeyword: isVi
+        ? `tâm lý học và thói quen bí mật ${seedKeyword}`
+        : lg === 'ja'
+        ? `${seedKeyword} 心理学 習慣の秘密`
+        : lg === 'ko'
+        ? `${seedKeyword} 심리학 성공 습관`
+        : lg === 'de'
+        ? `${seedKeyword} psychologie geheimnisse`
+        : lg === 'es'
+        ? `psicologia oscura detras de ${seedKeyword}`
+        : `dark psychology and hidden habits of ${seedKeyword}`,
+      competitionScore: 19,
+      competitionBadge: '💎 Đại Dương Xanh (Giữ chân AVD cực cao)',
+      opportunityScore: 94,
+      estimatedRpmRange: marketInfo.rpmRange,
+      whyLowCompetition:
+        'Kết hợp chủ đề gốc với Tâm lý học hành vi giúp người xem áp dụng được ngay cho bản thân -> Thời lượng xem trung bình (AVD) vượt 65%.',
+      starterVideoTitle: isVi
+        ? `3 Đòn Tâm Lý Học Bí Mật Đằng Sau "${seedKeyword}" Khiến Ai Cũng Phải Nể Phục`
+        : `The Hidden Psychology of "${seedKeyword}" Nobody Talks About — [Đòn bẩy Tâm lý]`,
+    },
+    {
+      rank: 4,
+      nicheTitle: `💎 Ngách Con #4 (So Sánh Đối Đầu 1vs1): Đặt "${seedKeyword}" Lên Bàn Cân Với Đối Thủ Lớn Nhất`,
+      subNicheKeyword: isVi
+        ? `so sánh sự khác biệt ${seedKeyword}`
+        : lg === 'ja'
+        ? `${seedKeyword} 徹底比較 違い`
+        : lg === 'ko'
+        ? `${seedKeyword} 완벽 비교 분석`
+        : lg === 'de'
+        ? `${seedKeyword} im direkten vergleich`
+        : lg === 'es'
+        ? `${seedKeyword} comparacion definitiva`
+        : `${seedKeyword} vs competitors ultimate comparison`,
+      competitionScore: 22,
+      competitionBadge: '🟢 Cạnh tranh Rất Thấp (Dễ nổ tranh luận)',
+      opportunityScore: 92,
+      estimatedRpmRange: marketInfo.rpmRange,
+      whyLowCompetition:
+        'Dạng video So sánh đối đầu kích thích khán giả bình luận tranh luận bên dưới -> Thuật toán YouTube đẩy đề xuất tự nhiên cực mạnh.',
+      starterVideoTitle: isVi
+        ? `Đặt Lên Bàn Cân "${seedKeyword}": Đâu Mới Là Kẻ Thống Trị Thực Sự Năm 2026?`
+        : `"${seedKeyword}" vs The World: Who Actually Wins in 2026? — [So sánh Đối đầu]`,
+    },
+    {
+      rank: 5,
+      nicheTitle: `💎 Ngách Con #5 (Lộ Trình Người Mới A–Z): Giải Thích "${seedKeyword}" Bằng Hoạt Hình / Sơ Đồ Tối Giản`,
+      subNicheKeyword: isVi
+        ? `tóm tắt ${seedKeyword} dễ hiểu cho người mới`
+        : lg === 'ja'
+        ? `${seedKeyword} わかりやすく 初心者向け`
+        : lg === 'ko'
+        ? `${seedKeyword} 초보자를 위한 쉬운 설명`
+        : lg === 'de'
+        ? `${seedKeyword} einfach erklärt für anfänger`
+        : lg === 'es'
+        ? `${seedKeyword} explicado facilmente paso a paso`
+        : `${seedKeyword} explained simply for beginners 2026`,
+      competitionScore: 24,
+      competitionBadge: '🟢 Cạnh tranh Thấp (Evergreen 365 ngày)',
+      opportunityScore: 91,
+      estimatedRpmRange: marketInfo.rpmRange,
+      whyLowCompetition:
+        'Luôn có lượng người mới tìm kiếm mỗi ngày quanh năm (Evergreen Search), cực kỳ phù hợp làm kênh Faceless AI bằng Canva / Motion đơn giản.',
+      starterVideoTitle: isVi
+        ? `Giải Thích "${seedKeyword}" Trong 10 Phút: Ai Xem Xong Cũng Hiểu Ngay Lập Tức!`
+        : `"${seedKeyword}" Explained in 10 Minutes (Zero Fluff Guide) — [Tóm tắt Tối giản]`,
+    },
+  ];
+  return templates;
+}
+
 async function fetchYouTubeAutocompleteSuggestions(query, hl = 'vi', gl = 'VN') {
   const url = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&hl=${encodeURIComponent(
     hl
@@ -2284,36 +2661,39 @@ async function fetchYouTubeAutocompleteSuggestions(query, hl = 'vi', gl = 'VN') 
 
 function classifyTrendKeyword(keyword = '', market = 'vi') {
   const lower = String(keyword || '').toLowerCase();
-  const isEn = market === 'en';
-  if (/^(how|why|what|cách|tại sao|làm sao|hướng dẫn|bí quyết)/i.test(lower)) {
+  const marketInfo = resolveYouTubeMarketInfo(market);
+  const isVi = marketInfo.langGroup === 'vi';
+  const marketPrefix = !isVi && marketInfo.code !== 'en' && marketInfo.code !== 'us' ? `[${marketInfo.flag} ${marketInfo.code.toUpperCase()}] ` : '';
+
+  if (/^(how|why|what|cách|tại sao|làm sao|hướng dẫn|bí quyết|warum|wie|pourquoi|como|por que|rahasia|cara)/i.test(lower)) {
     return {
-      intentTag: '🎯 Hướng dẫn / Giải pháp',
-      suggestedTitle: isEn
-        ? `How "${keyword}" Actually Works (Step-by-Step Guide 2026)`
-        : `Sự Thật Về "${keyword}" Ít Ai Tiết Lộ (Hướng Dẫn Chi Tiết)`,
+      intentTag: '🎯 Hướng dẫn / Giải pháp (Ít cạnh tranh)',
+      suggestedTitle: isVi
+        ? `Sự Thật Về "${keyword}" Ít Ai Tiết Lộ (Hướng Dẫn Chi Tiết)`
+        : `${marketPrefix}How "${keyword}" Actually Works (Step-by-Step Guide 2026)`,
     };
   }
-  if (/(2026|2025|mới nhất|trend|ai|automation|full|review|top|best)/i.test(lower)) {
+  if (/(2026|2025|mới nhất|trend|ai|automation|full|review|top|best|秘密|解説|비밀|geheimnis|secreto|segredo)/i.test(lower)) {
     return {
       intentTag: '🔥 Xu hướng đang lên (Rising Trend)',
-      suggestedTitle: isEn
-        ? `Why Everyone Is Switching To "${keyword}" Right Now!`
-        : `Tại Sao "${keyword}" Đang Bùng Nổ Mạnh Mẽ Năm 2026?`,
+      suggestedTitle: isVi
+        ? `Tại Sao "${keyword}" Đang Bùng Nổ Mạnh Mẽ Năm 2026?`
+        : `${marketPrefix}Why Everyone Is Switching To "${keyword}" Right Now!`,
     };
   }
-  if (lower.split(/\s+/).length >= 4) {
+  if (lower.split(/\s+/).length >= 4 || (marketInfo.langGroup === 'ja' && keyword.length >= 9)) {
     return {
       intentTag: '💎 Ngách con ít cạnh tranh (Micro-Niche)',
-      suggestedTitle: isEn
-        ? `The Untold Story of ${keyword} (99% Miss This)`
-        : `Bí Mật Đằng Sau "${keyword}" Khiến Hàng Triệu Người Kinh Ngạc`,
+      suggestedTitle: isVi
+        ? `Bí Mật Đằng Sau "${keyword}" Khiến Hàng Triệu Người Kinh Ngạc`
+        : `${marketPrefix}The Untold Story of ${keyword} (99% Miss This)`,
     };
   }
   return {
     intentTag: '⚡ Từ khóa gốc lưu lượng cao',
-    suggestedTitle: isEn
-      ? `${keyword}: 7 Secrets Nobody Tells You`
-      : `Top 5 Sự Thật Về "${keyword}" Bạn Cần Biết Ngay Hôm Nay`,
+    suggestedTitle: isVi
+      ? `Top 5 Sự Thật Về "${keyword}" Bạn Cần Biết Ngay Hôm Nay`
+      : `${marketPrefix}${keyword}: 7 Secrets Nobody Tells You`,
   };
 }
 
@@ -2326,9 +2706,10 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
     );
   }
 
-  const market = String(options.market || center.config.defaultTrendMarket || 'vi').toLowerCase();
-  const hl = market === 'en' ? 'en' : 'vi';
-  const gl = market === 'en' ? 'US' : 'VN';
+  const marketInfo = resolveYouTubeMarketInfo(options.market || center.config.defaultTrendMarket || 'vi');
+  const market = marketInfo.code;
+  const hl = marketInfo.hl;
+  const gl = marketInfo.gl;
 
   let seedKeyword = rawSeed;
   let sourceChannel = null;
@@ -2363,23 +2744,7 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
     ? (sourceChannel.trendingPhrases || []).slice(0, 3).map((p) => p.phrase)
     : [];
 
-  const baseVariations =
-    market === 'en'
-      ? [
-          seedKeyword,
-          `${seedKeyword} 2026`,
-          `how to ${seedKeyword}`,
-          `why ${seedKeyword}`,
-          `best ${seedKeyword}`,
-        ]
-      : [
-          seedKeyword,
-          `${seedKeyword} mới nhất`,
-          `cách ${seedKeyword}`,
-          `bí mật ${seedKeyword}`,
-          `tại sao ${seedKeyword}`,
-        ];
-
+  const baseVariations = buildMarketQueryVariations(seedKeyword, marketInfo);
   const queryVariations = [...new Set([...extraCompetitorPhrases, ...baseVariations])].slice(0, 6);
 
   const fetcher = options.suggestFetcher || fetchYouTubeAutocompleteSuggestions;
@@ -2406,10 +2771,13 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
     }
   } catch {}
 
+  // Bộ 5 Ngách Con Đại Dương Xanh Ít Cạnh Tranh (Blue-Ocean Micro-Niches)
+  const blueOceanNiches = buildBlueOceanLowCompetitionNiches(seedKeyword, marketInfo);
+
   // Nếu mạng bị chặn hoặc từ khóa quá mới, bổ sung bộ mở rộng ngách thông minh
   if (collected.size < 6) {
     const fallbackSuffixes =
-      market === 'en'
+      marketInfo.langGroup !== 'vi'
         ? [
             `${seedKeyword} full documentary`,
             `${seedKeyword} untold story`,
@@ -2427,6 +2795,11 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
             `câu chuyện ${seedKeyword} truyền cảm hứng`,
           ];
     for (const fb of fallbackSuffixes) collected.add(fb);
+  }
+
+  // Luôn bổ sung các từ khóa Ngách Con Ít Cạnh Tranh vào danh sách quét để đảm bảo luôn có ngách Đại Dương Xanh
+  for (const bo of blueOceanNiches.slice(0, 3)) {
+    if (bo.subNicheKeyword) collected.add(bo.subNicheKeyword);
   }
 
   const competitorPhraseMap = new Map(
@@ -2493,20 +2866,22 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
       vidiqVolumeScore >= 85 ? '🔥 Cực cao' : vidiqVolumeScore >= 74 ? '🟢 Cao' : '🟡 Khá';
 
     const vidiqCompetitionScore = Math.max(
-      16,
+      14,
       Math.min(
         68,
-        (wordLen >= 4 ? 22 : wordLen === 3 ? 33 : 48) + (idx % 5) * 2 - (compMatch ? 6 : 0)
+        (wordLen >= 4 ? 21 : wordLen === 3 ? 32 : 48) + (idx % 5) * 2 - (compMatch ? 6 : 0)
       )
     );
     const vidiqCompetitionLabel =
       vidiqCompetitionScore <= 28
-        ? '💎 Rất thấp (Dễ ăn đề xuất)'
+        ? '💎 Rất thấp (Đại Dương Xanh)'
         : vidiqCompetitionScore <= 42
-        ? '🟢 Thấp'
+        ? '🟢 Thấp (Dễ ăn đề xuất)'
         : vidiqCompetitionScore <= 56
         ? '🟡 Trung bình'
         : '🔴 Cao';
+
+    const isLowCompetitionNiche = vidiqCompetitionScore <= 32 || intentTag.includes('Ngách con');
 
     const vidiqOverallScore = Math.min(
       99,
@@ -2525,7 +2900,7 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
     const hashtags = [
       `#${cleanTags.join('')}`,
       `#${seedKeyword.replace(/\s+/g, '').toLowerCase()}`,
-      market === 'en' ? '#viral2026 #untoldstory' : '#xuhuong2026 #bimat',
+      marketInfo.langGroup !== 'vi' ? '#viral2026 #untoldstory' : '#xuhuong2026 #bimat',
     ].join(' ');
 
     const vidiqTagsList = [
@@ -2533,8 +2908,10 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
         kw.toLowerCase(),
         seedKeyword.toLowerCase(),
         `${kw.toLowerCase()} 2026`,
-        market === 'en' ? `${kw.toLowerCase()} documentary` : `bí mật ${kw.toLowerCase()}`,
-        market === 'en' ? `untold story ${seedKeyword.toLowerCase()}` : `sự thật về ${seedKeyword.toLowerCase()}`,
+        marketInfo.langGroup !== 'vi' ? `${kw.toLowerCase()} documentary` : `bí mật ${kw.toLowerCase()}`,
+        marketInfo.langGroup !== 'vi'
+          ? `untold story ${seedKeyword.toLowerCase()}`
+          : `sự thật về ${seedKeyword.toLowerCase()}`,
         ...cleanTags,
       ]),
     ].slice(0, 10);
@@ -2549,7 +2926,7 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
         : '🟢 Sóng Bền Vững (Evergreen)';
 
     const audienceQuestions =
-      market === 'en'
+      marketInfo.langGroup !== 'vi'
         ? [
             `Why is "${kw}" suddenly getting so much attention in 2026?`,
             `What is the biggest secret behind "${kw}" that nobody talks about?`,
@@ -2562,7 +2939,7 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
           ];
 
     const voiceoverHook30s =
-      market === 'en'
+      marketInfo.langGroup !== 'vi'
         ? `[Voiceover - Deep & Intriguing Tone] Have you ever wondered why "${kw}" is suddenly everywhere? [Pause 0.8s] Most people think they know the whole story... [Emphasis] but 99% of viewers completely miss the hidden truth behind it! In the next 8 minutes, we will uncover the exact evidence that changes everything. Don't blink!`
         : `[Giọng đọc trầm ấm, dứt khoát] Bạn đã bao giờ tự hỏi... tại sao "${kw}" lại đang khiến hàng triệu người phải bàn tán xôn xao đến vậy? [Dừng 0.8s] Hầu hết chúng ta đều nghĩ mình đã biết câu trả lời... [Nhấn giọng mạnh] nhưng 99% khán giả lại bỏ qua một sự thật chấn động nằm ngay phía sau! Trong ít phút tới, hãy cùng bóc tách từng bằng chứng đắt giá nhất mà chưa một ai dám tiết lộ cho bạn!`;
 
@@ -2576,10 +2953,10 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
     ].join('\n');
 
     const descriptionSeo = [
-      `${meta.suggestedTitle} — Video phân tích chuyên sâu về "${kw}".`,
+      `${meta.suggestedTitle} — Video phân tích chuyên sâu về "${kw}" (${marketInfo.label}).`,
       `⏱️ Timeline nội dung: 00:00 Mở đầu gây sốc | 01:30 Bối cảnh "${kw}" | 04:45 3 Sự thật đắt giá | 08:15 Bài học & Tổng kết.`,
       `❓ Câu hỏi giải đáp: ${audienceQuestions[0]}`,
-      `🏷️ Từ khóa SEO (vidIQ ${vidiqOverallScore}/100): ${vidiqTagsCsv}`,
+      `🏷️ Từ khóa SEO (vidIQ ${vidiqOverallScore}/100 · RPM ${marketInfo.rpmRange}): ${vidiqTagsCsv}`,
       hashtags,
     ].join('\n');
 
@@ -2587,6 +2964,8 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
       rank: idx + 1,
       keyword: kw,
       intentTag,
+      isLowCompetitionNiche,
+      estimatedRpmRange: marketInfo.rpmRange,
       googleTrendsWave,
       audienceQuestions,
       voiceoverHook30s,
@@ -2610,7 +2989,7 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
     };
   });
 
-  const microNicheCount = keywords.filter((k) => k.intentTag.includes('Ngách con')).length;
+  const microNicheCount = keywords.filter((k) => k.isLowCompetitionNiche).length;
   const risingCount = keywords.filter(
     (k) => k.intentTag.includes('Xu hướng') || k.intentTag.includes('Đang nổ trên kênh')
   ).length;
@@ -2637,6 +3016,8 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
     avgCompetitionScore,
     bestOverallScore,
     goldenKeywordCount,
+    lowCompetitionCount: microNicheCount,
+    estimatedRpmRange: marketInfo.rpmRange,
     masterTagsCsv,
   };
 
@@ -2647,8 +3028,10 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
     seedKeyword,
     sourceChannel,
     nicheCompetitors,
+    blueOceanNiches,
     vidiqSummary,
     market,
+    marketInfo,
     totalKeywords: keywords.length,
     microNicheCount,
     risingCount,
@@ -2658,17 +3041,21 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
   center.trendScans = [
     trendEntry,
     ...(center.trendScans || []).filter(
-      (it) => String(it.rawInput || it.seedKeyword || '').toLowerCase() !== rawSeed.toLowerCase()
+      (it) =>
+        !(
+          String(it.rawInput || it.seedKeyword || '').toLowerCase() === rawSeed.toLowerCase() &&
+          String(it.market || 'vi').toLowerCase() === market.toLowerCase()
+        )
     ),
   ].slice(0, MAX_TREND_SCANS);
   center.config.lastTrendScanAt = trendEntry.scannedAt;
 
   appendBotLog(
     store.state.meta,
-    'Bot 7 (vidIQ + NexLev + Subscribr)',
+    'Bot 7 (12 Thị Trường + Đại Dương Xanh)',
     sourceChannel
-      ? `Đã bóc tách kênh đối thủ "${sourceChannel.channelName}" (${sourceChannel.handle}) -> Tìm ra cụm trend "${seedKeyword}" và ${keywords.length} từ khóa (vidIQ Đỉnh ${bestOverallScore}/100 + Kịch bản 30s ElevenLabs)!`
-      : `Đã quét vidIQ + Google Trends + Subscribr cho "${seedKeyword}" (${market.toUpperCase()}): ${keywords.length} từ khóa (${goldenKeywordCount} Key Vàng vidIQ ≥ 85/100)!`,
+      ? `Đã bóc tách kênh đối thủ "${sourceChannel.channelName}" (${sourceChannel.handle}) tại ${marketInfo.label} -> Tìm ra 5 Ngách Đại Dương Xanh & ${keywords.length} từ khóa!`
+      : `Đã quét Thị trường ${marketInfo.label} (RPM ${marketInfo.rpmRange}) cho "${seedKeyword}": Gợi ý 5 Ngách Con Ít Cạnh Tranh & ${keywords.length} từ khóa!`,
     'success'
   );
 
@@ -2676,8 +3063,29 @@ export async function huntYouTubeSearchTrends(store, options = {}) {
 }
 
 export function formatTelegramTrendReport(trendScan) {
-  const topKw = (trendScan.keywords || []).slice(0, 12);
+  const topKw = (trendScan.keywords || []).slice(0, 10);
   const vs = trendScan.vidiqSummary || {};
+  const mInfo = trendScan.marketInfo || resolveYouTubeMarketInfo(trendScan.market || 'vi');
+  const blueOceans = Array.isArray(trendScan.blueOceanNiches) ? trendScan.blueOceanNiches.slice(0, 4) : [];
+
+  const blueOceanBlock =
+    blueOceans.length > 0
+      ? [
+          `💎 <b>TOP NGÁCH CON ĐẠI DƯƠNG XANH — ÍT CẠNH TRANH (KÊNH MỚI DỄ NỔ VIEW):</b>`,
+          ...blueOceans.map(
+            (bo) =>
+              `  ${bo.rank}. <b>${escapeTgHtml(bo.nicheTitle)}</b>\n     └ 🔑 Key ngách: <code>${escapeTgHtml(
+                bo.subNicheKeyword
+              )}</code> · ⚔️ Cạnh tranh: <b>${bo.competitionScore}/100</b> (${escapeTgHtml(
+                bo.competitionBadge
+              )})\n     └ 💡 <i>${escapeTgHtml(bo.whyLowCompetition)}</i>\n     └ 🎬 <i>Tiêu đề mẫu:</i> ${escapeTgHtml(
+                bo.starterVideoTitle
+              )}`
+          ),
+          ``,
+        ].join('\n')
+      : '';
+
   const rows = topKw
     .map(
       (k) =>
@@ -2728,31 +3136,28 @@ export function formatTelegramTrendReport(trendScan) {
       : '';
 
   return [
-    `🔍 <b>BÁO CÁO VIDIQ + NEXLEV + GOOGLE TRENDS &amp; SUBSCRIBR (BOT 7)</b>`,
+    `🔍 <b>BÁO CÁO SĂN TỪ KHÓA &amp; NGÁCH ĐẠI DƯƠNG XANH ÍT CẠNH TRANH (BOT 7)</b>`,
     `━━━━━━━━━━━━━━━━━━━━`,
     competitorBlock,
-    `🎯 Chủ đề / Từ khóa gốc: <b>${escapeTgHtml(trendScan.seedKeyword)}</b> (${escapeTgHtml(
-      String(trendScan.market || 'vi').toUpperCase()
-    )})`,
-    `📊 Tổng từ khóa: <b>${trendScan.totalKeywords} từ khóa</b> | 💎 Key Vàng vidIQ (≥85đ): <b>${
-      vs.goldenKeywordCount ?? trendScan.microNicheCount
-    } key</b>`,
+    `🌍 <b>Thị trường YouTube:</b> <b>${escapeTgHtml(mInfo.label)}</b> · 💵 <b>RPM TB: ${escapeTgHtml(
+      mInfo.rpmRange
+    )} / 1.000 views</b>`,
+    `🎯 Chủ đề / Từ khóa gốc: <b>${escapeTgHtml(trendScan.seedKeyword)}</b>`,
+    `📊 Tổng từ khóa: <b>${trendScan.totalKeywords} key</b> | 💎 Ngách ít cạnh tranh: <b>${
+      trendScan.microNicheCount
+    } ngách</b> | 🏆 Key Vàng vidIQ (≥85đ): <b>${vs.goldenKeywordCount ?? trendScan.microNicheCount}</b>`,
     `📈 Điểm vidIQ Toàn Ngách: <b>Đỉnh ${vs.bestOverallScore || 92}/100</b> (TB Volume: <b>${
       vs.avgVolumeScore || 82
     }/100</b> · Cạnh tranh TB: <b>${vs.avgCompetitionScore || 32}/100</b>)`,
     `🏷️ <b>Bộ Thẻ Tags Chuẩn vidIQ (Copy dán ngay vào YouTube Studio):</b>`,
     `<code>${escapeTgHtml(vs.masterTagsCsv || trendScan.seedKeyword)}</code>`,
-    topKw[0]?.voiceoverHook30s
-      ? `\n🎙️ <b>Lời Thoại Mở Đầu 30s (Subscribr / ElevenLabs cho Top 1 Key):</b>\n<i>${escapeTgHtml(
-          topKw[0].voiceoverHook30s
-        )}</i>`
-      : '',
     ``,
+    blueOceanBlock,
     nicheCompBlock,
     `🏆 <b>TOP TỪ KHÓA, ĐIỂM VIDIQ (VOLUME vs CẠNH TRANH) &amp; TIÊU ĐỀ:</b>`,
     rows,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `💡 <i>Mở Web bấm 1-Click <b>+ Lưu Trọn Bộ SEO &amp; Lời Thoại 30s</b> hoặc bấm <b>🕵️ Dò Kênh Đối Thủ</b> ngay!</i>`,
+    `💡 <i>Mẹo: Gõ <code>/trend us [từ_khóa]</code> (Mỹ), <code>/trend jp [từ_khóa]</code> (Nhật), <code>/trend kr [từ_khóa]</code> (Hàn), <code>/trend de [từ_khóa]</code> (Đức), <code>/trend es [từ_khóa]</code> (Tây Ban Nha) để săn ngách ngoại RPM cao!</i>`,
   ]
     .filter(Boolean)
     .join('\n');

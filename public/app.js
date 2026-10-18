@@ -6536,21 +6536,24 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 7 (BOT 9): VIDIQ + NEXLEV + GOOGLE TRENDS + SUBSCRIBR 30S SCRIPT (/trend) ---
-  const totalMicroNiches = trendScans.reduce((s, it) => s + (Number(it.microNicheCount) || 0), 0);
+  // --- BOT 7 (BOT 9): VIDIQ + NEXLEV + GOOGLE TRENDS + BLUE-OCEAN NICHE + 12 MARKETS (/trend) ---
+  const totalMicroNiches = trendScans.reduce(
+    (s, it) => s + (Number(it.microNicheCount) || (Array.isArray(it.blueOceanNiches) ? it.blueOceanNiches.length : 0)),
+    0
+  );
   setText('bot7-kpi-scans', `${trendScans.length} chủ đề`);
   setText('bot7-kpi-microniche', `${totalMicroNiches} ngách con`);
   const bot7Pill = document.getElementById('bot7-status-pill');
   if (bot7Pill) {
     bot7Pill.textContent =
-      trendScans.length > 0 ? `🔍 Đã chấm vidIQ ${trendScans.length} chủ đề` : '🟢 vidIQ + NexLev + Subscribr';
+      trendScans.length > 0 ? `💎 Đã săn ${trendScans.length} chủ đề (12 Thị Trường)` : '💎 Blue-Ocean + 12 Thị Trường';
   }
   const bot7ListEl = document.getElementById('bot7-trend-results');
   if (bot7ListEl) {
     if (trendScans.length === 0) {
       bot7ListEl.innerHTML = `
         <div class="bot-empty-note">
-          Chưa có chủ đề nào được quét. Nhập từ khóa gốc (VD: <code>tiểu sử tỷ phú</code>) HOẶC dán <code>@Handle</code> kênh đối thủ (VD: <code>@TinyWrist</code>) ở trên rồi bấm <strong>"🔍 Phân Tích &amp; Săn Từ Khóa Trend"</strong>!
+          Chưa có chủ đề nào được quét. Nhập từ khóa gốc (VD: <code>tiểu sử tỷ phú</code>, <code>billionaire luxury</code>, <code>歴史</code>), chọn <strong>1 trong 12 Thị Trường Quốc Tế</strong> rồi bấm <strong>"💎 Tìm Ngách Ít Cạnh Tranh &amp; Chấm Điểm vidIQ"</strong>!
         </div>
       `;
     } else {
@@ -6560,6 +6563,8 @@ function renderBotsCenterTab() {
           const kws = Array.isArray(scan.keywords) ? scan.keywords.slice(0, 8) : [];
           const srcCh = scan.sourceChannel;
           const vs = scan.vidiqSummary || {};
+          const mkt = scan.marketInfo || {};
+          const blueOcean = Array.isArray(scan.blueOceanNiches) ? scan.blueOceanNiches.slice(0, 5) : [];
           const nicheComps = Array.isArray(scan.nicheCompetitors) ? scan.nicheCompetitors.slice(0, 5) : [];
 
           const srcBanner = srcCh
@@ -6582,6 +6587,7 @@ function renderBotsCenterTab() {
                               class="btn btn-secondary btn-xs"
                               style="padding: 1px 6px; font-size: 10.5px;"
                               data-send-to-bot7-trend="${escapeHtml(p.phrase)}"
+                              data-send-to-bot7-market="${escapeHtml(scan.market || 'vi')}"
                             >
                               "${escapeHtml(p.phrase)}" (x${p.maxMultiplier})
                             </button>
@@ -6593,6 +6599,90 @@ function renderBotsCenterTab() {
                 }
               </div>`
             : '';
+
+          const blueOceanHtml =
+            blueOcean.length > 0
+              ? `<div style="padding: 8px 10px; border-radius: 9px; background: linear-gradient(135deg, rgba(6,182,212,0.10), rgba(16,185,129,0.10)); border: 1px solid rgba(6,182,212,0.35);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+                    <span style="font-size: 11.5px; font-weight: 800; color: #0e7490;">
+                      💎 TOP 5 NGÁCH CON ĐẠI DƯƠNG XANH — ÍT CẠNH TRANH (KÊNH MỚI 0 SUB DỄ NỔ VIEW):
+                    </span>
+                    <span style="font-size: 10.5px; font-weight: 700; color: #047857;">
+                      🌍 ${escapeHtml(mkt.label || String(scan.market || 'vi').toUpperCase())} · 💵 RPM: ${escapeHtml(
+                        mkt.rpmRange || '$0.8 – $2.5'
+                      )}
+                    </span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 5px;">
+                    ${blueOcean
+                      .map(
+                        (bo, idx) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 5px 8px; border-radius: 7px; background: rgba(255,255,255,0.75); border: 1px solid rgba(6,182,212,0.22);">
+                          <div style="min-width: 0; flex: 1;">
+                            <div style="font-size: 11.5px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                              <span>#${idx + 1} · <strong>${escapeHtml(bo.nicheTitle || bo.subNicheKeyword)}</strong></span>
+                              <span style="font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px; background: rgba(16,185,129,0.18); color: #047857;">🎯 Cơ hội: ${Number(
+                                bo.opportunityScore || 95
+                              )}/100</span>
+                              <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: rgba(6,182,212,0.16); color: #0e7490;">⚔️ Cạnh tranh: ${escapeHtml(
+                                bo.competitionBadge || '💎 Đại Dương Xanh'
+                              )} (${Number(bo.competitionScore || 18)}/100)</span>
+                              <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: rgba(245,158,11,0.16); color: #b45309;">💵 RPM: ${escapeHtml(
+                                bo.estimatedRpmRange || mkt.rpmRange || '$0.8–$2.5'
+                              )}</span>
+                            </div>
+                            <div style="font-size: 10.5px; color: #334155; margin-top: 2px;">
+                              🔑 Từ khóa ngách ít cạnh tranh: <code>${escapeHtml(bo.subNicheKeyword)}</code> — 💡 ${escapeHtml(
+                                bo.whyLowCompetition || ''
+                              )}
+                            </div>
+                          </div>
+                          <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                            <button
+                              type="button"
+                              class="btn btn-secondary btn-xs"
+                              data-send-to-bot7-trend="${escapeHtml(bo.subNicheKeyword)}"
+                              data-send-to-bot7-market="${escapeHtml(scan.market || 'vi')}"
+                              title="Đào sâu ngách con ít cạnh tranh này trên thị trường ${escapeHtml(
+                                mkt.label || scan.market || 'VI'
+                              )}"
+                            >
+                              🔍 Đào Sâu Ngách Này
+                            </button>
+                            <button
+                              type="button"
+                              class="btn btn-primary btn-xs"
+                              data-save-spy-key-title="[Ngách Đại Dương Xanh · ${escapeHtml(
+                                String(scan.market || 'vi').toUpperCase()
+                              )} · RPM ${escapeHtml(bo.estimatedRpmRange || '')}] ${escapeHtml(
+                                bo.starterVideoTitle || bo.subNicheKeyword
+                              )}"
+                              data-save-spy-key-url="https://www.youtube.com/results?search_query=${encodeURIComponent(
+                                bo.subNicheKeyword || ''
+                              )}"
+                              data-save-spy-key-notes="${escapeHtml(
+                                `💎 NGÁCH CON ĐẠI DƯƠNG XANH (ÍT CẠNH TRANH)\n🌍 Thị trường: ${
+                                  mkt.label || scan.market
+                                } (RPM: ${bo.estimatedRpmRange || mkt.rpmRange})\n🔑 Từ khóa ngách: ${
+                                  bo.subNicheKeyword
+                                }\n⚔️ Độ cạnh tranh: ${bo.competitionScore}/100 (${
+                                  bo.competitionBadge
+                                })\n🎯 Điểm cơ hội: ${bo.opportunityScore}/100\n💡 Lý do dễ thắng: ${
+                                  bo.whyLowCompetition
+                                }\n🎬 Tiêu đề mở màn gợi ý: ${bo.starterVideoTitle}`
+                              )}"
+                              title="Lưu Ngách Đại Dương Xanh ít cạnh tranh này vào Kho Nội Dung"
+                            >
+                              + Lưu Ngách
+                            </button>
+                          </div>
+                        </div>
+                      `
+                      )
+                      .join('')}
+                  </div>
+                </div>`
+              : '';
 
           const nicheCompHtml =
             nicheComps.length > 0
@@ -6629,9 +6719,9 @@ function renderBotsCenterTab() {
                     🔍 Từ khóa gốc: "${escapeHtml(scan.seedKeyword || '')}"
                   </strong>
                   <span style="font-size: 11px; color: var(--text-muted); margin-left: 6px;">
-                    (${escapeHtml(String(scan.market || 'vi').toUpperCase())}) · ${escapeHtml(
-                      formatDateTimeVi(scan.scannedAt)
-                    )}
+                    🌍 <strong>${escapeHtml(mkt.label || String(scan.market || 'vi').toUpperCase())}</strong> (💵 RPM: ${escapeHtml(
+                      mkt.rpmRange || '$0.8–$2.5'
+                    )}) · ${escapeHtml(formatDateTimeVi(scan.scannedAt))}
                   </span>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
@@ -6663,6 +6753,7 @@ function renderBotsCenterTab() {
                   }
                 </div>
               </div>
+              ${blueOceanHtml}
               ${nicheCompHtml}
               <div style="display: flex; flex-direction: column; gap: 5px;">
                 ${kws
@@ -7176,7 +7267,12 @@ function initBotsCenterEvents() {
     const sendToBot7Btn = e.target.closest('[data-send-to-bot7-trend]');
     if (sendToBot7Btn) {
       const val = sendToBot7Btn.dataset.sendToBot7Trend || '';
+      const marketVal = sendToBot7Btn.dataset.sendToBot7Market || '';
       const inpBot7 = document.getElementById('input-bot7-seed');
+      const selMarket = document.getElementById('select-bot7-market');
+      if (selMarket && marketVal) {
+        selMarket.value = marketVal;
+      }
       if (inpBot7 && val) {
         inpBot7.value = val;
         inpBot7.scrollIntoView({ behavior: 'smooth', block: 'center' });
