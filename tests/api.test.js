@@ -810,6 +810,24 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(thumbData.cloneItem.prompts.reaReconstruction.includes('REA 1:1'));
     assert.ok(thumbData.cloneItem.reaDossier && thumbData.cloneItem.reaDossier.binaryEvidence);
     assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
+    assert.ok(Array.isArray(thumbData.cloneItem.referenceGallery) && thumbData.cloneItem.referenceGallery.length >= 4);
+    assert.ok(thumbData.cloneItem.proxiedBackdropUrl.includes('/api/bots/footage/download'));
+    assert.ok(thumbData.cloneItem.externalStudioLinks && thumbData.cloneItem.externalStudioLinks.canvaUrl);
+
+    // Kiểm thử nút Again (variationSeed = 1) đổi phương án Giật Tít & Phối màu
+    const thumbAgainRes = await fetch(`${baseUrl}/api/bots/thumbnail/clone`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Bí Mật Kiếm 10.000 USD Từ YouTube Nước Ngoài',
+        customStyle: 'luxury_gold',
+        variationSeed: 1,
+      }),
+    });
+    assert.equal(thumbAgainRes.status, 200);
+    const thumbAgainData = await thumbAgainRes.json();
+    assert.equal(thumbAgainData.cloneItem.variationSeed, 1);
+    assert.equal(thumbAgainData.cloneItem.designStudioPack.canvaPhotoshopPack.primaryHex, '#38BDF8');
 
     // 8. Bot 7 (Bot 9) — Săn Từ Khóa vidIQ + Ngách Đại Dương Xanh Ít Cạnh Tranh + 12 Thị Trường (/trend)
     const trendScan = await store.runTrendHunterScan({

@@ -2090,27 +2090,37 @@ function buildHookTextFromTitle(title = '') {
   return words.slice(0, 4).join(' ').toUpperCase() + '?!';
 }
 
-function buildHookVariantsA_B_C(title = '', primaryHook = '') {
+function buildHookVariantsA_B_C(title = '', primaryHook = '', variationSeed = 0) {
   const isVi = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(title);
   const numMatch = String(title || '').match(/\d+[.,]?\d*\s*(tỷ|triệu|%|năm|ngày|usd|\$|m|b|k)?/i);
   const numToken = numMatch ? numMatch[0].toUpperCase() : isVi ? '99% SAI LẦM' : '99% FAIL';
+  const baseHook = primaryHook || buildHookTextFromTitle(title);
 
-  const variantA = {
-    code: 'A',
-    style: isVi ? 'Kích thích tò mò' : 'Curiosity Gap',
-    text: primaryHook || buildHookTextFromTitle(title),
-  };
-  const variantB = {
-    code: 'B',
-    style: isVi ? 'Con số gây sốc' : 'Shocking Number',
-    text: isVi ? `${numToken}: SỰ THẬT!` : `${numToken}: UNTOLD TRUTH!`,
-  };
-  const variantC = {
-    code: 'C',
-    style: isVi ? 'Cảnh báo / Giải mật' : 'Secret / Warning',
-    text: isVi ? 'ĐỪNG BỎ QUA ĐIỀU NÀY!' : 'NEVER DO THIS AGAIN!',
-  };
-  return [variantA, variantB, variantC];
+  const poolVi = [
+    { style: 'Kích thích tò mò', text: baseHook },
+    { style: 'Con số gây sốc', text: `${numToken}: SỰ THẬT!` },
+    { style: 'Cảnh báo / Giải mật', text: 'ĐỪNG BỎ QUA ĐIỀU NÀY!' },
+    { style: 'Bí mật bị giấu kín', text: 'SỰ THẬT BỊ CHE GIẤU?!' },
+    { style: 'Bước ngoặt chấn động', text: 'KẾT CỤC KHÔNG AI NGỜ!' },
+  ];
+  const poolEn = [
+    { style: 'Curiosity Gap', text: baseHook },
+    { style: 'Shocking Number', text: `${numToken}: UNTOLD TRUTH!` },
+    { style: 'Secret / Warning', text: 'NEVER DO THIS AGAIN!' },
+    { style: 'Hidden History', text: 'WHAT REALLY HAPPENED?!' },
+    { style: 'Dark Twist', text: 'THE SECRET THEY HID!' },
+  ];
+  const srcPool = isVi ? poolVi : poolEn;
+  const seed = Math.max(0, Number(variationSeed) || 0);
+  const codes = ['A', 'B', 'C'];
+  return codes.map((code, idx) => {
+    const picked = srcPool[(idx + seed) % srcPool.length];
+    return {
+      code,
+      style: picked.style,
+      text: idx === 0 && primaryHook ? primaryHook : picked.text,
+    };
+  });
 }
 
 function parseJpegDimensionsFromBuffer(buf) {
@@ -2245,7 +2255,45 @@ async function decompileVideoWatchPageMetadata(videoId) {
   return meta;
 }
 
-function buildReaThumbnailDossier(finalTitle, hookText, stylePreset, binaryArtifact, videoMeta) {
+const THUMBNAIL_PALETTES = [
+  {
+    name: 'Hoàng Kim & Đỏ Cảnh Báo (High-CTR Gold)',
+    primaryHex: '#FFD700',
+    accentHex: '#FF2A2A',
+    bgHex: '#0B0F19',
+    recommendedFonts: 'Montserrat Black / SVN-Gilroy Heavy / Anton (Stroke đen 8px)',
+  },
+  {
+    name: 'Lam Quang Điện Ảnh & Vàng Neon (Cyber Cyan)',
+    primaryHex: '#38BDF8',
+    accentHex: '#FACC15',
+    bgHex: '#090D16',
+    recommendedFonts: 'Bebas Neue / Impact / Montserrat ExtraBold (Đổ bóng Đỏ/Đen)',
+  },
+  {
+    name: 'Đỏ Khẩn Cấp & Trắng Tinh Khiết (Breaking Alert)',
+    primaryHex: '#FFFFFF',
+    accentHex: '#EF4444',
+    bgHex: '#111827',
+    recommendedFonts: 'Anton / Oswald Heavy / SVN-Poppins Black (Nền băng đỏ)',
+  },
+  {
+    name: 'Xanh Lục Bảo & Vàng Kim (Wealth & Money)',
+    primaryHex: '#FDE047',
+    accentHex: '#10B981',
+    bgHex: '#061512',
+    recommendedFonts: 'Montserrat Black / Archivo Black (Viền đen 10px)',
+  },
+];
+
+function buildReaThumbnailDossier(
+  finalTitle,
+  hookText,
+  stylePreset,
+  binaryArtifact,
+  videoMeta,
+  variationSeed = 0
+) {
   const lower = String(finalTitle || '').toLowerCase();
   const hasNumber = /\d+/.test(finalTitle);
   const hasSecretOrWhy = /(bí mật|sự thật|tại sao|không ngờ|untold|secret|why|how|exposed|hidden)/i.test(lower);
@@ -2264,12 +2312,13 @@ function buildReaThumbnailDossier(finalTitle, hookText, stylePreset, binaryArtif
   const baseCtr = Math.round((Number(binaryArtifact.entropyScore) || 8.5) * 9.2);
   const bonusCtr = (hasNumber ? 4 : 0) + (hasSecretOrWhy ? 3 : 0) + (hookWordsCount <= 5 ? 3 : 0);
   const ctrScore = Math.min(98, Math.max(82, baseCtr + bonusCtr));
-  const hookVariants = buildHookVariantsA_B_C(finalTitle, hookText);
+  const hookVariants = buildHookVariantsA_B_C(finalTitle, hookText, variationSeed);
+  const palette = THUMBNAIL_PALETTES[Math.max(0, Number(variationSeed) || 0) % THUMBNAIL_PALETTES.length];
 
   const visualAnatomy = [
     `Lớp 1 (Tiền cảnh - 55% diện tích phải): Chủ thể chính của "${finalTitle}" phóng cận cảnh (Close-up), ánh mắt/biểu cảm cực đại, tách khỏi nền bằng viền sáng Rim Light sắc nét.`,
     `Lớp 2 (Điểm neo thị giác - 35% diện tích trái): Cụm chữ Hook "${hookText}" đặt ở vùng tối/nhòe nhẹ, kèm 1 chi tiết dẫn hướng mắt (mũi tên phát sáng / vòng tròn đỏ / biểu tượng tương phản).`,
-    `Lớp 3 (Hậu cảnh & Phối màu): Nền làm mờ độ sâu trường ảnh (f/1.8 Bokeh), đối lập nhiệt độ màu Nóng (Vàng/Cam/Đỏ) trên Chủ thể & Chữ so với Lạnh (Xanh Đen/Teal) ở hậu cảnh.`,
+    `Lớp 3 (Hậu cảnh & Phối màu): Nền làm mờ độ sâu trường ảnh (f/1.8 Bokeh), đối lập nhiệt độ màu Nóng (${palette.primaryHex} / ${palette.accentHex}) trên Chủ thể & Chữ so với Lạnh (${palette.bgHex}) ở hậu cảnh.`,
   ];
 
   const upgradeStrategy = `Giữ nguyên đòn bẩy tâm lý "${psychologicalFormula}", nhưng rút gọn chữ trên Thumbnail còn đúng ${
@@ -2284,16 +2333,11 @@ function buildReaThumbnailDossier(finalTitle, hookText, stylePreset, binaryArtif
     tubebuddyAbWinner: `🏆 Phương án A ("${
       hookVariants[0]?.text || hookText
     }" + Cận cảnh biểu cảm) thắng Phương án B (+24.5% CTR)`,
-    canvaPhotoshopPack: {
-      primaryHex: '#FFD700',
-      accentHex: '#FF2A2A',
-      bgHex: '#0B0F19',
-      recommendedFonts: 'Montserrat Black / SVN-Gilroy Heavy / Anton (Stroke đen 8px)',
-    },
+    canvaPhotoshopPack: palette,
   };
 
   return {
-    engineVersion: 'REA-ThumbDecompiler v3.0 + ThumbsUp.tv + TubeBuddy A/B',
+    engineVersion: 'REA-ThumbDecompiler v3.5 + ThumbsUp.tv + Live Canvas 1280x720',
     ctrScore,
     hookVariants,
     designStudioPack,
@@ -2312,21 +2356,26 @@ function buildReaThumbnailDossier(finalTitle, hookText, stylePreset, binaryArtif
 
 export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
   const center = ensureBotCenterState(store.state.meta);
+  const variationSeed = Math.max(0, Number(input.variationSeed) || 0);
   const rawCombined = String(input.videoUrlOrTitle || '').trim();
   const rawUrlOrId = String(
     input.videoUrlOrId || input.videoUrl || input.youtubeVideoId || rawCombined || ''
   ).trim();
-  const videoId = extractYouTubeVideoId(rawUrlOrId);
+  const explicitVideoId = extractYouTubeVideoId(rawUrlOrId);
   let resolvedTitle = String(
-    input.title || (!videoId && (rawCombined || rawUrlOrId) ? rawCombined || rawUrlOrId : '') || ''
+    input.title || (!explicitVideoId && (rawCombined || rawUrlOrId) ? rawCombined || rawUrlOrId : '') || ''
   ).trim();
   let resolvedChannel = String(input.channelName || '').trim();
 
+  if (!resolvedTitle && !explicitVideoId) {
+    throw new Error('Vui lòng nhập Link Video YouTube, Mã Video ID hoặc Tiêu đề/Chủ đề cần tạo Thumbnail!');
+  }
+
   // Nếu có videoId mà chưa có tiêu đề -> tự động lấy tiêu đề qua YouTube oEmbed
-  if (videoId && !resolvedTitle) {
+  if (explicitVideoId && !resolvedTitle) {
     try {
       const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
-        `https://www.youtube.com/watch?v=${videoId}`
+        `https://www.youtube.com/watch?v=${explicitVideoId}`
       )}&format=json`;
       const res = await fetch(oembedUrl);
       if (res.ok) {
@@ -2337,44 +2386,88 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     } catch {}
   }
 
-  const hqThumbnailUrl = videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : '';
-  const maxResThumbnailUrl = videoId ? `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg` : '';
+  // Tìm kiếm bộ Thumbnail tham chiếu thực tế từ YouTube theo chủ đề (để ngay cả khi chỉ nhập Tiêu đề vẫn có ảnh 16:9 thật & bộ mẫu tham khảo)
+  const searchTopic = resolvedTitle || explicitVideoId || 'viral youtube documentary';
+  let refCandidates = [];
+  try {
+    const ytFound = await searchYouTubeVideosByKeyword(searchTopic, 'en');
+    if (Array.isArray(ytFound) && ytFound.length > 0) {
+      refCandidates = ytFound.slice(0, 8).map((v, idx) => ({
+        videoId: v.videoId,
+        title: v.title || searchTopic,
+        channelName: v.channelName || v.handle || 'YouTube Reference',
+        views: Number(v.views) || 120000,
+        thumbnailUrl: `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
+        maxResUrl: `https://i.ytimg.com/vi/${v.videoId}/maxresdefault.jpg`,
+        videoUrl: `https://www.youtube.com/watch?v=${v.videoId}`,
+        qcScore: Math.max(91, 98 - idx),
+      }));
+    }
+  } catch {}
+
+  if (refCandidates.length < 6) {
+    const seenIds = new Set(refCandidates.map((r) => r.videoId));
+    for (const fb of DEFAULT_QC_FALLBACK_VIDEOS) {
+      if (seenIds.has(fb.videoId)) continue;
+      refCandidates.push({
+        videoId: fb.videoId,
+        title: `${resolvedTitle || 'Viral Topic'} — ${fb.title}`,
+        channelName: fb.channelName,
+        views: fb.views,
+        thumbnailUrl: `https://i.ytimg.com/vi/${fb.videoId}/hqdefault.jpg`,
+        maxResUrl: `https://i.ytimg.com/vi/${fb.videoId}/maxresdefault.jpg`,
+        videoUrl: `https://www.youtube.com/watch?v=${fb.videoId}`,
+        qcScore: 93,
+      });
+      if (refCandidates.length >= 6) break;
+    }
+  }
+
+  const pickedRef =
+    refCandidates.length > 0
+      ? refCandidates[variationSeed % refCandidates.length]
+      : null;
+
+  const activeVideoId = explicitVideoId || pickedRef?.videoId || 'LXb3EKWsInQ';
+  const hqThumbnailUrl = `https://i.ytimg.com/vi/${activeVideoId}/hqdefault.jpg`;
+  const maxResThumbnailUrl = `https://i.ytimg.com/vi/${activeVideoId}/maxresdefault.jpg`;
 
   // Chạy song song bộ Dịch Ngược REA (Binary Image Inspector + Watch Page Metadata Decompiler)
   const [binaryArtifact, videoMeta] = await Promise.all([
-    inspectThumbnailBinaryArtifact(videoId, maxResThumbnailUrl, hqThumbnailUrl),
-    decompileVideoWatchPageMetadata(videoId),
+    inspectThumbnailBinaryArtifact(activeVideoId, maxResThumbnailUrl, hqThumbnailUrl),
+    decompileVideoWatchPageMetadata(explicitVideoId || activeVideoId),
   ]);
 
   if (!resolvedTitle && videoMeta.title) {
     resolvedTitle = videoMeta.title;
   }
-  if (!resolvedChannel && videoMeta.channelName) {
-    resolvedChannel = videoMeta.channelName;
+  if (!resolvedChannel && (videoMeta.channelName || pickedRef?.channelName)) {
+    resolvedChannel = videoMeta.channelName || pickedRef?.channelName || '';
   }
 
-  if (!resolvedTitle && !videoId) {
-    throw new Error('Vui lòng nhập Link Video YouTube, Mã Video ID hoặc Tiêu đề/Chủ đề cần tạo Thumbnail!');
-  }
-
-  const finalTitle = resolvedTitle || `YouTube Viral Video (${videoId})`;
+  const finalTitle = resolvedTitle || `YouTube Viral Video (${activeVideoId})`;
   const stylePreset = String(
     input.customStyle || input.stylePreset || center.config.defaultThumbnailStyle || 'viral_3d'
   ).trim();
-  const hookText = String(input.hookText || buildHookTextFromTitle(finalTitle)).trim();
 
-  const videoUrl = videoId
-    ? `https://www.youtube.com/watch?v=${videoId}`
+  const tempVariants = buildHookVariantsA_B_C(finalTitle, String(input.hookText || '').trim(), variationSeed);
+  const hookText = String(
+    input.hookText || tempVariants[0]?.text || buildHookTextFromTitle(finalTitle)
+  ).trim();
+
+  const videoUrl = explicitVideoId
+    ? `https://www.youtube.com/watch?v=${explicitVideoId}`
     : rawUrlOrId.startsWith('http')
     ? rawUrlOrId
-    : '';
+    : `https://www.youtube.com/watch?v=${activeVideoId}`;
 
   const reaDossier = buildReaThumbnailDossier(
     finalTitle,
     hookText,
     stylePreset,
     binaryArtifact,
-    videoMeta
+    videoMeta,
+    variationSeed
   );
 
   const styleDescriptors = {
@@ -2384,6 +2477,10 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
       'Dark investigative documentary YouTube thumbnail style, dramatic chiaroscuro spotlight, intense mystery atmosphere, high-contrast red and cyan accents, photorealistic 85mm lens, 8k',
     bright_comparison:
       'Split-screen BEFORE vs AFTER comparison YouTube thumbnail style, extreme visual contrast between left side and right side, glowing arrow indicator, vibrant studio lighting, ultra-clear focal point, 8k',
+    luxury_gold:
+      'Billionaire luxury empire & Wall Street power YouTube thumbnail style, dramatic obsidian and imperial gold lighting, ultra-detailed close-up portrait with golden rim light, 8k photorealistic',
+    nostalgia_retro:
+      'Classic Golden Era Hollywood & vintage television documentary YouTube thumbnail style, restored Kodachrome color grading, dramatic studio key light, archival cinema aesthetic, 8k',
   };
   const selectedStyleDesc = styleDescriptors[stylePreset] || styleDescriptors.viral_3d;
 
@@ -2391,7 +2488,7 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
 
   const fluxIdeogramPrompt = `A high-CTR 16:9 widescreen YouTube thumbnail inspired by "${finalTitle}". ${selectedStyleDesc}. On the left side, bold 3D impact typography in glowing yellow and white with thick black stroke reading "${hookText}". High contrast, eye-catching composition.`;
 
-  const reaReconstructionPrompt = `[REA 1:1 VISUAL RECONSTRUCTION] Aspect Ratio 16:9 (${binaryArtifact.resolution}). Foreground Right (55%): Close-up hero subject representing "${finalTitle}" with intense facial/visual expression and crisp Rim Light separation. Midground Left (35%): High-impact 3D display text "${hookText}" in #FFD700 yellow + #FFFFFF white with deep black stroke and red directional glow. Background: f/1.8 blurred dark teal cinematic environment creating maximum color-temperature contrast.`;
+  const reaReconstructionPrompt = `[REA 1:1 VISUAL RECONSTRUCTION] Aspect Ratio 16:9 (${binaryArtifact.resolution}). Foreground Right (55%): Close-up hero subject representing "${finalTitle}" with intense facial/visual expression and crisp Rim Light separation. Midground Left (35%): High-impact 3D display text "${hookText}" in ${reaDossier.designStudioPack.canvaPhotoshopPack.primaryHex} + #FFFFFF white with deep black stroke and ${reaDossier.designStudioPack.canvaPhotoshopPack.accentHex} directional glow. Background: f/1.8 blurred dark cinematic environment (${reaDossier.designStudioPack.canvaPhotoshopPack.bgHex}) creating maximum color-temperature contrast.`;
 
   const vietnameseBrief = [
     `🔬 Bằng chứng Dịch ngược REA (/rea): ${reaDossier.binaryEvidence} · Điểm CTR dự đoán: ${reaDossier.ctrScore}/100`,
@@ -2402,15 +2499,30 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     `🚀 Chiến thuật Vượt mặt 1:1: ${reaDossier.upgradeStrategy}`,
   ].join('\n');
 
+  const edLinks = buildEditorialSourceLinks(finalTitle);
+  const externalStudioLinks = {
+    canvaUrl: 'https://www.canva.com/create/youtube-thumbnails/',
+    photopeaUrl: 'https://www.photopea.com/',
+    ideogramUrl: `https://ideogram.ai/t/explore?q=${encodeURIComponent(finalTitle)}`,
+    midjourneyUrl: 'https://www.midjourney.com/explore',
+    thumbsUpUrl: 'https://thumbsup.tv/',
+    gettyPhotosUrl: edLinks.gettyPhotosUrl,
+    imdbUrl: edLinks.imdbUrl,
+    alamyUrl: edLinks.alamyUrl,
+    istockPhotosUrl: edLinks.istockPhotosUrl,
+  };
+
   const cloneEntry = {
     id: `thumb-${crypto.randomUUID().slice(0, 8)}`,
     createdAt: new Date().toISOString(),
-    youtubeVideoId: videoId,
+    variationSeed,
+    youtubeVideoId: activeVideoId,
+    explicitVideoId,
     videoUrl,
     title: finalTitle,
     videoTitle: finalTitle,
     channelName: resolvedChannel || 'YouTube Reference',
-    views: Number(input.views) || videoMeta.views || 0,
+    views: Number(input.views) || videoMeta.views || pickedRef?.views || 0,
     outlierMultiplier: Number(input.outlierMultiplier) || 0,
     stylePreset,
     hookText,
@@ -2422,6 +2534,14 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     thumbnailHq: hqThumbnailUrl,
     maxResThumbnailUrl,
     thumbnailMaxRes: maxResThumbnailUrl,
+    proxiedBackdropUrl: `/api/bots/footage/download?url=${encodeURIComponent(
+      hqThumbnailUrl
+    )}&filename=${encodeURIComponent(`thumb-backdrop-${activeVideoId}.jpg`)}`,
+    rawDownloadUrl: `/api/bots/footage/download?url=${encodeURIComponent(
+      maxResThumbnailUrl || hqThumbnailUrl
+    )}&filename=${encodeURIComponent(`ACB9x-Raw-Thumbnail-${activeVideoId}.jpg`)}`,
+    referenceGallery: refCandidates.slice(0, 6),
+    externalStudioLinks,
     reaDossier,
     prompts: {
       midjourney: midjourneyPrompt,
@@ -2439,8 +2559,8 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
 
   appendBotLog(
     store.state.meta,
-    'Bot 6 (REA Thumbnail /rea)',
-    `Đã Dịch ngược REA (${reaDossier.binaryEvidence} · CTR ${reaDossier.ctrScore}/100 · ThumbsUp.tv Safe-Zone) & sinh 3 Hook A/B/C + 4 Prompt Thumbnail AI cho "${finalTitle.slice(0, 55)}".`,
+    'Bot 6 (Studio Thumbnail AI /rea)',
+    `Đã Dịch ngược REA (${reaDossier.binaryEvidence} · CTR ${reaDossier.ctrScore}/100 · ThumbsUp.tv Safe-Zone) & tạo thiết kế Thumbnail 1280x720 cho "${finalTitle.slice(0, 55)}".`,
     'success'
   );
 

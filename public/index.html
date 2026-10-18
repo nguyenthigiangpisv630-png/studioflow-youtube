@@ -102,6 +102,18 @@
               <span class="nav-count" id="nav-count-footage">4K</span>
             </button>
 
+            <button type="button" class="nav-btn" data-tab="thumbnail" id="nav-btn-thumbnail" hidden>
+              <span class="nav-btn-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                <span class="nav-btn-label">Tạo Thumbnail AI</span>
+              </span>
+              <span class="nav-count" id="nav-count-thumbnail" style="background:#db2777;color:#ffffff;">CTR</span>
+            </button>
+
             <button type="button" class="nav-btn" data-tab="easycut" id="nav-btn-easycut" hidden>
               <span class="nav-btn-left">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -908,16 +920,21 @@
                         <option value="viral_3d">🔥 Viral 3D / High-CTR</option>
                         <option value="cinematic_dark">🎬 Điện ảnh Bí ẩn (Dark)</option>
                         <option value="bright_comparison">⚡ So sánh Trước / Sau</option>
+                        <option value="luxury_gold">👑 Tài chính &amp; Đế chế Vàng (Gold)</option>
+                        <option value="nostalgia_retro">🎞️ Hoài niệm Thập niên 80/90</option>
                       </select>
                     </label>
                   </div>
 
-                  <div class="bot-actions-row" style="margin-top:10px;">
+                  <div class="bot-actions-row" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
                     <button type="button" class="btn btn-primary btn-sm" id="btn-bot6-generate-only">
-                      🔬 Dịch Ngược /rea &amp; Sinh Prompt ngay
+                      ▶️ BẮT ĐẦU — Dịch Ngược /rea &amp; Sinh Prompt
                     </button>
                     <button type="button" class="btn btn-secondary btn-sm" id="btn-bot6-generate-and-tg">
                       📲 Bắn Hồ sơ REA + Ảnh sang Telegram
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-goto-tab="thumbnail" style="background:#fdf2f8;color:#be185d;border-color:#f9a8d4;font-weight:800;">
+                      🎨 Mở Trang Riêng Studio Tạo Thumbnail AI →
                     </button>
                   </div>
                 </div>
@@ -1480,6 +1497,160 @@
             ></iframe>
           </div>
         </section>
+
+        <!-- ==================== TAB 9: TRANG RIÊNG STUDIO TẠO & DỊCH NGƯỢC THUMBNAIL AI (BOT 6 - /rea + /thumb + CANVAS 1280x720) ==================== -->
+        <section id="panel-thumbnail" data-panel="thumbnail" class="tab-panel" hidden>
+          <div class="footage-page-wrap">
+            <!-- BANNER ĐẦU TRANG THUMBNAIL STUDIO -->
+            <div class="bots-hero-banner panel-box" style="background:linear-gradient(135deg,#0f172a 0%,#3b0764 55%,#831843 100%);color:#ffffff;border-color:#701a75;">
+              <div class="bots-hero-left">
+                <div class="bots-hero-badge-row">
+                  <span class="bots-live-dot" style="background:#f472b6;box-shadow:0 0 8px #f472b6;"></span>
+                  <span class="bots-hero-kicker" style="color:#fbcfe8;">STUDIO TẠO &amp; DỊCH NGƯỢC THUMBNAIL AI 16:9 · CANVAS 1280×720 TRỰC TIẾP · THUMBSUP.TV SAFE-ZONE · CANVA / MIDJOURNEY / FLUX PACK</span>
+                </div>
+                <h2 class="bots-hero-title" style="color:#ffffff;">🎨 Studio Thiết Kế, Dịch Ngược REA &amp; Xuất Ảnh Thumbnail YouTube Chuẩn CTR Cao (Bot 6)</h2>
+                <p class="bots-hero-desc" style="color:#fce7f3;">
+                  Nhập <strong>Link Video YouTube đối thủ</strong> hoặc <strong>Chủ đề / Tiêu đề kịch bản</strong> &rarr; Bot tự động <strong>săn 6 mẫu Thumbnail 16:9 sát nhất</strong>, mổ xẻ <strong>Binary SHA-256 + Bảng màu HEX + Vùng an toàn ThumbsUp.tv</strong>, dựng trực tiếp lên <strong>Bàn Thiết Kế Canvas 1280×720</strong> (cho phép sửa chữ Giật Tít, đổi phối màu, tải ảnh riêng lên) và xuất file <strong>.PNG 1280×720 nét căng</strong> chỉ với 1 cú nhấp!
+                </p>
+              </div>
+              <div class="bots-hero-actions" style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-primary btn-sm" id="btn-thumb-download-canvas-png" style="background:#db2777;border-color:#f472b6;font-weight:800;">
+                  ⬇️ Tải Ảnh Thiết Kế (.PNG 1280×720)
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-thumb-download-raw-jpg" style="background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.25);">
+                  🖼️ Tải Ảnh Gốc Không Chữ (.JPG)
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-thumb-download-txt" style="background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.25);">
+                  📄 Tải Hồ Sơ Prompt &amp; Bố Cục (.TXT)
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" data-goto-tab="footage" style="background:#eef2ff;color:#1d4ed8;border-color:#93c5fd;font-weight:800;">
+                  🎬 Sang Kho Footage →
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 Ô KPI THỐNG KÊ THUMBNAIL STUDIO -->
+            <div class="bots-kpi-strip" style="margin-bottom:14px;">
+              <div class="bot-kpi-card">
+                <span class="bot-kpi-label">Tổng mẫu Thumbnail đã tạo</span>
+                <strong class="bot-kpi-value" id="thumb-kpi-total">0</strong>
+                <span class="bot-kpi-sub">Lưu lịch sử &amp; đồng bộ sang Kho Nội Dung</span>
+              </div>
+              <div class="bot-kpi-card">
+                <span class="bot-kpi-label">Điểm Dự Báo CTR (ThumbsUp.tv)</span>
+                <strong class="bot-kpi-value" id="thumb-kpi-ctr" style="color:#db2777;">94/100</strong>
+                <span class="bot-kpi-sub" id="thumb-kpi-ctr-sub">Chuẩn 3 lớp thị giác &amp; tương phản cao</span>
+              </div>
+              <div class="bot-kpi-card">
+                <span class="bot-kpi-label">Kiểm Định Vùng Chết (Safe-Zone)</span>
+                <strong class="bot-kpi-value" style="color:#059669;">1280×720 · 16:9</strong>
+                <span class="bot-kpi-sub">Né góc phải dưới (Timestamp 12:45 YouTube)</span>
+              </div>
+              <div class="bot-kpi-card">
+                <span class="bot-kpi-label">Công Cụ Thiết Kế &amp; AI Tích Hợp</span>
+                <strong class="bot-kpi-value" style="color:#7c3aed;">Canvas + 4 AI Prompts</strong>
+                <span class="bot-kpi-sub">Canva · Photopea · Midjourney v6.1 · Ideogram</span>
+              </div>
+            </div>
+
+            <!-- KHUNG ĐIỀU KHIỂN TRUNG TÂM: NHẬP LINK / CHỦ ĐỀ / GIẬT TÍT / STYLE + NÚT BẮT ĐẦU & AGAIN -->
+            <div class="panel-box" style="margin-bottom:16px;padding:18px;border:2px solid #fbcfe8;background:linear-gradient(180deg,#ffffff 0%,#fdf2f8 100%);">
+              <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1fr 220px;gap:10px;align-items:end;">
+                <label class="field" style="margin:0;">
+                  <span style="font-weight:800;color:#831843;">🔗 1. Link Video YouTube đối thủ (hoặc để trống nếu tạo theo Chủ đề)</span>
+                  <input
+                    type="text"
+                    id="input-thumb-studio-url"
+                    class="input-control"
+                    placeholder="VD: https://www.youtube.com/watch?v=... (Bóc tách Thumbnail gốc 1:1)"
+                  />
+                </label>
+
+                <label class="field" style="margin:0;">
+                  <span style="font-weight:800;color:#0f172a;">🎯 2. Tiêu đề Video / Chủ đề kịch bản cần làm Thumbnail *</span>
+                  <input
+                    type="text"
+                    id="input-thumb-studio-title"
+                    class="input-control"
+                    placeholder="VD: The Untold Truth of Rudy Gobert / Bí mật Đế chế Tài chính..."
+                  />
+                </label>
+
+                <label class="field" style="margin:0;">
+                  <span style="font-weight:800;color:#9d174d;">⚡ 3. Chữ Giật Tít Trên Ảnh (Tối đa 2–4 từ — Để trống AI tự viết)</span>
+                  <input
+                    type="text"
+                    id="input-thumb-studio-hook"
+                    class="input-control"
+                    placeholder="VD: THE DARK TRUTH! / SỰ THẬT SỐC!"
+                  />
+                </label>
+
+                <label class="field" style="margin:0;">
+                  <span style="font-weight:800;color:#0f172a;">🎨 4. Phong cách Thiết kế AI</span>
+                  <select id="select-thumb-studio-style" class="input-control">
+                    <option value="viral_3d">🔥 Viral 3D / High-CTR (MrBeast)</option>
+                    <option value="cinematic_dark">🎬 Điện ảnh Bí ẩn (Netflix Documentary)</option>
+                    <option value="bright_comparison">⚡ So sánh Trước / Sau (Before vs After)</option>
+                    <option value="luxury_gold">👑 Tài chính &amp; Đế chế Vàng (Wealth Gold)</option>
+                    <option value="nostalgia_retro">🎞️ Hoài niệm Thập niên 80/90 (Retro)</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- HÀNG NÚT BẮT ĐẦU + AGAIN + GỢI Ý NHANH -->
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed #f9a8d4;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="btn-thumb-studio-start"
+                    style="background:linear-gradient(135deg,#db2777 0%,#9333ea 100%);border-color:#be185d;color:#ffffff;font-weight:900;padding:10px 20px;font-size:0.9rem;box-shadow:0 4px 14px rgba(219,39,119,0.35);"
+                  >
+                    ▶️ BẮT ĐẦU — Dịch Ngược REA &amp; Tạo Thiết Kế Thumbnail Ngay
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    id="btn-thumb-studio-again"
+                    style="background:#fffbeb;color:#b45309;border-color:#f59e0b;font-weight:800;padding:10px 15px;"
+                    title="Đổi phương án Chữ Giật Tít, Bảng màu HEX, Góc máy và Mẫu ảnh nền mới"
+                  >
+                    🔄 Tạo Lại / Đổi Phương Án Khác (Again)
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    id="btn-thumb-studio-send-tg"
+                    style="background:#f0fdf4;color:#15803d;border-color:#86efac;font-weight:800;padding:9px 13px;"
+                  >
+                    📲 Bắn Hồ Sơ + Ảnh Về Telegram
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    id="btn-thumb-studio-save-vault"
+                    style="background:#eef2ff;color:#1d4ed8;border-color:#93c5fd;font-weight:800;padding:9px 13px;"
+                  >
+                    💎 Lưu Vào Kho Nội Dung
+                  </button>
+                </div>
+
+                <!-- GỢI Ý CHỦ ĐỀ THUMBNAIL MẪU 1 CLICK -->
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <span style="font-size:0.74rem;font-weight:800;color:#831843;">⚡ Thử nhanh:</span>
+                  <button type="button" class="btn btn-secondary btn-xs" data-quick-thumb-topic="The Untold Truth of Rudy Gobert NBA Documentary" data-quick-thumb-hook="THE UNTOLD TRUTH!" data-quick-thumb-style="cinematic_dark">🏀 NBA Documentary</button>
+                  <button type="button" class="btn btn-secondary btn-xs" data-quick-thumb-topic="1980s Nostalgia Childhood Memories Retrospective" data-quick-thumb-hook="FORGOTTEN ERA!" data-quick-thumb-style="nostalgia_retro">📻 1980s Nostalgia</button>
+                  <button type="button" class="btn btn-secondary btn-xs" data-quick-thumb-topic="How Wall Street Secretly Controls Global Gold" data-quick-thumb-hook="TRILLION $ SECRET!" data-quick-thumb-style="luxury_gold">👑 Tài chính Vàng</button>
+                  <button type="button" class="btn btn-secondary btn-xs" data-quick-thumb-topic="Bí mật xây kênh YouTube AI 100K Sub trong 30 ngày" data-quick-thumb-hook="BÍ MẬT 100K SUB!" data-quick-thumb-style="viral_3d">🔥 YouTube AI 3D</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- KHÔNG GIAN LÀM VIỆC CHÍNH: CANVAS 1280x720 TRỰC TIẾP + 6 ẢNH THAM CHIẾU + HỒ SƠ DỊCH NGƯỢC REA -->
+            <div id="thumbnail-studio-results"></div>
+          </div>
+        </section>
         </main>
       </div>
 
@@ -1504,6 +1675,14 @@
             <polygon points="10 9 15 12 10 15 10 9" />
           </svg>
           <span>🎬 Footage</span>
+        </button>
+        <button type="button" class="m-nav-btn" data-tab="thumbnail" id="m-nav-btn-thumbnail" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+          <span>🎨 Thumbnail</span>
         </button>
         <button type="button" class="m-nav-btn" data-tab="easycut" id="m-nav-btn-easycut" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">

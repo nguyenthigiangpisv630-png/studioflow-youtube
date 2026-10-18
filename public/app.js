@@ -85,7 +85,12 @@ const TAB_TITLES = {
   footage: {
     title: '🎬 Trang Riêng Bot 10 — Săn Kho Footage Đa Nền Tảng & Tải Video 4K (/footage)',
     subtitle:
-      'Săn Footage không bản quyền (Video .MP4 tải trực tiếp · YouTube 4K CC-BY · Pexels · Pixabay · Douyin 抖音 · Bilibili · Archive.org) & Xuất gói tải tự động (.BAT / .TXT / .CSV)',
+      'Săn Footage không bản quyền (Video .MP4 tải trực tiếp · YouTube 4K CC-BY · Getty · IMDb · Alamy · iStock · Pexels · Douyin) & Xuất gói tải (.BAT / .TXT / .CSV)',
+  },
+  thumbnail: {
+    title: '🎨 Trang Riêng Bot 6 — Studio Thiết Kế, Dịch Ngược REA & Tạo Thumbnail AI 16:9 (/thumbnail)',
+    subtitle:
+      'Bàn Thiết Kế Canvas 1280×720 Trực Tiếp · Mổ Xẻ Binary SHA-256 (/rea) · Kiểm Định Vùng Chết ThumbsUp.tv · 6 Ảnh Mẫu Sát Nhất · Xuất File .PNG 1280×720 & 4 Prompt AI 1:1',
   },
   easycut: {
     title: '✂️ Bàn Dựng Đa Tầng 6 Track EasyCut + 💬 Chat Antigravity Trực Tiếp (/easycut)',
@@ -407,6 +412,8 @@ function renderCurrentUserSidebarPill() {
   const mobileBotsBtn = document.getElementById('m-nav-btn-bots');
   const navFootageBtn = document.getElementById('nav-btn-footage');
   const mobileFootageBtn = document.getElementById('m-nav-btn-footage');
+  const navThumbnailBtn = document.getElementById('nav-btn-thumbnail');
+  const mobileThumbnailBtn = document.getElementById('m-nav-btn-thumbnail');
   const navEasycutBtn = document.getElementById('nav-btn-easycut');
   const mobileEasycutBtn = document.getElementById('m-nav-btn-easycut');
   const settingsBotsBtn = document.getElementById('btn-settings-bots-center');
@@ -414,6 +421,7 @@ function renderCurrentUserSidebarPill() {
   const pwdBtn = document.getElementById('btn-password-settings');
   const panelBots = document.getElementById('panel-bots');
   const panelFootage = document.getElementById('panel-footage');
+  const panelThumbnail = document.getElementById('panel-thumbnail');
   const panelEasycut = document.getElementById('panel-easycut');
   const panelUsers = document.getElementById('panel-users');
 
@@ -425,12 +433,15 @@ function renderCurrentUserSidebarPill() {
   if (mobileBotsBtn) mobileBotsBtn.hidden = !isAdmin;
   if (navFootageBtn) navFootageBtn.hidden = !isAdmin;
   if (mobileFootageBtn) mobileFootageBtn.hidden = !isAdmin;
+  if (navThumbnailBtn) navThumbnailBtn.hidden = !isAdmin;
+  if (mobileThumbnailBtn) mobileThumbnailBtn.hidden = !isAdmin;
   if (navEasycutBtn) navEasycutBtn.hidden = !isAdmin;
   if (mobileEasycutBtn) mobileEasycutBtn.hidden = !isAdmin;
   if (settingsBotsBtn) settingsBotsBtn.hidden = !isAdmin;
   if (pwdBtn) pwdBtn.hidden = !isAdmin;
   if (panelBots) panelBots.hidden = !isAdmin;
   if (panelFootage) panelFootage.hidden = !isAdmin;
+  if (panelThumbnail) panelThumbnail.hidden = !isAdmin;
   if (panelEasycut) panelEasycut.hidden = !isAdmin;
   if (panelUsers) panelUsers.hidden = !isAdmin;
 
@@ -953,6 +964,7 @@ function renderAll() {
     renderUsersManagerModal();
     renderBotsCenterTab();
     renderFootageStudioTab();
+    renderThumbnailStudioTab();
   }
   renderBrandIdentityTab();
 }
@@ -3338,7 +3350,11 @@ function switchTab(tabName) {
   if (!TAB_TITLES[tabName]) return;
   if (
     !isAdminUser() &&
-    (tabName === 'bots' || tabName === 'footage' || tabName === 'easycut' || tabName === 'users')
+    (tabName === 'bots' ||
+      tabName === 'footage' ||
+      tabName === 'thumbnail' ||
+      tabName === 'easycut' ||
+      tabName === 'users')
   ) {
     tabName = 'insights';
   }
@@ -3395,6 +3411,27 @@ function switchTab(tabName) {
           if (autoRes.status) state.botCenter = autoRes.status;
         }
         renderFootageStudioTab();
+      })
+      .catch(() => {});
+  }
+
+  if (tabName === 'thumbnail') {
+    renderThumbnailStudioTab();
+    apiRequest('/api/bots/status')
+      .then(async (res) => {
+        state.botCenter = res;
+        if (!Array.isArray(res.thumbnailClones) || res.thumbnailClones.length === 0) {
+          const autoRes = await apiRequest('/api/bots/thumbnail/clone', {
+            method: 'POST',
+            body: JSON.stringify({
+              title: 'The Untold Truth of Rudy Gobert NBA Documentary',
+              customHookText: 'THE UNTOLD TRUTH!',
+              customStyle: 'cinematic_dark',
+            }),
+          });
+          if (autoRes.status) state.botCenter = autoRes.status;
+        }
+        renderThumbnailStudioTab();
       })
       .catch(() => {});
   }
@@ -6576,6 +6613,14 @@ function renderBotsCenterTab() {
                     >
                       💾 Lưu vào Kho
                     </button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-xs"
+                      data-goto-tab="thumbnail"
+                      style="background:#fdf2f8;color:#be185d;border-color:#f9a8d4;font-weight:800;"
+                    >
+                      🎨 Mở Bàn Thiết Kế 1280×720 →
+                    </button>
                   </div>
                 </div>
               </div>
@@ -7369,14 +7414,17 @@ function initBotsCenterEvents() {
       const titleVal = cloneThumbBtn.dataset.cloneThumbTitle || '';
       const inpBot6Url = document.getElementById('input-bot6-video-url');
       const inpBot6Title = document.getElementById('input-bot6-title');
-      if (inpBot6Url) {
-        inpBot6Url.value = urlVal;
-        inpBot6Url.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      if (inpBot6Title && titleVal) {
-        inpBot6Title.value = titleVal;
-      }
-      document.getElementById('btn-bot6-generate-only')?.click();
+      if (inpBot6Url) inpBot6Url.value = urlVal;
+      if (inpBot6Title && titleVal) inpBot6Title.value = titleVal;
+
+      const studioUrlInp = document.getElementById('input-thumb-studio-url');
+      const studioTitleInp = document.getElementById('input-thumb-studio-title');
+      if (studioUrlInp) studioUrlInp.value = urlVal;
+      if (studioTitleInp && titleVal) studioTitleInp.value = titleVal;
+
+      switchTab('thumbnail');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('btn-thumb-studio-start')?.click();
       return;
     }
 
@@ -8624,6 +8672,518 @@ function initBotsCenterEvents() {
         dlMp4Btn.textContent = orig;
       }
       return;
+    }
+  });
+
+  // =========================================================================
+  // TRANG RIÊNG BOT 6: STUDIO THIẾT KẾ, DỊCH NGƯỢC REA & TẠO THUMBNAIL AI (/thumbnail)
+  // =========================================================================
+  let currentThumbVariationSeed = 0;
+
+  const runThumbStudioAction = async ({
+    notifyTelegram = false,
+    btn = null,
+    isRerollAgain = false,
+    overrideUrl = '',
+    overrideTitle = '',
+    overrideHook = '',
+    overrideStyle = '',
+  } = {}) => {
+    const urlInp = document.getElementById('input-thumb-studio-url');
+    const titleInp = document.getElementById('input-thumb-studio-title');
+    const hookInp = document.getElementById('input-thumb-studio-hook');
+    const styleSel = document.getElementById('select-thumb-studio-style');
+
+    const activeClone = state.botCenter?.thumbnailClones?.[0] || null;
+    if (overrideUrl && urlInp) urlInp.value = overrideUrl;
+    if (overrideTitle && titleInp) titleInp.value = overrideTitle;
+    if (overrideHook && hookInp) hookInp.value = overrideHook;
+    if (overrideStyle && styleSel) styleSel.value = overrideStyle;
+
+    let videoUrlOrId = String(urlInp?.value || '').trim();
+    let title = String(titleInp?.value || '').trim();
+    let customHookText = String(hookInp?.value || '').trim();
+    const customStyle = String(styleSel?.value || activeClone?.customStyle || 'viral_3d').trim();
+
+    if (isRerollAgain) {
+      currentThumbVariationSeed =
+        (Number(activeClone?.variationSeed) || currentThumbVariationSeed || 0) + 1;
+      if (!videoUrlOrId && activeClone?.videoUrl) videoUrlOrId = activeClone.videoUrl;
+      if (!title && activeClone?.title) title = activeClone.title;
+      // Khi bấm Again: để trống customHookText nếu người dùng chưa khóa, để Bot xoay sang phương án Hook mới
+      customHookText = '';
+      if (hookInp) hookInp.value = '';
+    } else {
+      currentThumbVariationSeed = 0;
+    }
+
+    if (!videoUrlOrId && !title) {
+      showBanner(
+        'Vui lòng nhập Tiêu đề / Chủ đề kịch bản HOẶC dán Link Video YouTube cần thiết kế & dịch ngược Thumbnail!',
+        true
+      );
+      titleInp?.focus();
+      return;
+    }
+
+    const orig = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = isRerollAgain
+        ? `🔄 Đang đổi phương án Thumbnail #${currentThumbVariationSeed + 1}...`
+        : notifyTelegram
+        ? '📲 Đang tạo & bắn Telegram...'
+        : '🎨 Đang dịch ngược REA & dựng Canvas 1280×720...';
+    }
+    try {
+      const res = await apiRequest('/api/bots/thumbnail/clone', {
+        method: 'POST',
+        body: JSON.stringify({
+          videoUrlOrId,
+          title,
+          customHookText,
+          customStyle,
+          variationSeed: currentThumbVariationSeed,
+          notifyTelegram: Boolean(notifyTelegram),
+        }),
+      });
+      if (res.status) state.botCenter = res.status;
+      const item = res.cloneItem || res.thumbnailClone || state.botCenter?.thumbnailClones?.[0] || {};
+      if (titleInp && item.title && !titleInp.value.trim()) {
+        titleInp.value = item.title;
+      }
+      // Reset custom canvas state so new design loads cleanly onto 1280x720 canvas
+      _thumbStudioCanvasState.customImageObj = null;
+      _thumbStudioCanvasState.backdropUrl =
+        item.proxiedBackdropUrl ||
+        item.maxResThumbnailUrl ||
+        item.hqThumbnailUrl ||
+        '';
+      _thumbStudioCanvasState.hookText =
+        item.reaDossier?.extractedHookText ||
+        item.designStudioPack?.hookVariantsA_B_C?.[0]?.text ||
+        customHookText ||
+        'SỰ THẬT SỐC!';
+      const pack = item.designStudioPack?.canvaPhotoshopPack || {};
+      _thumbStudioCanvasState.primaryHex = pack.primaryHex || '#FFD700';
+      _thumbStudioCanvasState.accentHex = pack.accentHex || '#EF4444';
+      _thumbStudioCanvasState.bgHex = pack.bgHex || '#0F172A';
+
+      renderThumbnailStudioTab();
+      renderBotsCenterTab();
+      showBanner(
+        isRerollAgain
+          ? `🔄 [Again #${currentThumbVariationSeed + 1}] Đã đổi sang phương án Giật Tít "${
+              _thumbStudioCanvasState.hookText
+            }", phối màu ${pack.primaryHex || '#FFD700'} & ảnh nền mới!`
+          : notifyTelegram
+          ? `📲 Đã tạo thiết kế Thumbnail cho "${item.title}" & bắn hồ sơ + ảnh sang Telegram!`
+          : `🎨 Đã dựng xong Bàn Thiết Kế Thumbnail 1280×720 & 6 mẫu tham chiếu cho "${item.title}"!`
+      );
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+  };
+
+  document.getElementById('btn-thumb-studio-start')?.addEventListener('click', (e) =>
+    runThumbStudioAction({ notifyTelegram: false, btn: e.currentTarget, isRerollAgain: false })
+  );
+  document.getElementById('btn-thumb-studio-again')?.addEventListener('click', (e) =>
+    runThumbStudioAction({ notifyTelegram: false, btn: e.currentTarget, isRerollAgain: true })
+  );
+  document.getElementById('btn-thumb-studio-send-tg')?.addEventListener('click', (e) =>
+    runThumbStudioAction({ notifyTelegram: true, btn: e.currentTarget, isRerollAgain: false })
+  );
+
+  document.getElementById('input-thumb-studio-title')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('btn-thumb-studio-start')?.click();
+    }
+  });
+  document.getElementById('input-thumb-studio-url')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('btn-thumb-studio-start')?.click();
+    }
+  });
+
+  // Lưu Hồ sơ Thumbnail đang mở vào Kho Nội Dung
+  document.getElementById('btn-thumb-studio-save-vault')?.addEventListener('click', async (e) => {
+    const active = state.botCenter?.thumbnailClones?.[0];
+    if (!active) {
+      showBanner('Hãy bấm BẮT ĐẦU tạo Thumbnail trước khi lưu vào Kho Nội Dung!', true);
+      return;
+    }
+    const btn = e.currentTarget;
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang lưu...';
+    try {
+      const hookTxt = _thumbStudioCanvasState.hookText || active.reaDossier?.extractedHookText || '';
+      const p = active.prompts || {};
+      await apiRequest('/api/contents', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: `[Thumbnail AI 16:9 · CTR ${active.designStudioPack?.ctrScore || 94}/100] ${active.title}`,
+          type: 'seo',
+          resourceUrl: active.videoUrl || active.maxResThumbnailUrl || active.hqThumbnailUrl || '',
+          tags: `thumbnail-ai, ctr-${active.designStudioPack?.ctrScore || 94}, ${active.customStyle || 'viral_3d'}`,
+          body: [
+            `🎨 HỒ SƠ THIẾT KẾ & DỊCH NGƯỢC THUMBNAIL AI (1280×720)`,
+            `- Tiêu đề: ${active.title}`,
+            `- Chữ Giật Tít (Hook Text): "${hookTxt}"`,
+            `- Mã màu HEX: ${_thumbStudioCanvasState.primaryHex} / ${_thumbStudioCanvasState.accentHex} / ${_thumbStudioCanvasState.bgHex}`,
+            `- Ảnh gốc HD: ${active.maxResThumbnailUrl || active.hqThumbnailUrl || ''}`,
+            `- Prompt REA 1:1: ${p.reaReconstruction || ''}`,
+            `- Prompt Midjourney v6.1: ${p.midjourney || ''}`,
+            `- Prompt Flux.1 / Ideogram: ${p.fluxIdeogram || ''}`,
+            `- Bố cục Tiếng Việt: ${p.vietnameseBrief || ''}`,
+          ].join('\n'),
+        }),
+      });
+      await loadOverview();
+      showBanner(`💎 Đã lưu Hồ sơ Thumbnail "${active.title}" vào Kho Nội Dung thành công!`);
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  });
+
+  // Xuất file .PNG 1280x720 trực tiếp từ Bàn Thiết Kế Canvas
+  const downloadCanvasPng = () => {
+    const canvas = document.getElementById('thumb-studio-canvas');
+    if (!canvas) {
+      showBanner('Chưa có Bàn Thiết Kế Canvas để xuất ảnh!', true);
+      return;
+    }
+    // Tạm tắt nhãn Safe-Zone 12:45 khi xuất file .PNG để ảnh sạch 100%
+    const prevSafeZone = _thumbStudioCanvasState.showSafeZone;
+    _thumbStudioCanvasState.showSafeZone = false;
+    drawThumbnailStudioCanvas(false);
+    try {
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
+      const a = document.createElement('a');
+      const slug = String(state.botCenter?.thumbnailClones?.[0]?.title || 'acb9x-thumbnail')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 45) || 'acb9x-thumbnail';
+      a.href = dataUrl;
+      a.download = `ACB9x-Thumbnail-1280x720-${slug}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showBanner('⬇️ Đã xuất & tải Ảnh Thiết Kế Thumbnail chuẩn 1280×720 (.PNG) về máy thành công!');
+    } catch {
+      showBanner('Đang mở tải ảnh gốc HD thay thế...', false);
+      document.getElementById('btn-thumb-download-raw-jpg')?.click();
+    } finally {
+      _thumbStudioCanvasState.showSafeZone = prevSafeZone;
+      drawThumbnailStudioCanvas(false);
+    }
+  };
+
+  document.getElementById('btn-thumb-download-canvas-png')?.addEventListener('click', downloadCanvasPng);
+
+  // Tải ảnh nền gốc không chữ (.JPG)
+  document.getElementById('btn-thumb-download-raw-jpg')?.addEventListener('click', async () => {
+    const active = state.botCenter?.thumbnailClones?.[0];
+    if (!active) {
+      showBanner('Hãy bấm BẮT ĐẦU tạo Thumbnail trước!', true);
+      return;
+    }
+    const rawUrl = active.maxResThumbnailUrl || active.hqThumbnailUrl || '';
+    const apiUrl =
+      active.rawDownloadUrl ||
+      `/api/bots/footage/download?url=${encodeURIComponent(rawUrl)}&filename=${encodeURIComponent(
+        `ACB9x-Thumbnail-Raw-${active.videoId || 'HD'}.jpg`
+      )}`;
+    try {
+      const token = getStoredAuthToken();
+      const res = await fetch(apiUrl, {
+        headers: token ? { 'X-Studio-Token': token } : {},
+      });
+      if (!res.ok) throw new Error('Fallback open');
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = `ACB9x-Thumbnail-Raw-${active.videoId || 'HD'}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objUrl);
+      showBanner('🖼️ Đã tải Ảnh Gốc Không Chữ (.JPG) về máy thành công!');
+    } catch {
+      if (rawUrl) window.open(rawUrl, '_blank', 'noopener');
+    }
+  });
+
+  // Tải Hồ Sơ Prompt & Bố Cục (.TXT)
+  document.getElementById('btn-thumb-download-txt')?.addEventListener('click', () => {
+    const active = state.botCenter?.thumbnailClones?.[0];
+    if (!active) {
+      showBanner('Hãy bấm BẮT ĐẦU tạo Thumbnail trước!', true);
+      return;
+    }
+    const p = active.prompts || {};
+    const rea = active.reaDossier || {};
+    const dsp = active.designStudioPack || {};
+    const lines = [
+      '====================================================================',
+      'ACB9x STUDIOFLOW — HỒ SƠ DỊCH NGƯỢC REA & PROMPT THUMBNAIL AI 16:9',
+      '====================================================================',
+      `Tiêu đề / Chủ đề: ${active.title}`,
+      `Phong cách AI: ${active.styleLabel || active.customStyle}`,
+      `Điểm dự báo CTR: ${dsp.ctrScore || 94}/100`,
+      `Chữ Giật Tít Đang Chọn: "${_thumbStudioCanvasState.hookText || rea.extractedHookText || ''}"`,
+      `Bảng Màu HEX: Chính ${_thumbStudioCanvasState.primaryHex} | Nhấn ${_thumbStudioCanvasState.accentHex} | Nền ${_thumbStudioCanvasState.bgHex}`,
+      `Ảnh Gốc HD: ${active.maxResThumbnailUrl || active.hqThumbnailUrl || ''}`,
+      '',
+      '--- 1. PROMPT DỊCH NGƯỢC REA 1:1 ---',
+      p.reaReconstruction || '',
+      '',
+      '--- 2. PROMPT MIDJOURNEY V6.1 (--ar 16:9) ---',
+      p.midjourney || '',
+      '',
+      '--- 3. PROMPT FLUX.1 / IDEOGRAM 2.0 (CHÈN CHỮ TRỰC TIẾP) ---',
+      p.fluxIdeogram || '',
+      '',
+      '--- 4. CHỈ DẪN BỐ CỤC THIẾT KẾ TIẾNG VIỆT ---',
+      p.vietnameseBrief || '',
+    ].join('\r\n');
+    triggerTextPackageDownload(
+      lines,
+      `ACB9x-Thumbnail-Dossier-${Date.now()}.txt`,
+      'text/plain;charset=utf-8',
+      '📄 Đã tải Hồ Sơ Prompt & Bố Cục Thumbnail (.TXT) về máy!'
+    );
+  });
+
+  // Delegated click & input events trên #panel-thumbnail
+  document.getElementById('panel-thumbnail')?.addEventListener('click', async (e) => {
+    const quickTopicBtn = e.target.closest('[data-quick-thumb-topic]');
+    if (quickTopicBtn) {
+      const topic = quickTopicBtn.dataset.quickThumbTopic || '';
+      const hook = quickTopicBtn.dataset.quickThumbHook || '';
+      const style = quickTopicBtn.dataset.quickThumbStyle || 'viral_3d';
+      await runThumbStudioAction({
+        notifyTelegram: false,
+        btn: document.getElementById('btn-thumb-studio-start'),
+        isRerollAgain: false,
+        overrideUrl: '',
+        overrideTitle: topic,
+        overrideHook: hook,
+        overrideStyle: style,
+      });
+      return;
+    }
+
+    const selectHistoryBtn = e.target.closest('[data-select-thumb-clone-id]');
+    if (selectHistoryBtn) {
+      const cloneId = selectHistoryBtn.dataset.selectThumbCloneId;
+      const list = state.botCenter?.thumbnailClones || [];
+      const idx = list.findIndex((c) => c.id === cloneId);
+      if (idx > 0) {
+        const [picked] = list.splice(idx, 1);
+        list.unshift(picked);
+        _thumbStudioCanvasState.customImageObj = null;
+        _thumbStudioCanvasState.backdropUrl =
+          picked.proxiedBackdropUrl || picked.maxResThumbnailUrl || picked.hqThumbnailUrl || '';
+        _thumbStudioCanvasState.hookText =
+          picked.reaDossier?.extractedHookText ||
+          picked.designStudioPack?.hookVariantsA_B_C?.[0]?.text ||
+          'SỰ THẬT SỐC!';
+        const pack = picked.designStudioPack?.canvaPhotoshopPack || {};
+        _thumbStudioCanvasState.primaryHex = pack.primaryHex || '#FFD700';
+        _thumbStudioCanvasState.accentHex = pack.accentHex || '#EF4444';
+        _thumbStudioCanvasState.bgHex = pack.bgHex || '#0F172A';
+        renderThumbnailStudioTab();
+      }
+      return;
+    }
+
+    const actionBtn = e.target.closest('[data-thumb-action]');
+    if (actionBtn) {
+      const act = actionBtn.dataset.thumbAction;
+      if (act === 'download-canvas-png') {
+        downloadCanvasPng();
+      } else if (act === 'download-raw-jpg') {
+        document.getElementById('btn-thumb-download-raw-jpg')?.click();
+      } else if (act === 'upload-custom-bg') {
+        document.getElementById('thumb-canvas-upload-file')?.click();
+      } else if (act === 'reroll-again') {
+        document.getElementById('btn-thumb-studio-again')?.click();
+      }
+      return;
+    }
+
+    const setHookBtn = e.target.closest('[data-thumb-set-hook]');
+    if (setHookBtn) {
+      const newHook = setHookBtn.dataset.thumbSetHook || '';
+      _thumbStudioCanvasState.hookText = newHook;
+      const hookInput = document.getElementById('thumb-canvas-hook-input');
+      if (hookInput) hookInput.value = newHook;
+      const topHookInput = document.getElementById('input-thumb-studio-hook');
+      if (topHookInput) topHookInput.value = newHook;
+      drawThumbnailStudioCanvas(false);
+      showBanner(`🔤 Đã áp dụng Chữ Giật Tít "${newHook}" lên Bàn Thiết Kế 1280×720!`);
+      return;
+    }
+
+    const setPaletteBtn = e.target.closest('[data-thumb-palette-primary]');
+    if (setPaletteBtn) {
+      _thumbStudioCanvasState.primaryHex = setPaletteBtn.dataset.thumbPalettePrimary || '#FFD700';
+      _thumbStudioCanvasState.accentHex = setPaletteBtn.dataset.thumbPaletteAccent || '#EF4444';
+      _thumbStudioCanvasState.bgHex = setPaletteBtn.dataset.thumbPaletteBg || '#0F172A';
+      drawThumbnailStudioCanvas(false);
+      showBanner(
+        `🎨 Đã đổi Phối Màu Bàn Thiết Kế sang ${_thumbStudioCanvasState.primaryHex} / ${_thumbStudioCanvasState.accentHex}!`
+      );
+      return;
+    }
+
+    const setLayoutBtn = e.target.closest('[data-thumb-text-pos]');
+    if (setLayoutBtn) {
+      _thumbStudioCanvasState.textPosition = setLayoutBtn.dataset.thumbTextPos || 'bottom_left';
+      document.querySelectorAll('[data-thumb-text-pos]').forEach((b) => {
+        b.classList.toggle('active', b.dataset.thumbTextPos === _thumbStudioCanvasState.textPosition);
+      });
+      drawThumbnailStudioCanvas(false);
+      return;
+    }
+
+    const useBackdropBtn = e.target.closest('[data-thumb-use-backdrop-url]');
+    if (useBackdropBtn) {
+      const proxiedUrl = useBackdropBtn.dataset.thumbUseBackdropUrl || '';
+      const refTitle = useBackdropBtn.dataset.thumbUseBackdropTitle || '';
+      if (proxiedUrl) {
+        _thumbStudioCanvasState.customImageObj = null;
+        _thumbStudioCanvasState.backdropUrl = proxiedUrl;
+        drawThumbnailStudioCanvas(true);
+        document.getElementById('thumb-studio-canvas')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showBanner(`🖼️ Đã nạp ảnh nền "${refTitle.slice(0, 48)}" lên Bàn Thiết Kế Canvas 1280×720!`);
+      }
+      return;
+    }
+
+    const cloneRefBtn = e.target.closest('[data-thumb-clone-ref-id]');
+    if (cloneRefBtn) {
+      const vid = cloneRefBtn.dataset.thumbCloneRefId || '';
+      const refTitle = cloneRefBtn.dataset.thumbCloneRefTitle || '';
+      await runThumbStudioAction({
+        notifyTelegram: false,
+        btn: cloneRefBtn,
+        isRerollAgain: false,
+        overrideUrl: vid ? `https://www.youtube.com/watch?v=${vid}` : '',
+        overrideTitle: refTitle,
+      });
+      return;
+    }
+
+    const copyBtn = e.target.closest('[data-copy-prompt-text]');
+    if (copyBtn) {
+      const text = copyBtn.dataset.copyPromptText || '';
+      if (text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          showBanner('📋 Đã copy nội dung vào bộ nhớ tạm!');
+        } catch {
+          showBanner('📋 Đã copy: ' + text);
+        }
+      }
+      return;
+    }
+
+    const dlMp4Btn = e.target.closest('[data-download-direct-mp4-url]');
+    if (dlMp4Btn) {
+      const apiUrl = dlMp4Btn.dataset.downloadDirectMp4Api || '';
+      const rawUrl = dlMp4Btn.dataset.downloadDirectMp4Url || '';
+      const filename = dlMp4Btn.dataset.downloadDirectMp4Name || 'acb9x-thumbnail.jpg';
+      const orig = dlMp4Btn.textContent;
+      dlMp4Btn.disabled = true;
+      dlMp4Btn.textContent = '⏳ Đang tải...';
+      try {
+        const token = getStoredAuthToken();
+        const res = await fetch(
+          apiUrl ||
+            `/api/bots/footage/download?url=${encodeURIComponent(rawUrl)}&filename=${encodeURIComponent(
+              filename
+            )}`,
+          {
+            headers: token ? { 'X-Studio-Token': token } : {},
+          }
+        );
+        if (!res.ok) throw new Error('Fallback');
+        const blob = await res.blob();
+        const objUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(objUrl);
+        showBanner(`⬇️ Đã tải file "${filename}" về máy thành công!`);
+      } catch {
+        window.open(rawUrl, '_blank', 'noopener');
+      } finally {
+        dlMp4Btn.disabled = false;
+        dlMp4Btn.textContent = orig;
+      }
+    }
+  });
+
+  // Live input trên Bàn Thiết Kế Canvas 1280x720
+  document.getElementById('panel-thumbnail')?.addEventListener('input', (e) => {
+    const target = e.target;
+    if (target.id === 'thumb-canvas-hook-input') {
+      _thumbStudioCanvasState.hookText = target.value;
+      drawThumbnailStudioCanvas(false);
+    } else if (target.id === 'thumb-canvas-badge-input') {
+      _thumbStudioCanvasState.kickerBadge = target.value;
+      drawThumbnailStudioCanvas(false);
+    } else if (target.id === 'thumb-canvas-fontsize-range') {
+      _thumbStudioCanvasState.fontSize = Number(target.value) || 96;
+      const lbl = document.getElementById('thumb-canvas-fontsize-val');
+      if (lbl) lbl.textContent = `${_thumbStudioCanvasState.fontSize}px`;
+      drawThumbnailStudioCanvas(false);
+    } else if (target.id === 'thumb-canvas-vignette-range') {
+      _thumbStudioCanvasState.vignetteStrength = Number(target.value) || 55;
+      const lbl = document.getElementById('thumb-canvas-vignette-val');
+      if (lbl) lbl.textContent = `${_thumbStudioCanvasState.vignetteStrength}%`;
+      drawThumbnailStudioCanvas(false);
+    } else if (target.id === 'thumb-canvas-safezone-chk') {
+      _thumbStudioCanvasState.showSafeZone = Boolean(target.checked);
+      drawThumbnailStudioCanvas(false);
+    }
+  });
+
+  // Upload ảnh riêng từ máy tính lên Bàn Thiết Kế Canvas 1280x720
+  document.getElementById('panel-thumbnail')?.addEventListener('change', (e) => {
+    const target = e.target;
+    if (target.id === 'thumb-canvas-upload-file') {
+      const file = target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          _thumbStudioCanvasState.customImageObj = img;
+          drawThumbnailStudioCanvas(false);
+          showBanner(`📂 Đã nạp ảnh "${file.name}" lên Bàn Thiết Kế Thumbnail 1280×720!`);
+        };
+        img.src = String(reader.result || '');
+      };
+      reader.readAsDataURL(file);
     }
   });
 }
@@ -9878,6 +10438,755 @@ function renderFootageStudioTab() {
       </div>
     </div>
   `;
+}
+
+// =============================================================================
+// TRANG RIÊNG BOT 6: STUDIO THIẾT KẾ, DỊCH NGƯỢC REA & TẠO THUMBNAIL AI (/thumbnail)
+// =============================================================================
+const _thumbStudioCanvasState = {
+  cloneId: '',
+  backdropUrl: '',
+  loadedBackdropUrl: '',
+  loadedBackdropImg: null,
+  customImageObj: null,
+  hookText: 'THE UNTOLD TRUTH!',
+  kickerBadge: '🔥 HIGH-CTR DOCUMENTARY',
+  primaryHex: '#FFD700',
+  accentHex: '#EF4444',
+  bgHex: '#0F172A',
+  textPosition: 'bottom_left',
+  fontSize: 96,
+  vignetteStrength: 58,
+  showSafeZone: true,
+};
+
+function wrapCanvasHookLines(ctx, text, maxWidth) {
+  const words = String(text || '')
+    .trim()
+    .toUpperCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length === 0) return [];
+  const lines = [];
+  let current = words[0];
+  for (let i = 1; i < words.length; i += 1) {
+    const testLine = `${current} ${words[i]}`;
+    if (ctx.measureText(testLine).width <= maxWidth || current.length <= 4) {
+      current = testLine;
+    } else {
+      lines.push(current);
+      current = words[i];
+    }
+  }
+  lines.push(current);
+  return lines.slice(0, 3);
+}
+
+function drawThumbnailStudioCanvas(reloadBackdrop = false) {
+  const canvas = document.getElementById('thumb-studio-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const W = 1280;
+  const H = 720;
+
+  // Nếu cần nạp ảnh nền mới qua proxy cùng domain để hỗ trợ xuất PNG không lỗi CORS
+  const targetBackdrop = _thumbStudioCanvasState.backdropUrl || '';
+  if (
+    !_thumbStudioCanvasState.customImageObj &&
+    targetBackdrop &&
+    (reloadBackdrop || _thumbStudioCanvasState.loadedBackdropUrl !== targetBackdrop)
+  ) {
+    _thumbStudioCanvasState.loadedBackdropUrl = targetBackdrop;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      _thumbStudioCanvasState.loadedBackdropImg = img;
+      drawThumbnailStudioCanvas(false);
+    };
+    img.onerror = () => {
+      _thumbStudioCanvasState.loadedBackdropImg = null;
+      drawThumbnailStudioCanvas(false);
+    };
+    img.src = targetBackdrop;
+  }
+
+  // 1. Vẽ nền Gradient điện ảnh (Background Layer)
+  const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+  bgGrad.addColorStop(0, _thumbStudioCanvasState.bgHex || '#0F172A');
+  bgGrad.addColorStop(0.6, '#1e1b4b');
+  bgGrad.addColorStop(1, '#090d16');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. Vẽ Ảnh Nền 16:9 (Cover-fit 1280x720)
+  const activeImg =
+    _thumbStudioCanvasState.customImageObj || _thumbStudioCanvasState.loadedBackdropImg;
+  if (activeImg && activeImg.width > 0 && activeImg.height > 0) {
+    const scale = Math.max(W / activeImg.width, H / activeImg.height);
+    const sw = activeImg.width * scale;
+    const sh = activeImg.height * scale;
+    const dx = (W - sw) / 2;
+    const dy = (H - sh) / 2;
+    ctx.drawImage(activeImg, dx, dy, sw, sh);
+  } else {
+    // Họa tiết lưới ánh sáng phòng khi ảnh đang tải
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 2;
+    for (let x = 0; x < W; x += 80) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 80) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // 3. Lớp phủ Vignette tối điện ảnh (Tạo độ nổi khối 3D cho chữ Giật Tít)
+  const vigAlpha = Math.min(0.92, Math.max(0.15, (_thumbStudioCanvasState.vignetteStrength || 58) / 100));
+  const darkGrad = ctx.createLinearGradient(0, H * 0.15, 0, H);
+  darkGrad.addColorStop(0, `rgba(9, 13, 22, ${Math.max(0.08, vigAlpha * 0.25)})`);
+  darkGrad.addColorStop(0.55, `rgba(9, 13, 22, ${vigAlpha * 0.65})`);
+  darkGrad.addColorStop(1, `rgba(9, 13, 22, ${vigAlpha})`);
+  ctx.fillStyle = darkGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Ánh sáng Rim Light góc trái dưới theo mã màu Accent
+  const rimGrad = ctx.createRadialGradient(180, H - 120, 20, 180, H - 120, 560);
+  rimGrad.addColorStop(0, `${_thumbStudioCanvasState.accentHex || '#EF4444'}44`);
+  rimGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = rimGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 4. Viền khung Thumbnail 16:9 sắc nét (High-CTR Frame)
+  ctx.save();
+  ctx.strokeStyle = _thumbStudioCanvasState.primaryHex || '#FFD700';
+  ctx.lineWidth = 10;
+  ctx.strokeRect(5, 5, W - 10, H - 10);
+  ctx.restore();
+
+  // 5. Vẽ Nhãn Phụ (Kicker Badge) góc trên
+  const kicker = String(_thumbStudioCanvasState.kickerBadge || '').trim();
+  const posMode = _thumbStudioCanvasState.textPosition || 'bottom_left';
+  if (kicker) {
+    ctx.save();
+    ctx.font = '900 30px "Inter", "Segoe UI", Impact, sans-serif';
+    const kw = ctx.measureText(kicker.toUpperCase()).width + 44;
+    const kx = posMode === 'center_big' ? (W - kw) / 2 : 56;
+    const ky = posMode === 'top_left' ? 48 : 52;
+    ctx.fillStyle = _thumbStudioCanvasState.accentHex || '#EF4444';
+    ctx.shadowColor = 'rgba(0,0,0,0.65)';
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 5;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(kx, ky, kw, 54, 12);
+    } else {
+      ctx.rect(kx, ky, kw, 54);
+    }
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(kicker.toUpperCase(), kx + 22, ky + 28);
+    ctx.restore();
+  }
+
+  // 6. Vẽ Chữ Giật Tít 3D (Hook Text) chuẩn YouTube High-CTR
+  const rawHook = String(_thumbStudioCanvasState.hookText || '').trim();
+  if (rawHook) {
+    ctx.save();
+    const fontSize = Number(_thumbStudioCanvasState.fontSize) || 96;
+    ctx.font = `900 ${fontSize}px "Impact", "Arial Black", "Inter", sans-serif`;
+    const maxTextW = W - 130;
+    const lines = wrapCanvasHookLines(ctx, rawHook, maxTextW);
+    const lineHeight = Math.round(fontSize * 1.12);
+    const totalH = lines.length * lineHeight;
+
+    let startY = H - 72 - (lines.length - 1) * lineHeight;
+    if (posMode === 'center_big') {
+      startY = Math.round((H - totalH) / 2 + fontSize * 0.82);
+    } else if (posMode === 'top_left') {
+      startY = kicker ? 195 : 135;
+    }
+
+    lines.forEach((line, idx) => {
+      const y = startY + idx * lineHeight;
+      const lineW = ctx.measureText(line).width;
+      const x = posMode === 'center_big' ? Math.round((W - lineW) / 2) : 58;
+
+      // Thanh nền nhấn dưới dòng chữ cuối để tăng tương phản
+      if (idx === lines.length - 1) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(9, 13, 22, 0.78)';
+        ctx.strokeStyle = _thumbStudioCanvasState.accentHex || '#EF4444';
+        ctx.lineWidth = 4;
+        const padX = 20;
+        const boxY = y - Math.round(fontSize * 0.88);
+        const boxH = Math.round(fontSize * 1.06);
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(x - padX, boxY, lineW + padX * 2, boxH, 12);
+        } else {
+          ctx.rect(x - padX, boxY, lineW + padX * 2, boxH);
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Đổ bóng 3D sâu + Viền đen dày (8px) chống chìm chữ trên mọi nền
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 8;
+      ctx.lineJoin = 'round';
+      ctx.miterLimit = 2;
+      ctx.lineWidth = Math.max(14, Math.round(fontSize * 0.16));
+      ctx.strokeStyle = '#000000';
+      ctx.strokeText(line, x, y);
+
+      // Tô màu chữ: Dòng 1 màu Trắng sáng, Dòng cuối màu Primary HEX (Vàng / Xanh / Cam)
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.fillStyle =
+        idx === lines.length - 1
+          ? _thumbStudioCanvasState.primaryHex || '#FFD700'
+          : '#FFFFFF';
+      ctx.fillText(line, x, y);
+    });
+    ctx.restore();
+  }
+
+  // 7. Vẽ Nhãn Kiểm Định Vùng Chết Thời Lượng YouTube 12:45 (ThumbsUp.tv Safe-Zone) ở góc phải dưới
+  if (_thumbStudioCanvasState.showSafeZone) {
+    ctx.save();
+    const tzW = 148;
+    const tzH = 54;
+    const tzX = W - tzW - 24;
+    const tzY = H - tzH - 22;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.86)';
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(tzX, tzY, tzW, tzH, 8);
+    } else {
+      ctx.rect(tzX, tzY, tzW, tzH);
+    }
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 28px "Inter", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('12:45', tzX + tzW / 2, tzY + tzH / 2 + 1);
+    ctx.restore();
+  }
+}
+
+function renderThumbnailStudioTab() {
+  const container = document.getElementById('thumbnail-studio-results');
+  if (!container) return;
+
+  const clones = Array.isArray(state.botCenter?.thumbnailClones)
+    ? state.botCenter.thumbnailClones
+    : [];
+  const active = clones[0] || null;
+
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+  setText('thumb-kpi-total', `${clones.length} mẫu`);
+  setText('nav-count-thumbnail', clones.length > 0 ? `${clones.length}` : 'CTR');
+
+  if (!active) {
+    container.innerHTML = `
+      <div class="panel-box" style="padding:28px;text-align:center;">
+        <div style="font-size:2.2rem;margin-bottom:8px;">🎨</div>
+        <h3 style="margin:0 0 6px 0;font-size:1.1rem;color:#0f172a;">Chưa có mẫu Thumbnail nào trong phiên làm việc</h3>
+        <p style="margin:0 0 14px 0;font-size:0.86rem;color:#64748b;">
+          Hãy nhập <strong>Tiêu đề / Chủ đề kịch bản</strong> hoặc dán <strong>Link Video YouTube đối thủ</strong> ở khung trên rồi bấm nút <strong>"▶️ BẮT ĐẦU — Dịch Ngược REA &amp; Tạo Thiết Kế Thumbnail Ngay"</strong>!
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  const dsp = active.designStudioPack || {};
+  const rea = active.reaDossier || {};
+  const p = active.prompts || {};
+  const pack = dsp.canvaPhotoshopPack || {};
+  const hookVariants = Array.isArray(dsp.hookVariantsA_B_C) ? dsp.hookVariantsA_B_C : [];
+  const refGallery = Array.isArray(active.referenceGallery) ? active.referenceGallery : [];
+  const extLinks = active.externalStudioLinks || {};
+  const ctrScore = dsp.ctrScore || 94;
+
+  setText('thumb-kpi-ctr', `${ctrScore}/100`);
+
+  // Đồng bộ state của Canvas nếu người dùng vừa chuyển sang bản ghi mới
+  if (_thumbStudioCanvasState.cloneId !== active.id) {
+    _thumbStudioCanvasState.cloneId = active.id;
+    _thumbStudioCanvasState.customImageObj = null;
+    _thumbStudioCanvasState.backdropUrl =
+      active.proxiedBackdropUrl || active.maxResThumbnailUrl || active.hqThumbnailUrl || '';
+    _thumbStudioCanvasState.hookText =
+      rea.extractedHookText || hookVariants[0]?.text || 'THE UNTOLD TRUTH!';
+    _thumbStudioCanvasState.primaryHex = pack.primaryHex || '#FFD700';
+    _thumbStudioCanvasState.accentHex = pack.accentHex || '#EF4444';
+    _thumbStudioCanvasState.bgHex = pack.bgHex || '#0F172A';
+  }
+
+  // Lịch sử các mẫu Thumbnail đã tạo
+  const historyChipsHtml =
+    clones.length > 1
+      ? `
+      <div class="panel-box" style="padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fdf2f8;border-color:#fbcfe8;">
+        <span style="font-size:11.5px;font-weight:800;color:#831843;">🕘 Lịch sử Thumbnail đã tạo (${clones.length}):</span>
+        ${clones
+          .slice(0, 10)
+          .map(
+            (c, idx) => `
+            <button
+              type="button"
+              class="btn ${idx === 0 ? 'btn-primary' : 'btn-secondary'} btn-xs"
+              data-select-thumb-clone-id="${escapeHtml(c.id)}"
+              style="${idx === 0 ? 'background:#db2777;border-color:#be185d;' : ''}"
+            >
+              ${idx === 0 ? '🎨 Đang mở: ' : ''}${escapeHtml(String(c.title || '').slice(0, 34))} (${
+              c.designStudioPack?.ctrScore || 94
+            }đ)
+            </button>
+          `
+          )
+          .join('')}
+      </div>
+    `
+      : '';
+
+  const palettesList = [
+    {
+      name: 'Vàng Hoàng Kim & Đỏ Cảnh Báo',
+      primary: '#FFD700',
+      accent: '#EF4444',
+      bg: '#0F172A',
+    },
+    {
+      name: 'Xanh Điện Tử & Cam Nổ View',
+      primary: '#38BDF8',
+      accent: '#F97316',
+      bg: '#090D16',
+    },
+    {
+      name: 'Trắng Tinh Khiết & Đỏ Breaking News',
+      primary: '#FFFFFF',
+      accent: '#DC2626',
+      bg: '#111827',
+    },
+    {
+      name: 'Vàng Chanh & Xanh Lục Bảo Tài Chính',
+      primary: '#FDE047',
+      accent: '#10B981',
+      bg: '#064E3B',
+    },
+  ];
+
+  // MỤC 0: BÀN THIẾT KẾ CANVAS 1280x720 TRỰC TIẾP + BẢNG ĐIỀU KHIỂN BÊN PHẢI
+  const canvasStudioHtml = `
+    <div class="panel-box" style="padding:18px;margin-bottom:16px;border:2px solid #f472b6;background:linear-gradient(180deg,#0f172a 0%,#1e1b4b 100%);color:#ffffff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="background:#db2777;color:#fff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:999px;">
+              🎨 BÀN THIẾT KẾ TRỰC TIẾP 16:9 (1280×720 HD)
+            </span>
+            <span style="background:rgba(16,185,129,0.2);color:#34d399;border:1px solid #10b981;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;">
+              🎯 CTR Dự Báo: ${ctrScore}/100 · ThumbsUp.tv Safe-Zone Đạt Chuẩn
+            </span>
+            ${
+              Number(active.variationSeed) > 0
+                ? `<span style="background:rgba(245,158,11,0.22);color:#fcd34d;border:1px solid #f59e0b;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;">
+                    🔄 Phương án Again #${Number(active.variationSeed) + 1}
+                  </span>`
+                : ''
+            }
+          </div>
+          <h3 style="margin:6px 0 2px 0;font-size:1.08rem;color:#ffffff;">
+            🎬 ${escapeHtml(active.title)}
+          </h3>
+          <p style="margin:0;font-size:12px;color:#cbd5e1;">
+            Sửa chữ Giật Tít, chọn Hook A/B/C, đổi bảng màu HEX hoặc bấm vào bất kỳ ảnh nào ở dưới để đưa lên Bàn Thiết Kế &rarr; Bấm <strong>"⬇️ Tải Ảnh Thiết Kế (.PNG 1280×720)"</strong> là dùng đăng YouTube ngay!
+          </p>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="file" id="thumb-canvas-upload-file" accept="image/*" hidden />
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            data-thumb-action="download-canvas-png"
+            style="background:#db2777;border-color:#f472b6;font-weight:900;"
+          >
+            ⬇️ Tải Ảnh Thiết Kế (.PNG 1280×720)
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            data-thumb-action="upload-custom-bg"
+            style="background:rgba(255,255,255,0.12);color:#ffffff;border-color:rgba(255,255,255,0.28);font-weight:800;"
+          >
+            📂 Tải Ảnh Của Anh Lên Làm Nền
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            data-thumb-action="reroll-again"
+            style="background:#f59e0b;color:#0f172a;border-color:#fbbf24;font-weight:900;"
+          >
+            🔄 Đổi Phương Án Khác (Again)
+          </button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:start;">
+        <!-- CỘT TRÁI: KHUNG CANVAS 1280x720 -->
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="position:relative;border-radius:12px;overflow:hidden;border:2px solid rgba(244,114,182,0.5);box-shadow:0 12px 32px rgba(0,0,0,0.45);background:#090d16;">
+            <canvas
+              id="thumb-studio-canvas"
+              width="1280"
+              height="720"
+              style="width:100%;height:auto;display:block;aspect-ratio:16/9;"
+            ></canvas>
+          </div>
+
+          <!-- THANH CÔNG CỤ MỞ NHANH CANVA / PHOTOPEA / IDEOGRAM / MIDJOURNEY -->
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);">
+            <span style="font-size:11px;font-weight:800;color:#fbcfe8;">🚀 Mở tiếp trên Studio quốc tế:</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <a href="${escapeHtml(extLinks.canvaUrl || 'https://www.canva.com/youtube-thumbnails/')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;background:#00c4cc;color:#0f172a;border-color:#00c4cc;font-weight:800;">🎨 Canva ↗</a>
+              <a href="${escapeHtml(extLinks.photopeaUrl || 'https://www.photopea.com/')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;background:#334155;color:#ffffff;border-color:#475569;font-weight:800;">🖌️ Photopea (PS) ↗</a>
+              <a href="${escapeHtml(extLinks.ideogramUrl || 'https://ideogram.ai/')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;background:#7c3aed;color:#ffffff;border-color:#8b5cf6;font-weight:800;">✨ Ideogram AI ↗</a>
+              <a href="${escapeHtml(extLinks.thumbsUpUrl || 'https://thumbsup.tv/')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;background:#059669;color:#ffffff;border-color:#10b981;font-weight:800;">📱 ThumbsUp.tv ↗</a>
+              <a href="${escapeHtml(extLinks.gettyUrl || 'https://www.gettyimages.com/')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;background:#b45309;color:#ffffff;border-color:#d97706;font-weight:800;">📸 Getty ↗</a>
+              <a href="${escapeHtml(extLinks.imdbUrl || 'https://www.imdb.com/')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;background:#f59e0b;color:#0f172a;border-color:#fbbf24;font-weight:800;">🎬 IMDb ↗</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN TRỰC TIẾP CHỮ GIẬT TÍT, HOOK A/B/C, MÀU SẮC & BỐ CỤC -->
+        <div style="background:rgba(15,23,42,0.82);border:1px solid rgba(244,114,182,0.35);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:11px;">
+          <div>
+            <label style="display:block;font-size:11.5px;font-weight:800;color:#fbcfe8;margin-bottom:4px;">
+              🔤 1. Sửa Trực Tiếp Chữ Giật Tít Trên Ảnh (Hook Text 2–5 từ):
+            </label>
+            <input
+              type="text"
+              id="thumb-canvas-hook-input"
+              class="input-control"
+              value="${escapeHtml(_thumbStudioCanvasState.hookText)}"
+              style="background:#090d16;color:#fde047;border-color:#f472b6;font-weight:900;font-size:0.95rem;"
+              placeholder="Nhập chữ giật tít..."
+            />
+          </div>
+
+          ${
+            hookVariants.length > 0
+              ? `<div>
+                  <div style="font-size:11px;font-weight:800;color:#cbd5e1;margin-bottom:5px;">
+                    ⚡ Chọn Nhanh 3 Phương Án Giật Tít A / B / C (TubeBuddy CTR Test):
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:5px;">
+                    ${hookVariants
+                      .map(
+                        (hv) => `
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-xs"
+                          data-thumb-set-hook="${escapeHtml(hv.text)}"
+                          style="justify-content:space-between;text-align:left;padding:6px 10px;background:rgba(255,255,255,0.08);color:#ffffff;border-color:rgba(255,255,255,0.18);"
+                        >
+                          <span><strong>[Phương án ${escapeHtml(hv.code)}]</strong> "${escapeHtml(hv.text)}"</span>
+                          <span style="font-size:10px;color:#f472b6;">${escapeHtml(hv.style || 'Áp dụng →')}</span>
+                        </button>
+                      `
+                      )
+                      .join('')}
+                  </div>
+                </div>`
+              : ''
+          }
+
+          <div>
+            <label style="display:block;font-size:11.5px;font-weight:800;color:#fbcfe8;margin-bottom:4px;">
+              🏷️ 2. Nhãn Phụ Góc Trên (Kicker Badge — Xóa trắng nếu muốn ẩn):
+            </label>
+            <input
+              type="text"
+              id="thumb-canvas-badge-input"
+              class="input-control"
+              value="${escapeHtml(_thumbStudioCanvasState.kickerBadge)}"
+              style="background:#090d16;color:#ffffff;border-color:#475569;font-weight:700;font-size:0.82rem;"
+              placeholder="VD: 🔥 EXCLUSIVE / SỰ THẬT SỐC..."
+            />
+          </div>
+
+          <div>
+            <div style="font-size:11.5px;font-weight:800;color:#fbcfe8;margin-bottom:5px;">
+              🎨 3. Chọn Bảng Phối Màu Tương Phản Cao (Canva / Photoshop HEX):
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              ${palettesList
+                .map(
+                  (pal) => `
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-xs"
+                    data-thumb-palette-primary="${escapeHtml(pal.primary)}"
+                    data-thumb-palette-accent="${escapeHtml(pal.accent)}"
+                    data-thumb-palette-bg="${escapeHtml(pal.bg)}"
+                    style="display:flex;align-items:center;gap:6px;justify-content:flex-start;padding:6px 8px;background:rgba(255,255,255,0.07);color:#fff;border-color:${
+                      _thumbStudioCanvasState.primaryHex === pal.primary ? '#f472b6' : 'rgba(255,255,255,0.15)'
+                    };"
+                  >
+                    <span style="width:14px;height:14px;border-radius:4px;background:${escapeHtml(pal.primary)};border:1px solid #fff;flex-shrink:0;"></span>
+                    <span style="width:14px;height:14px;border-radius:4px;background:${escapeHtml(pal.accent)};border:1px solid #fff;flex-shrink:0;"></span>
+                    <span style="font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(pal.name)}</span>
+                  </button>
+                `
+                )
+                .join('')}
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#cbd5e1;margin-bottom:3px;">
+                <span>📏 Cỡ chữ Giật Tít:</span>
+                <strong id="thumb-canvas-fontsize-val" style="color:#fde047;">${_thumbStudioCanvasState.fontSize}px</strong>
+              </div>
+              <input
+                type="range"
+                id="thumb-canvas-fontsize-range"
+                min="64"
+                max="132"
+                step="2"
+                value="${_thumbStudioCanvasState.fontSize}"
+                style="width:100%;accent-color:#db2777;"
+              />
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#cbd5e1;margin-bottom:3px;">
+                <span>🌑 Độ tối Vignette nền:</span>
+                <strong id="thumb-canvas-vignette-val" style="color:#f472b6;">${_thumbStudioCanvasState.vignetteStrength}%</strong>
+              </div>
+              <input
+                type="range"
+                id="thumb-canvas-vignette-range"
+                min="15"
+                max="90"
+                step="5"
+                value="${_thumbStudioCanvasState.vignetteStrength}"
+                style="width:100%;accent-color:#db2777;"
+              />
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding-top:4px;border-top:1px dashed rgba(255,255,255,0.15);">
+            <div style="display:flex;gap:5px;">
+              <button type="button" class="btn btn-secondary btn-xs ${_thumbStudioCanvasState.textPosition === 'bottom_left' ? 'active' : ''}" data-thumb-text-pos="bottom_left" style="font-size:10.5px;">↙️ Chữ Góc Dưới</button>
+              <button type="button" class="btn btn-secondary btn-xs ${_thumbStudioCanvasState.textPosition === 'center_big' ? 'active' : ''}" data-thumb-text-pos="center_big" style="font-size:10.5px;">🎯 Chữ Giữa Lớn</button>
+              <button type="button" class="btn btn-secondary btn-xs ${_thumbStudioCanvasState.textPosition === 'top_left' ? 'active' : ''}" data-thumb-text-pos="top_left" style="font-size:10.5px;">↖️ Chữ Góc Trên</button>
+            </div>
+            <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:#86efac;cursor:pointer;font-weight:700;">
+              <input type="checkbox" id="thumb-canvas-safezone-chk" ${_thumbStudioCanvasState.showSafeZone ? 'checked' : ''} />
+              <span>📱 Hiện vùng 12:45</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // MỤC 1: BỘ 6 MẪU THUMBNAIL THAM CHIẾU SÁT NHẤT (BẤM 1 NÚT ĐƯA LÊN BÀN THIẾT KẾ CANVAS HOẶC TẢI VỀ)
+  const referenceGalleryHtml =
+    refGallery.length > 0
+      ? `
+      <div class="panel-box" style="padding:16px;margin-bottom:16px;border:2px solid #fbcfe8;background:linear-gradient(180deg,#fdf2f8 0%,#ffffff 100%);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <div>
+            <h3 style="margin:0;font-size:1rem;font-weight:800;color:#9d174d;">
+              🖼️ 1. Bộ ${refGallery.length} Mẫu Thumbnail 16:9 Tham Chiếu Sát Nhất Đã Duyệt QC (Bấm Để Đưa Lên Bàn Thiết Kế Canvas Hoặc Tải Gốc)
+            </h3>
+            <p style="margin:3px 0 0 0;font-size:12px;color:#475569;">
+              Bot đã quét và lọc ra các mẫu Thumbnail 16:9 có bố cục &amp; ánh sáng sát nhất với chủ đề <strong>"${escapeHtml(
+                active.title
+              )}"</strong>. Anh bấm <strong>"🎨 Đưa Ảnh Này Lên Bàn Thiết Kế"</strong> để thay nền ngay lập tức!
+            </p>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:12px;">
+          ${refGallery
+            .map(
+              (ref, idx) => `
+              <div style="border:1.5px solid ${
+                idx === 0 ? '#db2777' : '#fbcfe8'
+              };border-radius:10px;padding:10px;background:#ffffff;display:flex;flex-direction:column;gap:7px;box-shadow:0 2px 6px rgba(15,23,42,0.05);">
+                <div style="position:relative;border-radius:8px;overflow:hidden;background:#0f172a;aspect-ratio:16/9;">
+                  <img
+                    src="${escapeHtml(ref.thumbnailUrl)}"
+                    alt="${escapeHtml(ref.title)}"
+                    style="width:100%;height:100%;object-fit:cover;display:block;"
+                    loading="lazy"
+                  />
+                  <span style="position:absolute;top:7px;left:7px;background:#db2777;color:#ffffff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;">
+                    🎯 Mẫu #${ref.rank || idx + 1} · CTR ${ref.ctrScore || 95}%
+                  </span>
+                </div>
+                <strong style="font-size:12.5px;color:#0f172a;line-height:1.35;">${escapeHtml(ref.title)}</strong>
+                <div style="font-size:11px;color:#64748b;">
+                  📺 <strong>${escapeHtml(ref.channelName || 'YouTube Reference')}</strong>
+                  ${ref.views ? ` · 👁️ ${formatNumber(ref.views)} views` : ''}
+                </div>
+                <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:auto;padding-top:4px;">
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-xs"
+                    style="flex:1;background:#db2777;border-color:#be185d;font-weight:800;"
+                    data-thumb-use-backdrop-url="${escapeHtml(ref.proxiedUrl || ref.downloadUrl)}"
+                    data-thumb-use-backdrop-title="${escapeHtml(ref.title)}"
+                  >
+                    🎨 Đưa Lên Bàn Thiết Kế
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-xs"
+                    data-download-direct-mp4-api="${escapeHtml(ref.downloadUrl)}"
+                    data-download-direct-mp4-url="${escapeHtml(ref.maxResUrl || ref.thumbnailUrl)}"
+                    data-download-direct-mp4-name="Thumbnail-Ref-${idx + 1}-${escapeHtml(ref.videoId)}.jpg"
+                  >
+                    ⬇️ Tải .JPG
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-xs"
+                    data-thumb-clone-ref-id="${escapeHtml(ref.videoId)}"
+                    data-thumb-clone-ref-title="${escapeHtml(ref.title)}"
+                    title="Mổ xẻ REA riêng cho video này"
+                  >
+                    🔬 REA
+                  </button>
+                </div>
+              </div>
+            `
+            )
+            .join('')}
+        </div>
+      </div>
+    `
+      : '';
+
+  // MỤC 2: HỒ SƠ DỊCH NGƯỢC REA (/rea) + GIẢI PHẪU 3 LỚP THỊ GIÁC + 4 PROMPT AI TÁI TẠO 1:1
+  const layers = rea.visualLayers || {};
+  const reaDossierHtml = `
+    <div class="panel-box" style="padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <div>
+          <h3 style="margin:0;font-size:1rem;font-weight:800;color:#0f172a;">
+            🔬 2. Hồ Sơ Dịch Ngược REA (<code>/rea</code>) · Giải Phẫu 3 Lớp Thị Giác &amp; 4 Prompt AI Tái Tạo 1:1 (Midjourney v6.1 / Flux.1 / Ideogram)
+          </h3>
+          <p style="margin:3px 0 0 0;font-size:12px;color:#64748b;">
+            Bấm 1 nút để Copy Prompt dán thẳng vào <strong>Midjourney v6.1</strong>, <strong>Ideogram 2.0</strong> hoặc <strong>Flux.1</strong> để sinh ảnh AI 16:9 mới hoàn toàn theo đúng bố cục triệu view!
+          </p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:12px;">
+        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #e2e8f0;font-size:11.5px;">
+          <div style="font-weight:800;color:#0369a1;margin-bottom:4px;">🔬 Chữ ký Binary &amp; Tỷ lệ Khung Hình:</div>
+          <div><code>${escapeHtml(rea.binaryEvidence || 'JPEG/WebP 1280×720 (16:9)')}</code></div>
+          <div style="margin-top:4px;color:#047857;font-weight:700;">
+            📱 ${escapeHtml(dsp.thumbsUpPreview?.timestampSafeZone || 'An toàn góc phải dưới 12:45')}
+          </div>
+        </div>
+
+        <div style="padding:10px 12px;border-radius:9px;background:#fffbeb;border:1px solid #fde68a;font-size:11.5px;">
+          <div style="font-weight:800;color:#b45309;margin-bottom:4px;">🧠 Công Thức Tâm Lý Học Thị Giác (CTR):</div>
+          <div style="color:#78350f;">${escapeHtml(rea.psychologicalFormula || '')}</div>
+        </div>
+
+        <div style="padding:10px 12px;border-radius:9px;background:#fdf2f8;border:1px solid #fbcfe8;font-size:11.5px;">
+          <div style="font-weight:800;color:#9d174d;margin-bottom:4px;">🎨 Thông Số Canva / Photoshop Pack:</div>
+          <div>Mã màu HEX: <code>${escapeHtml(pack.primaryHex || '#FFD700')}</code> · <code>${escapeHtml(
+            pack.accentHex || '#EF4444'
+          )}</code> · <code>${escapeHtml(pack.bgHex || '#0F172A')}</code></div>
+          <div style="margin-top:3px;">Font khuyến nghị: <strong>${escapeHtml(
+            pack.recommendedFonts || 'Montserrat ExtraBold / Impact'
+          )}</strong></div>
+        </div>
+      </div>
+
+      <div style="padding:10px 12px;border-radius:9px;background:#f0fdf4;border:1px solid #bbf7d0;margin-bottom:12px;font-size:11.5px;color:#065f46;display:flex;flex-direction:column;gap:4px;">
+        <div style="font-weight:800;color:#047857;">📐 Giải Phẫu 3 Lớp Thị Giác (3-Layer Visual Anatomy):</div>
+        <div>• <strong>Lớp 1 (Tiền cảnh - Chủ thể chính):</strong> ${escapeHtml(layers.layer1_Foreground || '')}</div>
+        <div>• <strong>Lớp 2 (Trung cảnh - Chữ Giật Tít):</strong> ${escapeHtml(layers.layer2_MidgroundTypography || '')}</div>
+        <div>• <strong>Lớp 3 (Hậu cảnh - Bối cảnh &amp; Ánh sáng):</strong> ${escapeHtml(layers.layer3_BackgroundDepth || '')}</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:10px;">
+        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="font-size:12px;color:#be185d;">🔬 1. Prompt Dịch Ngược REA 1:1 (Full Spec)</strong>
+            <button type="button" class="btn btn-primary btn-xs" style="background:#db2777;border-color:#be185d;" data-copy-prompt-text="${escapeHtml(p.reaReconstruction || '')}">📋 Copy REA 1:1</button>
+          </div>
+          <code style="font-size:11px;color:#1e293b;word-break:break-word;line-height:1.45;">${escapeHtml(p.reaReconstruction || '')}</code>
+        </div>
+
+        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="font-size:12px;color:#1d4ed8;">🎨 2. Prompt Midjourney v6.1 (--ar 16:9)</strong>
+            <button type="button" class="btn btn-secondary btn-xs" data-copy-prompt-text="${escapeHtml(p.midjourney || '')}">📋 Copy Midjourney</button>
+          </div>
+          <code style="font-size:11px;color:#1e293b;word-break:break-word;line-height:1.45;">${escapeHtml(p.midjourney || '')}</code>
+        </div>
+
+        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="font-size:12px;color:#7c3aed;">✨ 3. Prompt Flux.1 / Ideogram 2.0 (Chèn Chữ)</strong>
+            <button type="button" class="btn btn-secondary btn-xs" data-copy-prompt-text="${escapeHtml(p.fluxIdeogram || '')}">📋 Copy Flux/Ideogram</button>
+          </div>
+          <code style="font-size:11px;color:#1e293b;word-break:break-word;line-height:1.45;">${escapeHtml(p.fluxIdeogram || '')}</code>
+        </div>
+
+        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="font-size:12px;color:#047857;">🇻🇳 4. Chỉ Dẫn Bố Cục Thiết Kế Tiếng Việt</strong>
+            <button type="button" class="btn btn-secondary btn-xs" data-copy-prompt-text="${escapeHtml(p.vietnameseBrief || '')}">📋 Copy Bố cục VN</button>
+          </div>
+          <div style="font-size:11px;color:#1e293b;white-space:pre-line;line-height:1.45;">${escapeHtml(p.vietnameseBrief || '')}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = `
+    ${historyChipsHtml}
+    ${canvasStudioHtml}
+    ${referenceGalleryHtml}
+    ${reaDossierHtml}
+  `;
+
+  drawThumbnailStudioCanvas(true);
 }
 
 let _easycutLoadedUrl = '';
