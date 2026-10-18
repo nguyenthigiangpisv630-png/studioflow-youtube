@@ -5771,6 +5771,13 @@ function renderBotsCenterTab() {
                         )}</span>`
                       : ''
                   }
+                  ${
+                    snap.sha256Checksum
+                      ? `<span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: rgba(59,130,246,0.14); color: #1d4ed8; font-family: monospace;" title="Mã băm kiểm định toàn vẹn dữ liệu SHA-256">🔐 SHA256:${escapeHtml(
+                          snap.sha256Checksum
+                        )}</span>`
+                      : ''
+                  }
                 </div>
                 <div class="bot-snap-sub">
                   🕒 ${escapeHtml(formatDateTimeVi(snap.createdAt))} · 📦 ${kb} KB ·
@@ -5825,7 +5832,7 @@ function renderBotsCenterTab() {
   setCheck('chk-bot1-notify-viral', cfg.notifyOnViralVideo !== false);
   setCheck('chk-bot1-daily-backup', cfg.autoTelegramBackupDaily !== false);
 
-  // --- BOT 2: CANH NỔ VIEW 24/7, GIA TỐC 24H & KỊCH BẢN PHẦN 2 ---
+  // --- BOT 2: CANH NỔ VIEW 24/7, GIA TỐC 24H, TUBEBUDDY BOOSTER & KỊCH BẢN PHẦN 2 ---
   setText('bot2-kpi-viral', `${viralCount} video nổ`);
   setText('bot2-kpi-alerts', `${alertCount} cảnh báo`);
 
@@ -5887,8 +5894,27 @@ function renderBotsCenterTab() {
                 ? `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 5px 8px; border-radius: 7px; background: rgba(16,185,129,0.08); border: 1px dashed rgba(16,185,129,0.3);">
                     <div style="font-size: 11px; color: var(--text);">
                       🎬 <strong>Gợi ý làm ngay Phần 2:</strong> <em>${escapeHtml(v.part2Title)}</em>
+                      ${
+                        v.tubebuddyBooster?.endScreenStrategy
+                          ? `<div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">🎯 <strong>TubeBuddy End-Screen:</strong> ${escapeHtml(
+                              v.tubebuddyBooster.endScreenStrategy
+                            )}</div>`
+                          : ''
+                      }
                     </div>
-                    <div style="display: flex; gap: 5px;">
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                      ${
+                        v.tubebuddyBooster?.pinnedCommentSuggestion
+                          ? `<button
+                              type="button"
+                              class="btn btn-secondary btn-xs"
+                              data-copy-prompt-text="${escapeHtml(v.tubebuddyBooster.pinnedCommentSuggestion)}"
+                              title="Copy Bình luận Ghim (Pinned Comment) chuẩn TubeBuddy để giữ chân khán giả & kéo sang Phần 2"
+                            >
+                              📌 Copy Bình luận Ghim
+                            </button>`
+                          : ''
+                      }
                       <button
                         type="button"
                         class="btn btn-secondary btn-xs"
@@ -5946,7 +5972,7 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 3: NHẮC LỊCH ĐĂNG VIDEO, KPI QUẢN LÝ & GIỜ VÀNG ĐĂNG BÀI ---
+  // --- BOT 3: NHẮC LỊCH ĐĂNG VIDEO, KPI QUẢN LÝ, GIỜ VÀNG & AUTO GIAO ĐỀ TÀI ---
   const schedSummary = scheduleRadar.summary || {};
   setText('bot3-kpi-dead', `${Number(schedSummary.deadCount) || 0} kênh`);
   setText('bot3-kpi-due', `${Number(schedSummary.dueSoonCount) || 0} kênh`);
@@ -6023,9 +6049,30 @@ function renderBotsCenterTab() {
                     <div class="bot-viral-sub" style="color:#475569;margin-top:2px;">
                       💡 ${escapeHtml(item.recommendation)}
                     </div>
+                    ${
+                      item.assignedTopicSuggestion
+                        ? `<div class="bot-viral-sub" style="color:#047857;font-weight:600;margin-top:2px;">
+                            🎯 <strong>Đề tài giao hôm nay (Auto Calendar):</strong> "${escapeHtml(
+                              item.assignedTopicSuggestion
+                            )}"
+                          </div>`
+                        : ''
+                    }
                   </div>
                 </div>
-                <div class="bot-viral-right num">
+                <div class="bot-viral-right num" style="display:flex;gap:5px;align-items:center;">
+                  ${
+                    item.assignedTopicSuggestion
+                      ? `<button
+                          type="button"
+                          class="btn btn-secondary btn-xs"
+                          data-copy-prompt-text="${escapeHtml(item.assignedTopicSuggestion)}"
+                          title="Copy đề tài giao hôm nay để gửi cho biên kịch / editor"
+                        >
+                          📋 Copy Đề tài
+                        </button>`
+                      : ''
+                  }
                   <button
                     type="button"
                     class="btn btn-secondary btn-xs"
@@ -6042,7 +6089,7 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 5: SĂN NGÁCH, DÒ KÊNH & ƯỚC TÍNH DOANH THU ĐỐI THỦ (OUTLIER / NEXLEV HUNTER) ---
+  // --- BOT 5: SĂN NGÁCH, DÒ KÊNH (NEXLEV + VIDIQ + 1OF10 + VIEWSTATS + SOCIALBLADE) ---
   const totalOutliersFound = competitorScans.reduce(
     (sum, s) => sum + (Number(s.outlierCount) || (Array.isArray(s.outliers) ? s.outliers.length : 0)),
     0
@@ -6078,6 +6125,10 @@ function renderBotsCenterTab() {
           const avgViewsVal = Number(scan.avgViews ?? scan.avgViewsPerVideo ?? 0);
           const nex = scan.nexlevDossier || {};
           const vidiq = scan.vidiqAudit || {};
+          const sb = scan.socialBladeDossier || {};
+          const vsDossier = scan.viewstatsDossier || {};
+          const oneOfTen = scan.oneOfTenDossier || {};
+          const deadTopics = Array.isArray(oneOfTen.deadTopicsToAvoid) ? oneOfTen.deadTopicsToAvoid : [];
           return `
             <div class="bot-viral-item" style="flex-direction: column; align-items: stretch; gap: 8px; border-left: 3px solid #6366f1;">
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -6118,10 +6169,15 @@ function renderBotsCenterTab() {
                 </div>
               </div>
 
-              <!-- Dải chỉ số NexLev Pro + vidIQ Channel Audit -->
+              <!-- Dải chỉ số NexLev Pro + vidIQ + SocialBlade + Viewstats -->
               <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding: 6px 9px; border-radius: 8px; background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.25); font-size: 11px;">
                 <span style="font-weight: 800; color: #059669;">
                   ${escapeHtml(nex.facelessVerdict || '🤖 Faceless / AI Cash-Cow (94% dễ nhân bản)')}
+                </span>
+                <span style="padding: 1px 7px; border-radius: 999px; background: rgba(220,38,38,0.12); color: #b91c1c; font-weight: 800;">
+                  🏆 SocialBlade: ${escapeHtml(sb.grade || 'A+')} (${escapeHtml(
+                    sb.monthlyEarningsRange || '$180 - $2.400/tháng'
+                  )})
                 </span>
                 <span style="padding: 1px 7px; border-radius: 999px; background: rgba(245,158,11,0.15); color: #b45309; font-weight: 700;">
                   ⚡ TB ${Number(nex.avgVph || 25).toLocaleString('vi-VN')} VPH (Đỉnh ${Number(
@@ -6132,8 +6188,15 @@ function renderBotsCenterTab() {
                   💎 Đỉnh x${nex.maxViewsToSubRatio || 1.8} lần Sub
                 </span>
                 <span style="padding: 1px 7px; border-radius: 999px; background: rgba(79,70,229,0.14); color: #4338ca; font-weight: 800;">
-                  🎯 vidIQ SEO: ${vidiq.seoScore || 88}/100 (Hạng ${escapeHtml(vidiq.engagementGrade || 'A+')})
+                  🎯 vidIQ SEO: ${vidiq.seoScore || 88}/100 (${escapeHtml(vidiq.engagementGrade || 'A+')})
                 </span>
+                ${
+                  vsDossier.sweetSpotDuration
+                    ? `<span style="padding: 1px 7px; border-radius: 999px; background: rgba(14,165,233,0.14); color: #0369a1; font-weight: 700;">
+                        ⏱️ Viewstats: ${escapeHtml(vsDossier.sweetSpotDuration)}
+                      </span>`
+                    : ''
+                }
                 ${
                   vidiq.tagsCsv
                     ? `<button
@@ -6204,11 +6267,17 @@ function renderBotsCenterTab() {
                     const pubTxt = v.publishedText || v.publishedAt || 'Gần đây';
                     const vphVal = Number(v.vph || Math.max(5, Math.round((Number(v.views) || 100) / 48)));
                     const subRatio = v.viewsToSubRatio ?? 1.2;
+                    const oneRank = v.oneOfTenRank || idx + 1;
                     return `
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; background: rgba(15,23,42,0.45); border: 1px solid rgba(148,163,184,0.12);">
                       <div style="min-width: 0; flex: 1;">
                         <div style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                          <span style="color: #f59e0b; margin-right: 4px;">#${idx + 1} (${escapeHtml(
+                          <span style="font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px; background: ${
+                            oneRank === 1 ? 'rgba(234,179,8,0.2)' : 'rgba(99,102,241,0.14)'
+                          }; color: ${oneRank === 1 ? '#b45309' : '#4f46e5'}; margin-right: 4px;">${
+                            oneRank === 1 ? '🏆 1/10 (1of10)' : `🔥 ${oneRank}/10`
+                          }</span>
+                          <span style="color: #f59e0b; margin-right: 4px;">(${escapeHtml(
                             String(mult)
                           )}x)</span>
                           <a href="${escapeHtml(v.videoUrl || '#')}" target="_blank" rel="noopener" style="color: var(--text); text-decoration: none;">
@@ -6239,11 +6308,11 @@ function renderBotsCenterTab() {
                         <button
                           type="button"
                           class="btn btn-secondary btn-xs"
-                          data-save-spy-key-title="[Outlier ${escapeHtml(String(mult))}x · ⚡${vphVal} VPH - ${escapeHtml(
+                          data-save-spy-key-title="[Outlier ${escapeHtml(String(mult))}x · 🏆${oneRank}/10 · ⚡${vphVal} VPH - ${escapeHtml(
                             scan.channelName || scan.handle
                           )}] ${escapeHtml(v.title)}"
                           data-save-spy-key-url="${escapeHtml(v.videoUrl || '')}"
-                          data-save-spy-key-notes="Video nổ ${escapeHtml(
+                          data-save-spy-key-notes="Video Hạng ${oneRank}/10 (1of10) nổ ${escapeHtml(
                             Number(v.views || 0).toLocaleString('vi-VN')
                           )} views (gấp ${escapeHtml(String(mult))}x TB kênh · Tốc độ ${vphVal} VPH · Gấp x${subRatio} lần Sub kênh ${escapeHtml(
                             scan.channelName || ''
@@ -6258,6 +6327,16 @@ function renderBotsCenterTab() {
                   })
                   .join('')}
               </div>
+              ${
+                deadTopics.length > 0
+                  ? `<div style="font-size: 10.5px; color: #b91c1c; padding: 5px 8px; border-radius: 6px; background: rgba(239,68,68,0.08); border: 1px dashed rgba(239,68,68,0.3);">
+                      ⛔ <strong>Cảnh báo 1of10 (Chủ đề lạnh nên né — dưới TB kênh):</strong> ${deadTopics
+                        .slice(0, 2)
+                        .map((d) => `"${escapeHtml(d.title)}" (chỉ đạt ${d.outlierMultiplier}x TB)`)
+                        .join(' · ')}
+                    </div>`
+                  : ''
+              }
             </div>
           `;
         })
@@ -6265,11 +6344,11 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 6: DỊCH NGƯỢC REA (/rea), CHẤM ĐIỂM CTR & 3 PHƯƠNG ÁN HOOK A/B/C ---
+  // --- BOT 6: DỊCH NGƯỢC REA (/rea), THUMBSUP.TV SAFE-ZONE, TUBEBUDDY A/B & CANVA PACK ---
   const bot6Pill = document.getElementById('bot6-status-pill');
   if (bot6Pill) {
     bot6Pill.textContent =
-      thumbnailClones.length > 0 ? `🔬 Đã dịch ngược ${thumbnailClones.length} mẫu` : '🔬 REA Decompiler';
+      thumbnailClones.length > 0 ? `🔬 Đã dịch ngược ${thumbnailClones.length} mẫu` : '🔬 REA + ThumbsUp.tv';
   }
   const bot6ListEl = document.getElementById('bot6-thumbnail-list');
   if (bot6ListEl) {
@@ -6285,6 +6364,7 @@ function renderBotsCenterTab() {
         .map((item) => {
           const p = item.prompts || {};
           const rea = item.reaDossier || {};
+          const dsp = item.designStudioPack || rea.designStudioPack || {};
           const maxRes = item.thumbnailMaxRes || item.maxResThumbnailUrl || '';
           const hqThumb = item.thumbnailHq || item.hqThumbnailUrl || maxRes;
           const vTitle = item.videoTitle || item.title || 'Chủ đề Thumbnail';
@@ -6316,6 +6396,13 @@ function renderBotsCenterTab() {
                     <span style="font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: rgba(16,185,129,0.16); color: #059669;">
                       🎯 CTR dự đoán: ${ctrScore}/100
                     </span>
+                    ${
+                      dsp.thumbsUpPreview?.timestampSafeZone
+                        ? `<span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: rgba(59,130,246,0.14); color: #1d4ed8;">
+                            📱 ThumbsUp.tv: An toàn góc phải 12:45
+                          </span>`
+                        : ''
+                    }
                   </div>
                   <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">
                     🔤 Chữ giật tít (Hook Text): <strong style="color: #f472b6;">"${escapeHtml(hookTxt)}"</strong>
@@ -6326,9 +6413,24 @@ function renderBotsCenterTab() {
                     }
                   </div>
                   ${
+                    dsp.canvaPhotoshopPack
+                      ? `<div style="font-size: 10.5px; color: #047857; margin-bottom: 4px;">
+                          🎨 <strong>Canva/Photoshop Pack:</strong> Mã màu <code>${escapeHtml(
+                            dsp.canvaPhotoshopPack.primaryHex
+                          )}</code> · <code>${escapeHtml(
+                          dsp.canvaPhotoshopPack.accentHex
+                        )}</code> · <code>${escapeHtml(
+                          dsp.canvaPhotoshopPack.bgHex
+                        )}</code> | Font: <strong>${escapeHtml(
+                          dsp.canvaPhotoshopPack.recommendedFonts
+                        )}</strong>
+                        </div>`
+                      : ''
+                  }
+                  ${
                     hookVariants.length > 0
                       ? `<div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-bottom: 5px;">
-                          <span style="font-size: 10.5px; color: var(--text-muted);">⚡ 3 Hook A/B/C:</span>
+                          <span style="font-size: 10.5px; color: var(--text-muted);">⚡ 3 Hook A/B/C (TubeBuddy):</span>
                           ${hookVariants
                             .map(
                               (hv) => `
@@ -6434,14 +6536,14 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 7 (BOT 9): VIDIQ KEYWORD INSPECTOR (VOLUME vs COMPETITION) & NEXLEV NICHE FINDER (/trend) ---
+  // --- BOT 7 (BOT 9): VIDIQ + NEXLEV + GOOGLE TRENDS + SUBSCRIBR 30S SCRIPT (/trend) ---
   const totalMicroNiches = trendScans.reduce((s, it) => s + (Number(it.microNicheCount) || 0), 0);
   setText('bot7-kpi-scans', `${trendScans.length} chủ đề`);
   setText('bot7-kpi-microniche', `${totalMicroNiches} ngách con`);
   const bot7Pill = document.getElementById('bot7-status-pill');
   if (bot7Pill) {
     bot7Pill.textContent =
-      trendScans.length > 0 ? `🔍 Đã chấm vidIQ ${trendScans.length} chủ đề` : '🟢 vidIQ + NexLev Ready';
+      trendScans.length > 0 ? `🔍 Đã chấm vidIQ ${trendScans.length} chủ đề` : '🟢 vidIQ + NexLev + Subscribr';
   }
   const bot7ListEl = document.getElementById('bot7-trend-results');
   if (bot7ListEl) {
@@ -6570,10 +6672,12 @@ function renderBotsCenterTab() {
                     const compScore = k.vidiqCompetitionScore || 28;
                     const compLabel = k.vidiqCompetitionLabel || '💎 Rất thấp';
                     const tagsCsv = k.vidiqTagsCsv || k.keyword;
+                    const waveTxt = k.googleTrendsWave || '🚀 Sóng Mới';
+                    const voice30s = k.voiceoverHook30s || k.seoPackage?.voiceoverHook30s || '';
                     const seoNotes = k.seoPackage
-                      ? `🎯 Điểm vidIQ Overall: ${oppScore}/100 (📊 Volume: ${volScore}/100 · ⚔️ Cạnh tranh: ${compScore}/100 - ${compLabel})\n🏷️ Phân loại: ${
+                      ? `🎯 Điểm vidIQ Overall: ${oppScore}/100 (📊 Volume: ${volScore}/100 · ⚔️ Cạnh tranh: ${compScore}/100 - ${compLabel})\n🌊 Google Trends: ${waveTxt}\n🏷️ Phân loại: ${
                           k.intentTag || ''
-                        }\n🏷️ Bộ Thẻ Tags Chuẩn vidIQ (Copy dán YouTube Studio):\n${tagsCsv}\n\n🎬 TIÊU ĐỀ GỢI Ý:\n${
+                        }\n🏷️ Bộ Thẻ Tags Chuẩn vidIQ (Copy dán YouTube Studio):\n${tagsCsv}\n\n🎙️ LỜI THOẠI MỞ ĐẦU 30 GIÂY (ELEVENLABS / SUBSCRIBR):\n${voice30s}\n\n🎬 TIÊU ĐỀ GỢI Ý:\n${
                           k.suggestedTitle || ''
                         }\n\n📋 DÀN Ý KỊCH BẢN 5 PHẦN:\n${
                           k.seoPackage.scriptOutline5Parts || ''
@@ -6589,6 +6693,9 @@ function renderBotsCenterTab() {
                           <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: rgba(59,130,246,0.14); color: #1d4ed8;">⚔️ Cạnh tranh: ${escapeHtml(
                             compLabel
                           )} (${compScore})</span>
+                          <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: rgba(236,72,153,0.14); color: #be185d;">${escapeHtml(
+                            waveTxt
+                          )}</span>
                           <span style="font-size: 10.5px; font-weight: 500; color: var(--text-muted);">${escapeHtml(k.intentTag || '')}</span>
                         </div>
                         <div style="font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -6596,6 +6703,18 @@ function renderBotsCenterTab() {
                         </div>
                       </div>
                       <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                        ${
+                          voice30s
+                            ? `<button
+                                type="button"
+                                class="btn btn-secondary btn-xs"
+                                data-copy-prompt-text="${escapeHtml(voice30s)}"
+                                title="Copy Lời Thoại Mở Đầu 30 giây (Subscribr / ElevenLabs AI Voiceover) của từ khóa này"
+                              >
+                                🎙️ Lời thoại 30s
+                              </button>`
+                            : ''
+                        }
                         <button
                           type="button"
                           class="btn btn-secondary btn-xs"
@@ -6619,7 +6738,7 @@ function renderBotsCenterTab() {
                           data-save-spy-key-title="[vidIQ ${oppScore}/100 · Vol ${volScore}] ${escapeHtml(k.suggestedTitle || k.keyword)}"
                           data-save-spy-key-url="${escapeHtml(k.youtubeSearchUrl || '')}"
                           data-save-spy-key-notes="${escapeHtml(seoNotes)}"
-                          title="Lưu trọn bộ Điểm vidIQ + Thẻ Tags + Tiêu đề + Mô tả SEO + Dàn ý kịch bản 5 phần vào Kho Nội Dung"
+                          title="Lưu trọn bộ Điểm vidIQ + Thẻ Tags + Lời thoại 30s + Dàn ý kịch bản 5 phần vào Kho Nội Dung"
                         >
                           + Lưu SEO &amp; Dàn ý
                         </button>
@@ -6636,7 +6755,7 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 11: ĐẾM NGƯỢC BKT, BẢO VỆ GÀ ADSENSE & RPM (/ga & /revenue) ---
+  // --- BOT 11: ĐẾM NGƯỢC BKT, BẢO VỆ GÀ ADSENSE & DỰ BÁO DÒNG TIỀN SOCIALBLADE (/ga & /revenue) ---
   const mSum = monetizationShield.summary || {};
   setText(
     'bot11-kpi-bkt',
@@ -6664,6 +6783,20 @@ function renderBotsCenterTab() {
     const gaGroups = Array.isArray(monetizationShield.adsenseGroups) ? monetizationShield.adsenseGroups : [];
     const bktList = Array.isArray(monetizationShield.bktCandidates) ? monetizationShield.bktCandidates : [];
     const topRev = Array.isArray(monetizationShield.topEarningChannels) ? monetizationShield.topEarningChannels : [];
+    const forecast = monetizationShield.revenueForecast || {};
+
+    const forecastBannerHtml =
+      forecast.projectedNext30DaysUsd || mSum.projectedNext30DaysUsd
+        ? `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:6px 10px;margin-bottom:6px;border-radius:8px;background:rgba(16,185,129,0.09);border:1px solid rgba(16,185,129,0.28);font-size:11px;">
+            <span style="font-weight:800;color:#047857;">📈 Dự báo Dòng tiền SocialBlade:</span>
+            <span style="padding:2px 8px;border-radius:999px;background:#ffffff;border:1px solid #a7f3d0;color:#065f46;">30 ngày tới: <strong>~$${Number(
+              forecast.projectedNext30DaysUsd || mSum.projectedNext30DaysUsd || 0
+            ).toLocaleString('vi-VN')}</strong></span>
+            <span style="padding:2px 8px;border-radius:999px;background:#ffffff;border:1px solid #a7f3d0;color:#065f46;">Dự phóng cả năm: <strong>~$${Number(
+              forecast.projectedEndOfYearUsd || mSum.projectedEndOfYearUsd || 0
+            ).toLocaleString('vi-VN')}</strong></span>
+          </div>`
+        : '';
 
     const gaHtml =
       gaGroups.length > 0
@@ -6765,10 +6898,10 @@ function renderBotsCenterTab() {
             .join('')
         : '';
 
-    bot11ListEl.innerHTML = [gaHtml, bktHtml, revHtml].filter(Boolean).join('');
+    bot11ListEl.innerHTML = [forecastBannerHtml, gaHtml, bktHtml, revHtml].filter(Boolean).join('');
   }
 
-  // --- BOT 12: ĐỒNG BỘ BÁO CÁO ĐÁM MÂY & BẢNG XẾP HẠNG P&L (NOTION / GOOGLE SHEETS / CSV) ---
+  // --- BOT 12: ĐỒNG BỘ BÁO CÁO ĐÁM MÂY & BẢNG XẾP HẠNG P&L CFO UNIT ECONOMICS ($/VIDEO) ---
   const cRows = Array.isArray(cloudReport.rows) ? cloudReport.rows : [];
   const grpBoard = Array.isArray(cloudReport.groupLeaderboard) ? cloudReport.groupLeaderboard : [];
   setText('bot12-kpi-rows', `${cRows.length} kênh`);
@@ -6789,7 +6922,7 @@ function renderBotsCenterTab() {
       const grpHtml =
         grpBoard.length > 0
           ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px 10px;margin-bottom:6px;border-radius:8px;background:rgba(2,132,199,0.08);border:1px solid rgba(2,132,199,0.25);">
-              <span style="font-size:11px;font-weight:800;color:#0284c7;">🏆 Xếp Hạng P&amp;L Theo Group:</span>
+              <span style="font-size:11px;font-weight:800;color:#0284c7;">🏆 Xếp Hạng P&amp;L &amp; CFO ($/Video) Theo Group:</span>
               ${grpBoard
                 .slice(0, 6)
                 .map(
@@ -6798,7 +6931,9 @@ function renderBotsCenterTab() {
                       i + 1
                     } <strong>${escapeHtml(g.group)}</strong> (${g.channelCount} kênh): <strong>$${Number(
                       g.totalRevenueUsd || 0
-                    ).toLocaleString('vi-VN')}</strong></span>`
+                    ).toLocaleString('vi-VN')}</strong> · <small>$${Number(
+                      g.revenuePerVideoUsd || 0
+                    ).toLocaleString('vi-VN')}/video</small></span>`
                 )
                 .join('')}
             </div>`
@@ -6817,6 +6952,9 @@ function renderBotsCenterTab() {
                   </span>
                   <strong>${escapeHtml(r.name)}</strong>
                   <span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(r.handle)}</span>
+                  <span style="font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: rgba(16,185,129,0.14); color: #047857; font-weight: 700;">
+                    💵 $${Number(r.revenuePerVideoUsd || 0).toLocaleString('vi-VN')}/video
+                  </span>
                   <strong style="margin-left: auto; color: #059669;">$${Number(r.yearlyRevenueUsd || 0).toLocaleString('vi-VN')}</strong>
                 </div>
                 <div class="bot-viral-meta">

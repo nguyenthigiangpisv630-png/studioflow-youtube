@@ -672,9 +672,12 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(scanRes.status, 200);
     const scanData = await scanRes.json();
     assert.equal(scanData.ok, true);
-    assert.ok(scanData.watchdog.viralVideos.some((v) => v.title === 'Video Cắn Đề Xuất Nổ View'));
+    const viralHit = scanData.watchdog.viralVideos.find((v) => v.title === 'Video Cắn Đề Xuất Nổ View');
+    assert.ok(viralHit);
+    assert.ok(viralHit.tubebuddyBooster && viralHit.tubebuddyBooster.pinnedCommentSuggestion);
+    assert.ok(viralHit.tubebuddyBooster.endScreenStrategy.includes('End-Screen'));
 
-    // 2b. Quét Bot 3 Nhắc Lịch Đăng Video & Canh Kênh Bỏ Quên
+    // 2b. Quét Bot 3 Nhắc Lịch Đăng Video, Canh Kênh Bỏ Quên & Auto Giao Đề Tài
     const schedRes = await fetch(`${baseUrl}/api/bots/schedule/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -685,9 +688,13 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(schedData.ok, true);
     assert.ok(Array.isArray(schedData.scheduleRadar.scheduleItems));
     assert.ok(Array.isArray(schedData.scheduleRadar.managerKpis));
-    assert.ok(schedData.scheduleRadar.scheduleItems.some((it) => it.channelId === ch.id && it.primeUploadWindow));
+    assert.ok(
+      schedData.scheduleRadar.scheduleItems.some(
+        (it) => it.channelId === ch.id && it.primeUploadWindow && it.assignedTopicSuggestion
+      )
+    );
 
-    // 3. Tạo Snapshot Bất Tử (Bot 4) khi đang có kênh Test
+    // 3. Tạo Snapshot Bất Tử (Bot 4) kèm mã băm SHA-256 khi đang có kênh Test
     const snapRes = await fetch(`${baseUrl}/api/bots/backup/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -698,6 +705,8 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(snapData.ok, true);
     const savedSnapshotId = snapData.snapshot.id;
     assert.ok(savedSnapshotId);
+    assert.ok(snapData.snapshot.sha256Checksum && snapData.snapshot.sha256Checksum.length >= 12);
+    assert.equal(snapData.snapshot.integrityVerified, true);
 
     // 4. Xóa kênh Test đi, xác nhận kênh đã bị xóa & Bot 4 Auto-Shield tự động chụp Snapshot bảo vệ
     store.deleteChannel(ch.id);
@@ -723,7 +732,7 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
       true
     );
 
-    // 6. Bot 5 — Săn Ngách, Dò Kênh & Ước Tính Doanh Thu Đối Thủ (Outlier / NexLev Hunter)
+    // 6. Bot 5 — Săn Ngách, Dò Kênh Đối Thủ (NexLev + vidIQ + 1of10 + Viewstats + SocialBlade)
     const spyScan = await store.runCompetitorHunterScan({
       handleOrUrl: '@MockCompetitor',
       outlierThreshold: 1.5,
@@ -742,6 +751,8 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(spyScan.channelName, 'Kênh Đối Thủ Test');
     assert.equal(spyScan.outlierCount, 1);
     assert.equal(spyScan.outliers[0].videoId, 'vid003');
+    assert.equal(spyScan.outliers[0].oneOfTenRank, 1);
+    assert.ok(spyScan.outliers[0].oneOfTenBadge.includes('1/10'));
     assert.ok(spyScan.outliers[0].multiplier >= 2);
     assert.ok(spyScan.outliers[0].vph > 100);
     assert.ok(spyScan.outliers[0].viewsToSubRatio >= 1.5);
@@ -750,13 +761,18 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(spyScan.nexlevDossier.facelessVerdict.includes('Faceless'));
     assert.ok(spyScan.vidiqAudit && spyScan.vidiqAudit.seoScore >= 75);
     assert.ok(spyScan.vidiqAudit.tagsCsv.includes('automation'));
+    assert.ok(spyScan.socialBladeDossier && spyScan.socialBladeDossier.grade);
+    assert.ok(spyScan.socialBladeDossier.monthlyEarningsRange.includes('$'));
+    assert.ok(spyScan.oneOfTenDossier && spyScan.oneOfTenDossier.best1of10Video);
+    assert.ok(Array.isArray(spyScan.oneOfTenDossier.deadTopicsToAvoid));
+    assert.ok(spyScan.viewstatsDossier && spyScan.viewstatsDossier.sweetSpotDuration);
     assert.ok(spyScan.estimatedMonthlyRevenueUsd > 0);
     assert.ok(spyScan.estimatedRpmUsd > 0);
     assert.ok(spyScan.hotKeywords.some((k) => k.word === 'automation'));
     assert.ok(Array.isArray(spyScan.trendingPhrases) && spyScan.trendingPhrases.length > 0);
     assert.ok(spyScan.trendingPhrases.some((p) => p.phrase.includes('ai automation')));
 
-    // 7. Bot 6 — Dịch Ngược REA (/rea), Chấm Điểm CTR & 3 Hook Variants A/B/C
+    // 7. Bot 6 — Dịch Ngược REA (/rea), ThumbsUp.tv Safe-Zone, TubeBuddy A/B & Canva Pack
     const thumbRes = await fetch(`${baseUrl}/api/bots/thumbnail/clone`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -770,13 +786,15 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(thumbData.ok, true);
     assert.ok(thumbData.cloneItem.ctrScore >= 80);
     assert.equal(thumbData.cloneItem.hookVariants.length, 3);
+    assert.ok(thumbData.cloneItem.designStudioPack && thumbData.cloneItem.designStudioPack.thumbsUpPreview);
+    assert.equal(thumbData.cloneItem.designStudioPack.canvaPhotoshopPack.primaryHex, '#FFD700');
     assert.ok(thumbData.cloneItem.prompts.midjourney.includes('--ar 16:9'));
     assert.ok(thumbData.cloneItem.prompts.fluxIdeogram.length > 20);
     assert.ok(thumbData.cloneItem.prompts.reaReconstruction.includes('REA 1:1'));
     assert.ok(thumbData.cloneItem.reaDossier && thumbData.cloneItem.reaDossier.binaryEvidence);
     assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
 
-    // 8. Bot 7 (Bot 9) — Săn Từ Khóa Ngách, Chấm Điểm vidIQ Pro & Dàn Ý Kịch Bản 5 Phần (/trend)
+    // 8. Bot 7 (Bot 9) — Săn Từ Khóa vidIQ + Google Trends + Subscribr 30s Script (/trend)
     const trendScan = await store.runTrendHunterScan({
       seedKeyword: 'tiểu sử tỷ phú',
       market: 'vi',
@@ -793,6 +811,9 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(trendScan.keywords[0].vidiqVolumeScore >= 60);
     assert.ok(trendScan.keywords[0].vidiqCompetitionScore >= 15);
     assert.ok(trendScan.keywords[0].vidiqOverallScore >= 75);
+    assert.ok(trendScan.keywords[0].googleTrendsWave);
+    assert.ok(Array.isArray(trendScan.keywords[0].audienceQuestions) && trendScan.keywords[0].audienceQuestions.length === 3);
+    assert.ok(trendScan.keywords[0].voiceoverHook30s.includes('99%'));
     assert.ok(trendScan.keywords[0].vidiqTagsCsv.includes('tiểu sử tỷ phú'));
     assert.ok(trendScan.vidiqSummary && trendScan.vidiqSummary.bestOverallScore >= 75);
     assert.ok(trendScan.vidiqSummary.masterTagsCsv.includes('tiểu sử tỷ phú'));
@@ -819,7 +840,7 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(Array.isArray(compTrendScan.nicheCompetitors) && compTrendScan.nicheCompetitors.length > 0);
     assert.ok(compTrendScan.keywords.some((k) => k.keyword.includes('ai automation')));
 
-    // 9. Bot 11 — Đếm Ngược BKT, Bảo Vệ Gà AdSense & RPM (/ga & /revenue)
+    // 9. Bot 11 — Đếm Ngược BKT, Bảo Vệ Gà AdSense & Dự Báo Dòng Tiền SocialBlade (/ga & /revenue)
     store.updateChannel(ch.id, {
       subscribers: 920,
       watchHours: 3800,
@@ -835,13 +856,15 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     const shieldData = await shieldRes.json();
     assert.equal(shieldData.ok, true);
     assert.ok(shieldData.monetizationShield.summary.totalYearlyRevenue >= 3050);
+    assert.ok(shieldData.monetizationShield.revenueForecast.projectedNext30DaysUsd > 0);
+    assert.ok(shieldData.monetizationShield.revenueForecast.projectedEndOfYearUsd > 0);
     assert.ok(
       shieldData.monetizationShield.bktCandidates.some(
         (c) => c.channelId === ch.id && c.overallPct >= 90 && Boolean(c.bktEtaLabel)
       )
     );
 
-    // 10. Bot 12 — Đồng Bộ Báo Cáo Đám Mây & Bảng Xếp Hạng P&L (Notion / Google Sheets / CSV)
+    // 10. Bot 12 — Đồng Bộ Báo Cáo Đám Mây & Bảng Xếp Hạng CFO Unit Economics ($/Video)
     const cloudRes = await fetch(`${baseUrl}/api/bots/cloud/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -851,7 +874,9 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     const cloudData = await cloudRes.json();
     assert.equal(cloudData.ok, true);
     assert.ok(Array.isArray(cloudData.cloudReport.groupLeaderboard));
+    assert.ok(cloudData.cloudReport.groupLeaderboard[0].revenuePerVideoUsd >= 0);
     assert.ok(Array.isArray(cloudData.cloudReport.managerLeaderboard));
+    assert.ok(cloudData.cloudReport.rows.some((r) => r.revenuePerVideoUsd > 0));
     assert.ok(cloudData.cloudReport.sheetsTsv.includes('Kênh Test Bot Nổ View'));
     assert.ok(cloudData.cloudReport.notionMarkdown.includes('BÁO CÁO ĐÁM MÂY HỆ THỐNG KÊNH ACB9X'));
     assert.ok(cloudData.cloudReport.csvContent.includes('Kênh Test Bot Nổ View'));
