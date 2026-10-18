@@ -4457,14 +4457,9 @@ function setupEventListeners() {
     if (googleBtn) {
       const userInp = document.getElementById('input-auth-username');
       const passStep = document.getElementById('auth-password-step');
-      const loginForm = document.getElementById('form-auth-login');
+      const passInp = document.getElementById('input-auth-login-pass');
       const boxEl = document.getElementById('auth-saved-gmails-box');
-      if (passStep) passStep.hidden = true;
-      const currentVal = String(userInp?.value || '').trim();
-      if (currentVal && currentVal.toLowerCase() !== 'admin') {
-        loginForm?.requestSubmit();
-        return;
-      }
+      if (passStep) passStep.hidden = false;
       const saved = getSavedGmails();
       if (saved.length > 0 && boxEl) {
         const willOpen = boxEl.hidden;
@@ -4473,9 +4468,12 @@ function setupEventListeners() {
         return;
       }
       if (userInp) {
-        userInp.value = '';
-        userInp.placeholder = 'Enter your Google Gmail (e.g. name@gmail.com)...';
-        userInp.focus();
+        if (!userInp.value.trim()) {
+          userInp.placeholder = 'Nhập địa chỉ Gmail của bạn (VD: tenban@gmail.com)...';
+          userInp.focus();
+        } else {
+          passInp?.focus();
+        }
       }
       return;
     }
@@ -4496,19 +4494,17 @@ function setupEventListeners() {
       return;
     }
 
-    // Chọn nhanh 1 Gmail đã đăng nhập gần đây -> Đăng nhập 1 chạm ngay lập tức
+    // Chọn nhanh 1 Gmail đã lưu gần đây -> điền Gmail và trỏ vào ô mật khẩu
     const pickSavedGmailBtn = e.target.closest('[data-pick-saved-gmail]');
     if (pickSavedGmailBtn) {
       const pickedEmail = pickSavedGmailBtn.dataset.pickSavedGmail || '';
       const userInp = document.getElementById('input-auth-username');
       const passStep = document.getElementById('auth-password-step');
       const passInp = document.getElementById('input-auth-login-pass');
-      const loginForm = document.getElementById('form-auth-login');
-      if (passStep) passStep.hidden = true;
-      if (passInp) passInp.value = '';
+      if (passStep) passStep.hidden = false;
       if (userInp) userInp.value = pickedEmail;
       renderSavedGmailsBox(false);
-      loginForm?.requestSubmit();
+      setTimeout(() => passInp?.focus(), 40);
       return;
     }
 
@@ -4805,7 +4801,7 @@ function setupEventListeners() {
       const origText = submitBtn ? submitBtn.textContent : '';
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Đang đăng ký & mở Không gian riêng...';
+        submitBtn.textContent = 'Đang gửi yêu cầu đăng ký...';
       }
       try {
         const fd = new FormData(form);
@@ -4815,30 +4811,23 @@ function setupEventListeners() {
           password: String(fd.get('password') || ''),
           note: String(fd.get('note') || '').trim(),
         };
-        await apiRequest('/api/auth/register', {
+        const regRes = await apiRequest('/api/auth/register', {
           method: 'POST',
           body: JSON.stringify(payload),
         });
-        const loginRes = await apiRequest('/api/auth/login', {
-          method: 'POST',
-          body: JSON.stringify({
-            email: payload.email,
-            password: payload.password,
-            name: payload.name,
-            directGmailLogin: true,
-          }),
-        });
         form.reset();
-        rememberGmailLogin(loginRes.user?.email || payload.email);
-        setStoredAuthToken(loginRes.token || '');
-        state.currentUser = loginRes.user || null;
-        state.selectedContentId = null;
-        state.activeChannelDeepId = null;
-        showAuthLockOverlay(false);
-        await loadOverview();
-        showBanner(
-          `✅ Đã đăng ký & đăng nhập Gmail "${loginRes.user?.email || payload.email}" (Không gian làm việc tách riêng)!`
-        );
+        const registeredEmail = regRes.user?.email || payload.email;
+        rememberGmailLogin(registeredEmail);
+        const loginUserInp = document.getElementById('input-auth-username');
+        if (loginUserInp) loginUserInp.value = registeredEmail;
+        if (okEl) {
+          okEl.innerHTML = `
+            ⏳ <b>Đăng ký tài khoản mới thành công!</b><br />
+            Tài khoản Gmail <b>${escapeHtml(registeredEmail)}</b> đã được gửi tới Admin và đang ở trạng thái <b>Chờ Admin chấp nhận</b>.<br />
+            Sau khi Admin bấm <b>"✅ Duyệt"</b> trong trang Quản lý User, bạn hãy bấm sang tab <b>Đăng nhập</b> để vào hệ thống!
+          `;
+          okEl.hidden = false;
+        }
       } catch (err) {
         if (errEl) {
           errEl.textContent = err.message;
@@ -5519,7 +5508,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=52', { updateViaCache: 'none' })
+      .register('/sw.js?v=53', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

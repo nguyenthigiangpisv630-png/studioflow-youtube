@@ -338,10 +338,10 @@ test('POST /api/auth/register đăng ký Gmail mới, chờ Admin cấp quyền 
   });
 });
 
-test('POST /api/auth/login với directGmailLogin=true cho phép Login Gmail trực tiếp ở ngoài và tự tạo không gian riêng', async () => {
+test('Đăng ký Gmail mới ở trạng thái pending phải được Admin chấp nhận (approved) mới đăng nhập được', async () => {
   await withTestServer(async ({ baseUrl }) => {
-    // 1. User nhập thẳng Gmail ở màn hình Login ngoài (chưa cần tạo trước)
-    const directLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+    // 1. User chưa đăng ký không thể đăng nhập thẳng
+    const unregisteredRes = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -350,28 +350,60 @@ test('POST /api/auth/login với directGmailLogin=true cho phép Login Gmail tr�
         directGmailLogin: true,
       }),
     });
-    assert.equal(directLoginRes.status, 200);
-    const directLoginBody = await directLoginRes.json();
-    assert.equal(directLoginBody.ok, true);
-    assert.equal(directLoginBody.autoRegistered, true);
-    assert.ok(directLoginBody.token);
-    assert.equal(directLoginBody.user.email, 'hoangnam.media@gmail.com');
-    assert.equal(directLoginBody.user.status, 'approved');
-    assert.equal(directLoginBody.user.scopeMode, 'isolated');
+    assert.equal(unregisteredRes.status, 400);
 
-    // 2. Không gian riêng của Gmail mới hoàn toàn độc lập (0 kênh ban đầu)
-    const overviewRes = await fetch(`${baseUrl}/api/overview`, {
-      headers: { 'X-Studio-Token': directLoginBody.token },
+    // 2. User đăng ký mới qua /api/auth/register -> trạng thái pending
+    const regRes = await fetch(`${baseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Hoàng Nam Media',
+        email: 'hoangnam.media@gmail.com',
+        password: 'password123',
+      }),
     });
-    assert.equal(overviewRes.status, 200);
-    const overviewBody = await overviewRes.json();
-    assert.equal(overviewBody.channels.length, 0);
+    assert.equal(regRes.status, 201);
+    const regBody = await regRes.json();
+    assert.equal(regBody.status, 'pending');
+    assert.equal(regBody.user.status, 'pending');
 
-    // 3. Trang Quản lý User của Admin nhìn thấy ngay tài khoản Gmail vừa login
-    const usersRes = await fetch(`${baseUrl}/api/users`);
-    assert.equal(usersRes.status, 200);
-    const usersBody = await usersRes.json();
-    assert.ok(usersBody.users.some((u) => u.email === 'hoangnam.media@gmail.com'));
+    // 3. Khi Admin chưa chấp nhận -> cố đăng nhập sẽ bị chặn 403
+    const pendingLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'hoangnam.media@gmail.com',
+        password: 'password123',
+        directGmailLogin: true,
+      }),
+    });
+    assert.equal(pendingLoginRes.status, 403);
+
+    // 4. Admin chấp nhận (phê duyệt) tài khoản trong Trang Quản lý User
+    const approveRes = await fetch(`${baseUrl}/api/users/${regBody.user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved' }),
+    });
+    assert.equal(approveRes.status, 200);
+
+    // 5. Sau khi được Admin chấp nhận -> đăng nhập thành công vào Không gian riêng
+    const approvedLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'hoangnam.media@gmail.com',
+        password: 'password123',
+        directGmailLogin: true,
+      }),
+    });
+    assert.equal(approvedLoginRes.status, 200);
+    const approvedLoginBody = await approvedLoginRes.json();
+    assert.equal(approvedLoginBody.ok, true);
+    assert.ok(approvedLoginBody.token);
+    assert.equal(approvedLoginBody.user.email, 'hoangnam.media@gmail.com');
+    assert.equal(approvedLoginBody.user.status, 'approved');
+    assert.equal(approvedLoginBody.user.scopeMode, 'isolated');
   });
 });
 

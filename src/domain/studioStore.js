@@ -1100,29 +1100,20 @@ export class StudioStore {
         return uEmail === rawId || uEmail === normalizedGmail;
       });
       if (foundUser) {
-        const hasProvidedPass = String(password || '').trim().length > 0;
-        if (!directGmailLogin || hasProvidedPass) {
-          if (!candidateHash || candidateHash !== foundUser.passwordHash) {
-            throw new Error('Mật khẩu của tài khoản Gmail này không chính xác. Vui lòng kiểm tra lại!');
-          }
+        if (!candidateHash || candidateHash !== foundUser.passwordHash) {
+          throw new Error('Mật khẩu của tài khoản Gmail này không chính xác. Vui lòng kiểm tra lại!');
         }
         if (foundUser.status === 'suspended') {
           const err = new Error('Tài khoản Gmail này hiện đang tạm khóa. Vui lòng liên hệ Admin!');
           err.statusCode = 403;
           throw err;
         }
-        if (foundUser.status === 'pending') {
-          if (directGmailLogin) {
-            foundUser.status = 'approved';
-            foundUser.approvedAt = new Date().toISOString();
-            this.#save();
-          } else {
-            const err = new Error(
-              'Tài khoản Gmail của bạn đã đăng ký thành công nhưng đang chờ Admin phê duyệt & cấp quyền!'
-            );
-            err.statusCode = 403;
-            throw err;
-          }
+        if (foundUser.status !== 'approved') {
+          const err = new Error(
+            '⏳ Tài khoản Gmail của bạn đã đăng ký thành công nhưng đang chờ Admin chấp nhận (phê duyệt)!'
+          );
+          err.statusCode = 403;
+          throw err;
         }
         if (!foundUser.sessionToken) {
           foundUser.sessionToken = `usr_tok_${crypto.randomUUID().replace(/-/g, '')}`;
@@ -1133,30 +1124,6 @@ export class StudioStore {
           passwordEnabled: true,
           token: foundUser.sessionToken,
           user: sanitizeUser(foundUser),
-        };
-      }
-
-      // Cho phép đăng nhập trực tiếp bằng Gmail ở màn hình ngoài -> Tự động khởi tạo Không gian làm việc tách riêng (Isolated Workspace)
-      if (directGmailLogin) {
-        const cleanPass = String(password || '').trim() || normalizedGmail;
-        if (cleanPass.length < 3) {
-          throw new Error('Mật khẩu đăng nhập Gmail phải có ít nhất 3 ký tự!');
-        }
-        const created = this.registerGmailUser({
-          email: normalizedGmail,
-          name: String(options?.name || normalizedGmail.split('@')[0]).trim(),
-          password: cleanPass,
-          autoApprove: true,
-          scopeMode: 'isolated',
-          note: 'Đăng nhập trực tiếp bằng Gmail từ màn hình ngoài',
-        });
-        const newUserRecord = (this.state.users || []).find((u) => u.id === created.user.id);
-        return {
-          ok: true,
-          passwordEnabled: true,
-          autoRegistered: true,
-          token: newUserRecord?.sessionToken || '',
-          user: created.user,
         };
       }
 
@@ -1174,7 +1141,7 @@ export class StudioStore {
       }
 
       throw new Error(
-        'Tài khoản Gmail này chưa đăng ký hoặc mật khẩu không đúng. Hãy bấm sang tab "Đăng ký Gmail" nếu bạn là thành viên mới!'
+        'Tài khoản Gmail này chưa được đăng ký. Vui lòng bấm sang tab "Đăng ký tài khoản" để đăng ký và chờ Admin chấp nhận!'
       );
     }
 
