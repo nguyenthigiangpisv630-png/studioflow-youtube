@@ -1127,16 +1127,20 @@ export class StudioStore {
   getAuthStatus(token = '') {
     const requiredHash = this.getRequiredPasswordHash();
     const resolved = this.resolveUserFromToken(token);
+    const activeUser = resolved.valid ? resolved.user : !requiredHash ? this.getAdminUserProfile() : null;
+    const gaStatus = this.getGaPasswordStatus(activeUser);
     if (!requiredHash) {
       return {
         passwordEnabled: false,
         authenticated: true,
-        user: resolved.user || this.getAdminUserProfile(),
+        hasCustomGaPassword: gaStatus.hasCustomGaPassword,
+        user: activeUser,
       };
     }
     return {
       passwordEnabled: true,
       authenticated: Boolean(resolved.valid),
+      hasCustomGaPassword: gaStatus.hasCustomGaPassword,
       user: resolved.valid ? resolved.user : null,
     };
   }
@@ -1439,25 +1443,95 @@ export class StudioStore {
     return false;
   }
 
-  verifyGaPassword(password = '') {
+  getGaPasswordStatus(user = null) {
+    if (!this.state.meta) this.state.meta = {};
+    if (user && user.id && user.id !== 'admin') {
+      const foundUser = (this.state.users || []).find((u) => u.id === user.id);
+      const userGaHash = String(foundUser?.gaPasswordHash || '').trim();
+      return {
+        hasCustomGaPassword: Boolean(userGaHash),
+        hasAnyPassword: Boolean(userGaHash || foundUser?.passwordHash),
+      };
+    }
+    const gaHash = String(this.state.meta.gaPasswordHash || '').trim();
+    const webHash = this.getRequiredPasswordHash();
+    return {
+      hasCustomGaPassword: Boolean(gaHash),
+      hasAnyPassword: Boolean(gaHash || webHash),
+    };
+  }
+
+  verifyGaPassword(password = '', user = null) {
     if (!this.state.meta) this.state.meta = {};
     const cleanPass = String(password || '').trim();
     if (!cleanPass) {
       throw new Error('Vui lòng nhập mật khẩu để mở khóa xem Gà kết nối!');
     }
     const candidateHash = hashPassword(cleanPass);
+
+    if (user && user.id && user.id !== 'admin') {
+      const foundUser = (this.state.users || []).find((u) => u.id === user.id);
+      if (foundUser) {
+        const userGaHash = String(foundUser.gaPasswordHash || '').trim();
+        const userLoginHash = String(foundUser.passwordHash || '').trim();
+        if (userGaHash) {
+          if (!safeCompareStrings(candidateHash, userGaHash)) {
+            throw new Error(
+              'Mật khẩu Gà kết nối không chính xác. Nếu quên mật khẩu, hãy bấm sang tab "Quên Pass / Lấy lại"!'
+            );
+          }
+          return {
+            ok: true,
+            firstTimeSet: false,
+            hasCustomGaPassword: true,
+          };
+        }
+        if (userLoginHash) {
+          if (!safeCompareStrings(candidateHash, userLoginHash)) {
+            throw new Error('Mật khẩu không chính xác. Không thể mở xem Gà kết nối!');
+          }
+          return {
+            ok: true,
+            firstTimeSet: false,
+            hasCustomGaPassword: false,
+          };
+        }
+        foundUser.gaPasswordHash = candidateHash;
+        this.#save();
+        return {
+          ok: true,
+          firstTimeSet: true,
+          hasCustomGaPassword: true,
+        };
+      }
+    }
+
     const gaHash = String(this.state.meta.gaPasswordHash || '').trim();
     const webHash = this.getRequiredPasswordHash();
 
-    if (gaHash || webHash) {
-      const matchedGa = Boolean(gaHash && safeCompareStrings(candidateHash, gaHash));
-      const matchedWeb = Boolean(webHash && safeCompareStrings(candidateHash, webHash));
-      if (!matchedGa && !matchedWeb) {
+    if (gaHash) {
+      const matchedGa = safeCompareStrings(candidateHash, gaHash);
+      if (!matchedGa) {
+        throw new Error(
+          'Mật khẩu Gà kết nối không chính xác. Nếu quên mật khẩu, hãy bấm sang tab "Quên Pass / Lấy lại"!'
+        );
+      }
+      return {
+        ok: true,
+        firstTimeSet: false,
+        hasCustomGaPassword: true,
+      };
+    }
+
+    if (webHash) {
+      const matchedWeb = safeCompareStrings(candidateHash, webHash);
+      if (!matchedWeb) {
         throw new Error('Mật khẩu không chính xác. Không thể mở xem Gà kết nối!');
       }
       return {
         ok: true,
         firstTimeSet: false,
+        hasCustomGaPassword: false,
       };
     }
 
@@ -1466,7 +1540,117 @@ export class StudioStore {
     return {
       ok: true,
       firstTimeSet: true,
+      hasCustomGaPassword: true,
     };
+  }
+
+  manageGaPassword(input = {}, user = null) {
+    if (!this.state.meta) this.state.meta = {};
+    const action = String(input.action || 'set').trim().toLowerCase();
+    const cleanNew = String(input.newPassword || '').trim();
+    if (!cleanNew || cleanNew.length < 3) {
+      throw new Error('Mật khẩu Gà kết nối mới phải có ít nhất 3 ký tự!');
+    }
+    const newHash = hashPassword(cleanNew);
+
+    const isMember = Boolean(user && user.id && user.id !== 'admin');
+    const foundUser = isMember ? (this.state.users || []).find((u) => u.id === user.id) : null;
+    const existingGaHash = isMember
+      ? String(foundUser?.gaPasswordHash || '').trim()
+      : String(this.state.meta.gaPasswordHash || '').trim();
+    const loginHash = isMember
+      ? String(foundUser?.passwordHash || '').trim()
+      : this.getRequiredPasswordHash();
+
+    if (action === 'set') {
+      if (existingGaHash) {
+        const cleanCurrent = String(input.currentPassword || '').trim();
+        if (!cleanCurrent) {
+          throw new Error(
+            'Bạn đã đặt mật khẩu Gà kết nối trước đó. Vui lòng nhập mật khẩu hiện tại hoặc bấm sang tab "Quên Pass / Lấy lại"!'
+          );
+        }
+        const currentHash = hashPassword(cleanCurrent);
+        const matchedGa = safeCompareStrings(currentHash, existingGaHash);
+        const matchedLogin = Boolean(loginHash && safeCompareStrings(currentHash, loginHash));
+        if (!matchedGa && !matchedLogin) {
+          throw new Error(
+            'Mật khẩu Gà hiện tại không chính xác! Nếu quên, hãy bấm sang tab "Quên Pass / Lấy lại".'
+          );
+        }
+      }
+      if (isMember && foundUser) {
+        foundUser.gaPasswordHash = newHash;
+      } else {
+        this.state.meta.gaPasswordHash = newHash;
+      }
+      this.#save();
+      return {
+        ok: true,
+        action: 'set',
+        hasCustomGaPassword: true,
+        message: existingGaHash
+          ? 'Đã đổi mật khẩu Gà kết nối thành công!'
+          : 'Đã đặt mật khẩu (Set Pass) cho Gà kết nối thành công!',
+      };
+    }
+
+    if (action === 'reset') {
+      const cleanRecovery = String(input.recoveryPassword || '').trim();
+      const recoveryHash = hashPassword(cleanRecovery);
+      const lowerRecovery = cleanRecovery.toLowerCase();
+
+      if (isMember && foundUser) {
+        const uEmail = String(foundUser.email || '').trim().toLowerCase();
+        const uLocal = uEmail.includes('@') ? uEmail.split('@')[0] : uEmail;
+        const matchedLoginPass = Boolean(loginHash && safeCompareStrings(recoveryHash, loginHash));
+        const matchedUsername = Boolean(
+          lowerRecovery && (lowerRecovery === uEmail || lowerRecovery === uLocal)
+        );
+        if (loginHash && !matchedLoginPass && !matchedUsername) {
+          throw new Error(
+            'Mật khẩu đăng nhập tài khoản hoặc Username xác nhận không chính xác! Vui lòng kiểm tra lại.'
+          );
+        }
+        foundUser.gaPasswordHash = newHash;
+        this.#save();
+        return {
+          ok: true,
+          action: 'reset',
+          hasCustomGaPassword: true,
+          message: 'Đã lấy lại và đặt mật khẩu Gà kết nối mới thành công!',
+        };
+      }
+
+      // Admin hoặc chế độ không khóa Web
+      if (loginHash) {
+        const adminEmail = String(this.state.meta.adminEmail || 'admin').trim().toLowerCase();
+        const adminLocal = adminEmail.includes('@') ? adminEmail.split('@')[0] : adminEmail;
+        const matchedAdminPass = safeCompareStrings(recoveryHash, loginHash);
+        const matchedAdminId = Boolean(
+          lowerRecovery &&
+            (lowerRecovery === 'admin' ||
+              lowerRecovery === adminEmail ||
+              lowerRecovery === adminLocal)
+        );
+        if (!matchedAdminPass && !matchedAdminId) {
+          throw new Error(
+            'Mật khẩu đăng nhập Admin hoặc tên tài khoản xác nhận không chính xác! Vui lòng kiểm tra lại.'
+          );
+        }
+      }
+
+      this.state.meta.gaPasswordHash = newHash;
+      this.#save();
+      return {
+        ok: true,
+        action: 'reset',
+        hasCustomGaPassword: true,
+        message: 'Đã lấy lại và đặt mật khẩu Gà kết nối mới thành công!',
+      };
+    }
+
+    throw new Error(`Thao tác mật khẩu Gà kết nối không hợp lệ: ${action}`);
   }
 
   updatePassword(input = {}, currentAuthToken = '') {

@@ -513,3 +513,92 @@ test('Đăng ký & Đăng nhập bằng Username (không cần @gmail.com), bắ
     assert.equal(loginBody.user.email, 'minhquan99');
   });
 });
+
+test('Gà kết nối: Cho phép Set Pass (đặt/đổi mật khẩu riêng) và Lấy lại Pass khi quên (Reset Pass)', async () => {
+  await withTestServer(async ({ baseUrl }) => {
+    // Đặt mật khẩu khóa Web Admin là 'admin123'
+    const passRes = await fetch(`${baseUrl}/api/auth/password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newPassword: 'admin123' }),
+    });
+    const { token } = await passRes.json();
+
+    // 1. Đặt mật khẩu Gà kết nối riêng lần đầu (Set Pass): 'ga-vip-888'
+    const setRes = await fetch(`${baseUrl}/api/auth/verify-ga`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Studio-Token': token,
+      },
+      body: JSON.stringify({
+        action: 'set',
+        newPassword: 'ga-vip-888',
+      }),
+    });
+    assert.equal(setRes.status, 200);
+    const setBody = await setRes.json();
+    assert.equal(setBody.ok, true);
+    assert.equal(setBody.hasCustomGaPassword, true);
+
+    // 2. Mở khóa bằng mật khẩu sai -> báo lỗi 400
+    const badUnlock = await fetch(`${baseUrl}/api/auth/verify-ga`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Studio-Token': token,
+      },
+      body: JSON.stringify({
+        action: 'unlock',
+        password: 'wrong-password',
+      }),
+    });
+    assert.equal(badUnlock.status, 400);
+
+    // 3. Mở khóa bằng đúng mật khẩu Gà ('ga-vip-888') -> 200
+    const goodUnlock = await fetch(`${baseUrl}/api/auth/verify-ga`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Studio-Token': token,
+      },
+      body: JSON.stringify({
+        action: 'unlock',
+        password: 'ga-vip-888',
+      }),
+    });
+    assert.equal(goodUnlock.status, 200);
+
+    // 4. Quên mật khẩu Gà -> Lấy lại pass bằng mật khẩu đăng nhập Web ('admin123') và đặt pass mới 'ga-new-999'
+    const resetRes = await fetch(`${baseUrl}/api/auth/verify-ga`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Studio-Token': token,
+      },
+      body: JSON.stringify({
+        action: 'reset',
+        recoveryPassword: 'admin123',
+        newPassword: 'ga-new-999',
+      }),
+    });
+    assert.equal(resetRes.status, 200);
+    const resetBody = await resetRes.json();
+    assert.equal(resetBody.ok, true);
+
+    // 5. Mở khóa bằng mật khẩu Gà mới sau khi lấy lại ('ga-new-999') -> 200
+    const unlockAfterReset = await fetch(`${baseUrl}/api/auth/verify-ga`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Studio-Token': token,
+      },
+      body: JSON.stringify({
+        action: 'unlock',
+        password: 'ga-new-999',
+      }),
+    });
+    assert.equal(unlockAfterReset.status, 200);
+  });
+});
+

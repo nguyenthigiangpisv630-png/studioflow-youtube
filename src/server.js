@@ -263,11 +263,19 @@ export function createAppServer({
         }
       }
 
-      if (pathname === '/api/auth/verify-ga' && method === 'POST') {
+      if ((pathname === '/api/auth/verify-ga' || pathname === '/api/auth/ga-password') && method === 'POST') {
         checkBruteForceLockout(clientIp);
         const body = await readJsonBody(req);
+        const gaAuthStatus = store.getAuthStatus(clientToken);
+        const gaUser = gaAuthStatus.user || null;
         try {
-          const result = store.verifyGaPassword(body.password || '');
+          const action = String(body.action || (pathname === '/api/auth/ga-password' ? 'set' : 'unlock'))
+            .trim()
+            .toLowerCase();
+          const result =
+            action === 'set' || action === 'reset'
+              ? store.manageGaPassword({ ...body, action }, gaUser)
+              : store.verifyGaPassword(body.password || '', gaUser);
           clearBruteForceFailures(clientIp);
           return sendJson(res, 200, result);
         } catch (gaErr) {

@@ -736,9 +736,76 @@ function removeLocalCustomGroup(groupName = '') {
   }
 }
 
+function switchGaModalTab(tabMode = 'unlock') {
+  const mode = ['unlock', 'set', 'reset'].includes(tabMode) ? tabMode : 'unlock';
+  const actionInp = document.getElementById('ga-unlock-action');
+  if (actionInp) actionInp.value = mode;
+
+  document.querySelectorAll('#ga-modal-tabs [data-ga-modal-tab]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.gaModalTab === mode);
+  });
+
+  const unlockPanel = document.getElementById('ga-tab-panel-unlock');
+  const setPanel = document.getElementById('ga-tab-panel-set');
+  const resetPanel = document.getElementById('ga-tab-panel-reset');
+  if (unlockPanel) unlockPanel.hidden = mode !== 'unlock';
+  if (setPanel) setPanel.hidden = mode !== 'set';
+  if (resetPanel) resetPanel.hidden = mode !== 'reset';
+
+  const currentPassField = document.getElementById('field-ga-current-pass');
+  if (currentPassField) {
+    currentPassField.hidden = !state.hasCustomGaPassword;
+  }
+
+  const errEl = document.getElementById('ga-unlock-error');
+  if (errEl) errEl.hidden = true;
+
+  const submitBtn = document.getElementById('btn-submit-ga-modal');
+  if (submitBtn) {
+    submitBtn.textContent =
+      mode === 'set'
+        ? '🔑 Lưu Mật khẩu Gà (Set Pass)'
+        : mode === 'reset'
+        ? '🔄 Lấy lại & Lưu Mật khẩu mới'
+        : '🔓 Mở xem Gà kết nối';
+  }
+
+  setTimeout(() => {
+    if (mode === 'set') {
+      const firstSetInp = state.hasCustomGaPassword
+        ? document.getElementById('input-ga-current-password')
+        : document.getElementById('input-ga-new-password');
+      firstSetInp?.focus();
+    } else if (mode === 'reset') {
+      document.getElementById('input-ga-recovery-password')?.focus();
+    } else {
+      document.getElementById('input-ga-unlock-password')?.focus();
+    }
+  }, 40);
+}
+
+function openGaUnlockModal(chId = '', initialTab = 'unlock') {
+  const ch = state.channels.find((c) => c.id === chId);
+  const gaModal = document.getElementById('ga-unlock-modal');
+  if (!gaModal) return;
+  const form = document.getElementById('form-ga-unlock');
+  form?.reset();
+  const chIdInput = document.getElementById('ga-unlock-channel-id');
+  if (chIdInput) chIdInput.value = ch ? ch.id : chId;
+  const descEl = document.getElementById('ga-unlock-modal-desc');
+  if (descEl) {
+    descEl.textContent = ch
+      ? `Bảo mật thông tin Gà kết nối của kênh "${ch.name}". Bạn có thể mở khóa xem, đặt mật khẩu (Set Pass) hoặc lấy lại mật khẩu khi quên.`
+      : 'Thông tin Gà kết nối được ẩn bảo mật. Bạn có thể mở khóa xem, đặt mật khẩu (Set Pass) hoặc lấy lại mật khẩu khi quên.';
+  }
+  gaModal.hidden = false;
+  switchGaModalTab(initialTab);
+}
+
 async function loadOverview() {
   const authStatus = await apiRequest('/api/auth/status');
   state.passwordEnabled = Boolean(authStatus.passwordEnabled);
+  state.hasCustomGaPassword = Boolean(authStatus.hasCustomGaPassword);
   state.currentUser = authStatus.user || null;
   updatePasswordUiState();
 
@@ -2198,6 +2265,12 @@ function renderChannelGaPill(ch, isDeep = false) {
         />
         <button
           type="button"
+          class="ga-eye-btn ga-setpass-btn"
+          data-setpass-ga-id="${escapeHtml(ch.id)}"
+          title="Đặt / Đổi mật khẩu (Set Pass) hoặc lấy lại mật khẩu Gà kết nối"
+        >🔑 Pass</button>
+        <button
+          type="button"
           class="ga-eye-btn unlocked"
           data-lock-ga-id="${escapeHtml(ch.id)}"
           title="Ẩn lại Gà kết nối"
@@ -2211,7 +2284,7 @@ function renderChannelGaPill(ch, isDeep = false) {
       class="inline-meta-field inline-meta-ga locked"
       ${extraStyle}
       data-unlock-ga-id="${escapeHtml(ch.id)}"
-      title="Thông tin Gà kết nối đang được ẩn — Bấm Xem và nhập mật khẩu để mở"
+      title="Thông tin Gà kết nối đang được ẩn — Bấm Xem để mở hoặc bấm Pass để đặt/lấy lại mật khẩu"
     >
       <span class="inline-meta-label">Gà kết nối:</span>
       <span class="ga-masked-dots" aria-label="Đang ẩn bảo mật">••••••••</span>
@@ -2221,6 +2294,12 @@ function renderChannelGaPill(ch, isDeep = false) {
         data-unlock-ga-id="${escapeHtml(ch.id)}"
         title="Nhập mật khẩu để xem / sửa Gà kết nối"
       >🔒 Xem</button>
+      <button
+        type="button"
+        class="ga-eye-btn ga-setpass-btn"
+        data-setpass-ga-id="${escapeHtml(ch.id)}"
+        title="Đặt mật khẩu (Set Pass) hoặc lấy lại mật khẩu khi quên"
+      >🔑 Pass</button>
     </div>
   `;
 }
@@ -3372,28 +3451,20 @@ function setupEventListeners() {
       return;
     }
 
+    // Bấm nút "🔑 Pass" trên ô Gà kết nối -> Mở hộp thoại Đặt mật khẩu (Set Pass) / Lấy lại mật khẩu
+    const setpassGaBtn = e.target.closest('[data-setpass-ga-id]');
+    if (setpassGaBtn) {
+      e.stopPropagation();
+      const chId = setpassGaBtn.dataset.setpassGaId;
+      openGaUnlockModal(chId, 'set');
+      return;
+    }
+
     // Bấm nút "🔒 Xem" trên ô Gà kết nối -> Mở hộp thoại nhập mật khẩu
     const unlockGaBtn = e.target.closest('[data-unlock-ga-id]');
     if (unlockGaBtn) {
       const chId = unlockGaBtn.dataset.unlockGaId;
-      const ch = state.channels.find((c) => c.id === chId);
-      const gaModal = document.getElementById('ga-unlock-modal');
-      if (ch && gaModal) {
-        const chIdInput = document.getElementById('ga-unlock-channel-id');
-        if (chIdInput) chIdInput.value = ch.id;
-        const descEl = document.getElementById('ga-unlock-modal-desc');
-        if (descEl) {
-          descEl.textContent = `Thông tin Gà kết nối của kênh "${ch.name}" đang được ẩn bảo mật. Vui lòng nhập mật khẩu để xem hoặc chỉnh sửa.`;
-        }
-        const passInput = document.getElementById('input-ga-unlock-password');
-        if (passInput) passInput.value = '';
-        const errEl = document.getElementById('ga-unlock-error');
-        if (errEl) errEl.hidden = true;
-        gaModal.hidden = false;
-        setTimeout(() => {
-          passInput?.focus();
-        }, 50);
-      }
+      openGaUnlockModal(chId, 'unlock');
       return;
     }
 
@@ -4442,6 +4513,14 @@ function setupEventListeners() {
       closeSidebarSettingsMenu();
     }
 
+    // Chuyển tab bên trong hộp thoại Gà kết nối (Mở khóa / Set Pass / Lấy lại Pass)
+    const gaModalTabBtn = e.target.closest('[data-ga-modal-tab]');
+    if (gaModalTabBtn) {
+      e.preventDefault();
+      switchGaModalTab(gaModalTabBtn.dataset.gaModalTab || 'unlock');
+      return;
+    }
+
     // Chuyển tab Đăng nhập Gmail <-> Admin <-> Đăng ký Gmail mới trên màn hình khóa
     const authTabBtn = e.target.closest('[data-auth-tab], [data-switch-auth-tab]');
     if (authTabBtn) {
@@ -4703,13 +4782,63 @@ function setupEventListeners() {
       if (errEl) errEl.hidden = true;
       try {
         const fd = new FormData(form);
-        const password = fd.get('password') || '';
+        const action = String(fd.get('action') || 'unlock').trim().toLowerCase();
         const targetChId = fd.get('channelId') || '';
         const unlockAll = document.getElementById('checkbox-ga-unlock-all')?.checked;
-        await apiRequest('/api/auth/verify-ga', {
-          method: 'POST',
-          body: JSON.stringify({ password }),
-        });
+        let resData = null;
+
+        if (action === 'set') {
+          const currentPassword = String(fd.get('currentPassword') || '').trim();
+          const newPassword = String(fd.get('newPassword') || '').trim();
+          const confirmPassword = String(fd.get('confirmPassword') || '').trim();
+          if (!newPassword || newPassword.length < 3) {
+            throw new Error('Mật khẩu Gà kết nối mới phải có ít nhất 3 ký tự!');
+          }
+          if (newPassword !== confirmPassword) {
+            throw new Error('Mật khẩu nhập lại không khớp với mật khẩu Gà mới!');
+          }
+          resData = await apiRequest('/api/auth/verify-ga', {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'set',
+              currentPassword,
+              newPassword,
+            }),
+          });
+          state.hasCustomGaPassword = true;
+        } else if (action === 'reset') {
+          const recoveryPassword = String(fd.get('recoveryPassword') || '').trim();
+          const newPassword = String(fd.get('resetNewPassword') || '').trim();
+          const confirmPassword = String(fd.get('resetConfirmPassword') || '').trim();
+          if (!newPassword || newPassword.length < 3) {
+            throw new Error('Mật khẩu Gà kết nối mới phải có ít nhất 3 ký tự!');
+          }
+          if (newPassword !== confirmPassword) {
+            throw new Error('Mật khẩu nhập lại không khớp với mật khẩu Gà mới!');
+          }
+          resData = await apiRequest('/api/auth/verify-ga', {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'reset',
+              recoveryPassword,
+              newPassword,
+            }),
+          });
+          state.hasCustomGaPassword = true;
+        } else {
+          const password = String(fd.get('password') || '').trim();
+          resData = await apiRequest('/api/auth/verify-ga', {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'unlock',
+              password,
+            }),
+          });
+          if (resData?.hasCustomGaPassword) {
+            state.hasCustomGaPassword = true;
+          }
+        }
+
         if (!state.unlockedGaChannels) state.unlockedGaChannels = new Set();
         if (unlockAll) {
           for (const ch of state.channels) {
@@ -4727,7 +4856,7 @@ function setupEventListeners() {
             gaInputEl?.focus();
           }
         }, 50);
-        showBanner('Đã mở khóa hiển thị thông tin Gà kết nối!');
+        showBanner(resData?.message || 'Đã mở khóa hiển thị thông tin Gà kết nối!');
       } catch (err) {
         if (errEl) {
           errEl.textContent = err.message;
@@ -5540,7 +5669,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=56', { updateViaCache: 'none' })
+      .register('/sw.js?v=57', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
