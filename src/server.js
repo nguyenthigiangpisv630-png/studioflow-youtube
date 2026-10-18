@@ -9,6 +9,8 @@ import {
   sendTelegramBackupDocument,
   formatTelegramSystemReport,
   formatTelegramScheduleReport,
+  formatTelegramCompetitorReport,
+  sendTelegramThumbnailClone,
   pollTelegramBotUpdates,
   appendBotLog,
 } from './domain/botEngine.js';
@@ -739,6 +741,55 @@ export function createAppServer({
           return sendJson(res, 200, {
             ok: true,
             scheduleRadar,
+            status: store.getBotCenterStatus(),
+          });
+        }
+
+        if (pathname === '/api/bots/competitor/scan' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const scanResult = await store.runCompetitorHunterScan(body);
+          const cfg = store.state?.meta?.botCenter?.config || {};
+          if (body.notifyTelegram && cfg.telegramBotToken && cfg.telegramChatId) {
+            const compHtml = formatTelegramCompetitorReport(scanResult);
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: cfg.telegramChatId,
+              text: compHtml,
+              parse_mode: 'HTML',
+            });
+            appendBotLog(
+              store.state.meta,
+              'Bot 5 -> Telegram',
+              `Đã bắn Báo cáo Dò kênh đối thủ "${scanResult.channelName}" về Telegram (Chat ID: ${cfg.telegramChatId}).`,
+              'success'
+            );
+            store.saveState();
+          }
+          return sendJson(res, 200, {
+            ok: true,
+            competitorScan: scanResult,
+            scan: scanResult,
+            status: store.getBotCenterStatus(),
+          });
+        }
+
+        if (pathname === '/api/bots/thumbnail/clone' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const cloneResult = await store.runThumbnailPromptGenerator(body);
+          const cfg = store.state?.meta?.botCenter?.config || {};
+          if (body.notifyTelegram && cfg.telegramBotToken && cfg.telegramChatId) {
+            await sendTelegramThumbnailClone(store, cloneResult, cfg.telegramBotToken, cfg.telegramChatId);
+            appendBotLog(
+              store.state.meta,
+              'Bot 6 -> Telegram',
+              `Đã bắn Ảnh Thumbnail & Bộ 3 Prompt AI cho "${cloneResult.title.slice(0, 45)}" về Telegram.`,
+              'success'
+            );
+            store.saveState();
+          }
+          return sendJson(res, 200, {
+            ok: true,
+            thumbnailClone: cloneResult,
+            cloneItem: cloneResult,
             status: store.getBotCenterStatus(),
           });
         }

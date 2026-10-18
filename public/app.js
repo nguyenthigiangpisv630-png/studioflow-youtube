@@ -83,8 +83,8 @@ const TAB_TITLES = {
     subtitle: 'Quản lý danh sách thành viên đăng nhập bằng Gmail, cấu hình Không gian làm việc tách riêng và phân quyền theo Group / Kênh',
   },
   bots: {
-    title: 'Trung tâm 4 Bot Tự động hóa 24/7',
-    subtitle: 'Bot 4: Sao lưu bất tử · Bot 1: Telegram Duyệt User & Báo cáo · Bot 2: Canh nổ view 24/7 · Bot 3: Nhắc lịch đăng video & Kênh bỏ quên',
+    title: 'Trung tâm 6 Bot Tự động hóa 24/7',
+    subtitle: 'Bot 4: Sao lưu bất tử · Bot 1: Telegram · Bot 2: Canh nổ view · Bot 3: Nhắc lịch đăng · Bot 5: Săn ngách đối thủ · Bot 6: Sinh Prompt Thumbnail AI',
   },
   brand: {
     title: 'Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại',
@@ -5706,6 +5706,8 @@ function renderBotsCenterTab() {
   const cfg = bc.config || {};
   const watchdog = bc.watchdog || { viralVideos: [], healthAlerts: [], summary: {} };
   const scheduleRadar = bc.scheduleRadar || { scheduleItems: [], summary: {} };
+  const competitorScans = Array.isArray(bc.competitorScans) ? bc.competitorScans : [];
+  const thumbnailClones = Array.isArray(bc.thumbnailClones) ? bc.thumbnailClones : [];
   const snapshots = Array.isArray(bc.snapshots) ? bc.snapshots : [];
   const logs = Array.isArray(bc.activityLogs) ? bc.activityLogs : [];
 
@@ -5717,7 +5719,7 @@ function renderBotsCenterTab() {
   // Cập nhật số lượng trên thanh điều hướng
   const viralCount = Number(watchdog.summary?.viralCount ?? watchdog.viralVideos?.length) || 0;
   const alertCount = Number(watchdog.summary?.healthAlertCount ?? watchdog.healthAlerts?.length) || 0;
-  setText('nav-count-bots', viralCount > 0 ? `🔥${viralCount}` : '4');
+  setText('nav-count-bots', viralCount > 0 ? `🔥${viralCount}` : '6');
 
   // --- BOT 4: SAO LƯU BẤT TỬ ---
   setText('bot4-kpi-snapshots', `${snapshots.length} / 10 bản`);
@@ -5961,6 +5963,242 @@ function renderBotsCenterTab() {
     }
   }
 
+  // --- BOT 5: SĂN NGÁCH & DÒ KÊNH ĐỐI THỦ (OUTLIER / NEXLEV HUNTER) ---
+  const totalOutliersFound = competitorScans.reduce(
+    (sum, s) => sum + (Number(s.outlierCount) || (Array.isArray(s.outliers) ? s.outliers.length : 0)),
+    0
+  );
+  setText('bot5-kpi-scanned', `${competitorScans.length} kênh`);
+  setText('bot5-kpi-outliers', `${totalOutliersFound} video`);
+  const bot5Pill = document.getElementById('bot5-status-pill');
+  if (bot5Pill) {
+    bot5Pill.textContent =
+      competitorScans.length > 0 ? `🕵️ Đã mổ xẻ ${competitorScans.length} kênh` : '🕵️ Sẵn sàng dò kênh';
+  }
+  const inpBot5Outlier = document.getElementById('input-bot5-min-outlier');
+  if (inpBot5Outlier && document.activeElement !== inpBot5Outlier) {
+    inpBot5Outlier.value = cfg.competitorMinOutlier ?? cfg.competitorOutlierThreshold ?? 1.3;
+  }
+
+  const bot5ListEl = document.getElementById('bot5-competitor-results');
+  if (bot5ListEl) {
+    if (competitorScans.length === 0) {
+      bot5ListEl.innerHTML = `
+        <div class="bot-empty-note">
+          Chưa có kênh đối thủ nào được quét. Nhập <code>@Handle</code> (VD: <code>@MrBeast</code>) ở trên rồi bấm <strong>"🕵️ Dò Kênh Đối Thủ ngay"</strong>!
+        </div>
+      `;
+    } else {
+      bot5ListEl.innerHTML = competitorScans
+        .slice(0, 6)
+        .map((scan) => {
+          const outliers = Array.isArray(scan.outliers) ? scan.outliers : Array.isArray(scan.videos) ? scan.videos : [];
+          const topVideos = outliers.length > 0 ? outliers.slice(0, 5) : (scan.allVideos || scan.videos || []).slice(0, 4);
+          const hotKw = Array.isArray(scan.hotKeywords) ? scan.hotKeywords : Array.isArray(scan.topKeywords) ? scan.topKeywords : [];
+          const avgViewsVal = Number(scan.avgViews ?? scan.avgViewsPerVideo ?? 0);
+          return `
+            <div class="bot-viral-item" style="flex-direction: column; align-items: stretch; gap: 8px; border-left: 3px solid #6366f1;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div>
+                  <strong style="font-size: 13px; color: var(--text);">
+                    📺 ${escapeHtml(scan.channelName || scan.handle || 'Kênh đối thủ')}
+                  </strong>
+                  <span style="font-size: 11.5px; color: var(--text-muted); margin-left: 6px;">
+                    ${escapeHtml(scan.handle || '')} · 👥 ${escapeHtml(
+                      Number(scan.subscribers || 0).toLocaleString('vi-VN')
+                    )} subs
+                  </span>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <span class="bot-mult-badge" style="background: rgba(99,102,241,0.16); color: #818cf8;">
+                    TB: ${escapeHtml(avgViewsVal.toLocaleString('vi-VN'))} views/bài
+                  </span>
+                  <span class="bot-mult-badge">
+                    🔥 ${Number(scan.outlierCount ?? outliers.length)} bài nổ
+                  </span>
+                </div>
+              </div>
+              ${
+                hotKw.length > 0
+                  ? `<div style="display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
+                      <span style="font-size: 11px; color: var(--text-muted);">🔑 Từ khóa ngách hot:</span>
+                      ${hotKw
+                        .map(
+                          (k) => `
+                          <button
+                            type="button"
+                            class="btn btn-secondary btn-xs"
+                            style="padding: 2px 7px; font-size: 11px;"
+                            data-save-spy-key-title="[Key Đối Thủ ${escapeHtml(scan.handle || scan.channelName)}] Từ khóa ngách: #${escapeHtml(k.word)}"
+                            data-save-spy-key-notes="Từ khóa lặp lại ${k.count} lần trên kênh đối thủ ${escapeHtml(scan.channelName)} (${escapeHtml(scan.channelUrl || '')})"
+                            title="Bấm để lưu từ khóa này vào Kho Ý Tưởng & Key"
+                          >
+                            #${escapeHtml(k.word)} (${k.count}) +Lưu
+                          </button>
+                        `
+                        )
+                        .join('')}
+                    </div>`
+                  : ''
+              }
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px;">
+                ${topVideos
+                  .map((v, idx) => {
+                    const mult = v.multiplier ?? v.outlierMultiplier ?? 1;
+                    const pubTxt = v.publishedText || v.publishedAt || 'Gần đây';
+                    return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; background: rgba(15,23,42,0.45); border: 1px solid rgba(148,163,184,0.12);">
+                      <div style="min-width: 0; flex: 1;">
+                        <div style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          <span style="color: #f59e0b; margin-right: 4px;">#${idx + 1} (${escapeHtml(
+                            String(mult)
+                          )}x)</span>
+                          <a href="${escapeHtml(v.videoUrl || '#')}" target="_blank" rel="noopener" style="color: var(--text); text-decoration: none;">
+                            ${escapeHtml(v.title || 'Video')}
+                          </a>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted);">
+                          👁️ ${escapeHtml(Number(v.views || 0).toLocaleString('vi-VN'))} views · 🕒 ${escapeHtml(pubTxt)}
+                        </div>
+                      </div>
+                      <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-xs"
+                          data-clone-thumb-url="${escapeHtml(v.videoUrl || v.youtubeVideoId || v.videoId || '')}"
+                          data-clone-thumb-title="${escapeHtml(v.title || '')}"
+                          title="Đưa sang Bot 6 để tách ảnh Thumbnail HD & sinh Prompt nhân bản"
+                        >
+                          🎨 Clone Thumb
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-xs"
+                          data-save-spy-key-title="[Outlier ${escapeHtml(String(mult))}x - ${escapeHtml(
+                            scan.channelName || scan.handle
+                          )}] ${escapeHtml(v.title)}"
+                          data-save-spy-key-url="${escapeHtml(v.videoUrl || '')}"
+                          data-save-spy-key-notes="Video nổ ${escapeHtml(
+                            Number(v.views || 0).toLocaleString('vi-VN')
+                          )} views (gấp ${escapeHtml(String(mult))}x TB kênh ${escapeHtml(
+                            scan.channelName || ''
+                          )})."
+                          title="Lưu video ngách thắng cuộc này vào Kho Key & Ý Tưởng"
+                        >
+                          + Lưu Key
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                  })
+                  .join('')}
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+  }
+
+  // --- BOT 6: PHÂN TÍCH & SINH PROMPT THUMBNAIL (CLONE BOT) ---
+  const bot6Pill = document.getElementById('bot6-status-pill');
+  if (bot6Pill) {
+    bot6Pill.textContent =
+      thumbnailClones.length > 0 ? `🎨 Đã tạo ${thumbnailClones.length} bộ Prompt` : '🟢 AI Prompt Studio';
+  }
+  const bot6ListEl = document.getElementById('bot6-thumbnail-list');
+  if (bot6ListEl) {
+    if (thumbnailClones.length === 0) {
+      bot6ListEl.innerHTML = `
+        <div class="bot-empty-note">
+          Chưa có bản mổ xẻ Thumbnail nào. Dán link YouTube hoặc tiêu đề video vào ô trên rồi bấm <strong>"🎨 Bóc tách & Sinh Prompt ngay"</strong>!
+        </div>
+      `;
+    } else {
+      bot6ListEl.innerHTML = thumbnailClones
+        .slice(0, 6)
+        .map((item) => {
+          const p = item.prompts || {};
+          const maxRes = item.thumbnailMaxRes || item.maxResThumbnailUrl || '';
+          const hqThumb = item.thumbnailHq || item.hqThumbnailUrl || maxRes;
+          const vTitle = item.videoTitle || item.title || 'Chủ đề Thumbnail';
+          const hookTxt = item.hookTextSuggestion || item.hookText || '';
+          return `
+            <div class="bot-viral-item" style="flex-direction: column; align-items: stretch; gap: 8px; border-left: 3px solid #ec4899;">
+              <div style="display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap;">
+                ${
+                  maxRes
+                    ? `<a href="${escapeHtml(maxRes)}" target="_blank" rel="noopener" title="Bấm để mở ảnh Thumbnail gốc MaxRes HD (1280x720)">
+                        <img
+                          src="${escapeHtml(hqThumb)}"
+                          alt="Thumbnail preview"
+                          style="width: 136px; height: 76px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); flex-shrink: 0;"
+                        />
+                      </a>`
+                    : ''
+                }
+                <div style="flex: 1; min-width: 180px;">
+                  <div style="font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 3px;">
+                    🎬 ${escapeHtml(vTitle)}
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">
+                    🔤 Chữ giật tít (Hook Text): <strong style="color: #f472b6;">"${escapeHtml(hookTxt)}"</strong>
+                    ${
+                      maxRes
+                        ? ` · <a href="${escapeHtml(maxRes)}" target="_blank" rel="noopener" style="color: #38bdf8;">🖼️ Tải ảnh gốc HD</a>`
+                        : ''
+                    }
+                  </div>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-xs"
+                      data-copy-prompt-text="${escapeHtml(p.midjourney || '')}"
+                      title="Copy Prompt Midjourney v6.1 (--ar 16:9)"
+                    >
+                      📋 Copy Midjourney
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-xs"
+                      data-copy-prompt-text="${escapeHtml(p.fluxIdeogram || '')}"
+                      title="Copy Prompt Flux.1 / Ideogram (hỗ trợ chèn chữ)"
+                    >
+                      📋 Copy Flux/Ideogram
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-xs"
+                      data-copy-prompt-text="${escapeHtml(p.vietnameseBrief || '')}"
+                      title="Copy Bố cục thiết kế Tiếng Việt"
+                    >
+                      📋 Copy Bố cục VN
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-xs"
+                      data-save-spy-key-title="[Thumbnail Prompt] ${escapeHtml(vTitle)}"
+                      data-save-spy-key-url="${escapeHtml(item.videoUrl || maxRes || '')}"
+                      data-save-spy-key-notes="Hook Text: ${escapeHtml(hookTxt)} | Midjourney: ${escapeHtml(
+                        p.midjourney || ''
+                      )} | Bố cục: ${escapeHtml(p.vietnameseBrief || '')}"
+                      title="Lưu bộ Prompt Thumbnail này vào Kho Ý Tưởng & Key"
+                    >
+                      💾 Lưu vào Kho
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); background: rgba(15,23,42,0.55); padding: 6px 8px; border-radius: 6px; font-family: monospace; word-break: break-word;">
+                <strong>Midjourney:</strong> ${escapeHtml(p.midjourney || '')}
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+  }
+
   // --- NHẬT KÝ HOẠT ĐỘNG ---
   setText(
     'bot-last-scan-time',
@@ -6002,6 +6240,7 @@ function collectBotConfigFromDom() {
     targetUploadEveryDays: Number(document.getElementById('input-bot3-target-days')?.value) || 2,
     deadChannelDays: Number(document.getElementById('input-bot3-dead-days')?.value) || 5,
     autoTelegramScheduleDaily: Boolean(document.getElementById('chk-bot3-auto-tg')?.checked),
+    competitorMinOutlier: Number(document.getElementById('input-bot5-min-outlier')?.value) || 1.3,
     autoBackupEnabled: Boolean(document.getElementById('chk-bot4-auto-backup')?.checked),
     cloudBackupWebhookUrl: String(document.getElementById('input-bot4-webhook-url')?.value || '').trim(),
   };
@@ -6040,7 +6279,7 @@ function initBotsCenterEvents() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Lưu cấu hình 4 Bot
+  // Lưu cấu hình 6 Bot
   document.getElementById('btn-bot-save-config')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget;
     const orig = btn.textContent;
@@ -6056,7 +6295,7 @@ function initBotsCenterEvents() {
       const inpTok = document.getElementById('input-bot1-token');
       if (inpTok) inpTok.value = '';
       renderBotsCenterTab();
-      showBanner('✅ Đã lưu cấu hình Trung tâm 4 Bot thành công!');
+      showBanner('✅ Đã lưu cấu hình Trung tâm 6 Bot thành công!');
     } catch (err) {
       showBanner(err.message, true);
     } finally {
@@ -6132,7 +6371,7 @@ function initBotsCenterEvents() {
     }
   });
 
-  // Bot 4: Khôi phục 1-Click từ Snapshot trong danh sách + Mở nhanh kênh từ Bot 3
+  // Delegated click trên #panel-bots: Khôi phục Snapshot, Mở kênh Bot 3, Copy Prompt Bot 6, Clone Thumb & Lưu Key Bot 5
   document.getElementById('panel-bots')?.addEventListener('click', async (e) => {
     const openChBtn = e.target.closest('[data-open-schedule-channel]');
     if (openChBtn) {
@@ -6141,6 +6380,67 @@ function initBotsCenterEvents() {
         state.activeChannelDeepId = channelId;
         switchTab('youtube');
         renderYoutubeTab();
+      }
+      return;
+    }
+
+    const copyBtn = e.target.closest('[data-copy-prompt-text]');
+    if (copyBtn) {
+      const text = copyBtn.dataset.copyPromptText || '';
+      if (text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          showBanner('📋 Đã copy Prompt Thumbnail vào bộ nhớ tạm!');
+        } catch {
+          showBanner('📋 Prompt: ' + text);
+        }
+      }
+      return;
+    }
+
+    const cloneThumbBtn = e.target.closest('[data-clone-thumb-url]');
+    if (cloneThumbBtn) {
+      const urlVal = cloneThumbBtn.dataset.cloneThumbUrl || '';
+      const titleVal = cloneThumbBtn.dataset.cloneThumbTitle || '';
+      const inpBot6Url = document.getElementById('input-bot6-video-url');
+      const inpBot6Title = document.getElementById('input-bot6-title');
+      if (inpBot6Url) {
+        inpBot6Url.value = urlVal;
+        inpBot6Url.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      if (inpBot6Title && titleVal) {
+        inpBot6Title.value = titleVal;
+      }
+      document.getElementById('btn-bot6-generate-only')?.click();
+      return;
+    }
+
+    const saveKeyBtn = e.target.closest('[data-save-spy-key-title]');
+    if (saveKeyBtn) {
+      const title = saveKeyBtn.dataset.saveSpyKeyTitle || '';
+      const referenceUrl = saveKeyBtn.dataset.saveSpyKeyUrl || '';
+      const notes = saveKeyBtn.dataset.saveSpyKeyNotes || '';
+      const orig = saveKeyBtn.textContent;
+      saveKeyBtn.disabled = true;
+      saveKeyBtn.textContent = 'Đang lưu...';
+      try {
+        await apiRequest('/api/contents', {
+          method: 'POST',
+          body: JSON.stringify({
+            title,
+            type: 'idea',
+            resourceUrl: referenceUrl,
+            body: notes,
+            tags: 'bot5-spy, outlier, thumbnail-prompt',
+          }),
+        });
+        await loadOverview();
+        showBanner(`💎 Đã lưu "${title}" vào Kho Nội Dung & Key thành công!`);
+      } catch (err) {
+        showBanner(err.message, true);
+      } finally {
+        saveKeyBtn.disabled = false;
+        saveKeyBtn.textContent = orig;
       }
       return;
     }
@@ -6341,6 +6641,106 @@ function initBotsCenterEvents() {
   document.getElementById('btn-bot3-scan-and-tg')?.addEventListener('click', (e) =>
     runScheduleAction(true, e.currentTarget)
   );
+
+  // Bot 5: Săn Ngách & Dò Kênh Đối Thủ (Outlier / NexLev Hunter)
+  const runCompetitorHunterAction = async (notifyTelegram, btn) => {
+    const query = String(document.getElementById('input-bot5-query')?.value || '').trim();
+    if (!query) {
+      showBanner('Vui lòng nhập @Handle hoặc link kênh YouTube đối thủ (VD: @MrBeast)!', true);
+      document.getElementById('input-bot5-query')?.focus();
+      return;
+    }
+    const minOutlier = Number(document.getElementById('input-bot5-min-outlier')?.value) || 1.3;
+    const orig = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '🕵️ Đang dò kênh...';
+    }
+    try {
+      const res = await apiRequest('/api/bots/competitor/scan', {
+        method: 'POST',
+        body: JSON.stringify({
+          query,
+          minOutlier,
+          notifyTelegram: Boolean(notifyTelegram),
+        }),
+      });
+      if (res.status) state.botCenter = res.status;
+      renderBotsCenterTab();
+      const scan = res.scan || res.competitorScan || {};
+      showBanner(
+        notifyTelegram
+          ? `🕵️ Đã dò kênh "${scan.channelName}" (${scan.outlierCount || 0} video nổ) & bắn báo cáo về Telegram!`
+          : `🕵️ Đã dò kênh "${scan.channelName}": Tìm thấy ${scan.outlierCount || 0} video nổ đề xuất (TB ${Number(
+              scan.avgViews || scan.avgViewsPerVideo || 0
+            ).toLocaleString('vi-VN')} views/bài)!`
+      );
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+  };
+
+  document.getElementById('btn-bot5-scan-only')?.addEventListener('click', (e) =>
+    runCompetitorHunterAction(false, e.currentTarget)
+  );
+  document.getElementById('btn-bot5-scan-and-tg')?.addEventListener('click', (e) =>
+    runCompetitorHunterAction(true, e.currentTarget)
+  );
+
+  // Bot 6: Phân Tích & Sinh Prompt Thumbnail (Thumbnail Clone Bot)
+  const runThumbnailCloneAction = async (notifyTelegram, btn) => {
+    const videoUrlOrId = String(document.getElementById('input-bot6-video-url')?.value || '').trim();
+    const title = String(document.getElementById('input-bot6-title')?.value || '').trim();
+    if (!videoUrlOrId && !title) {
+      showBanner('Vui lòng dán link video YouTube hoặc nhập tiêu đề/chủ đề cần tạo Prompt Thumbnail!', true);
+      document.getElementById('input-bot6-video-url')?.focus();
+      return;
+    }
+    const customStyle = String(document.getElementById('select-bot6-style')?.value || 'viral_3d');
+    const orig = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '🎨 Đang sinh Prompt...';
+    }
+    try {
+      const res = await apiRequest('/api/bots/thumbnail/clone', {
+        method: 'POST',
+        body: JSON.stringify({
+          videoUrlOrId,
+          title,
+          customStyle,
+          notifyTelegram: Boolean(notifyTelegram),
+        }),
+      });
+      if (res.status) state.botCenter = res.status;
+      renderBotsCenterTab();
+      const item = res.cloneItem || res.thumbnailClone || {};
+      showBanner(
+        notifyTelegram
+          ? `🎨 Đã tách Thumbnail + sinh 3 Prompt cho "${item.title || item.videoTitle}" & bắn sang Telegram!`
+          : `🎨 Đã sinh 3 Prompt Thumbnail (Midjourney + Flux + Bố cục VN) cho "${item.title || item.videoTitle}"!`
+      );
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+  };
+
+  document.getElementById('btn-bot6-generate-only')?.addEventListener('click', (e) =>
+    runThumbnailCloneAction(false, e.currentTarget)
+  );
+  document.getElementById('btn-bot6-generate-and-tg')?.addEventListener('click', (e) =>
+    runThumbnailCloneAction(true, e.currentTarget)
+  );
 }
 
 // Đăng ký Service Worker cho Mobile App (PWA) & dọn cache cũ tránh lỗi hiển thị CSS
@@ -6352,7 +6752,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=62', { updateViaCache: 'none' })
+      .register('/sw.js?v=63', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

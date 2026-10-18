@@ -8,6 +8,8 @@ import {
   appendBotLog,
   scanViralAndChannelHealth,
   scanUploadScheduleAndDeadChannels,
+  huntCompetitorChannelOutliers,
+  analyzeAndGenerateThumbnailPrompts,
   buildBackupPayload,
   createImmortalSnapshot,
   notifyTelegramNewUser,
@@ -2961,6 +2963,8 @@ export class StudioStore {
       watchdog,
       scheduleRadar,
       snapshots,
+      competitorScans: Array.isArray(center.competitorScans) ? center.competitorScans : [],
+      thumbnailClones: Array.isArray(center.thumbnailClones) ? center.thumbnailClones : [],
       activityLogs: (center.activityLogs || []).slice(0, 30),
     };
   }
@@ -3013,6 +3017,14 @@ export class StudioStore {
       prev.autoTelegramScheduleDaily = Boolean(patch.autoTelegramScheduleDaily);
     }
 
+    // Bot 5 & Bot 6
+    if (patch.competitorMinOutlier !== undefined) {
+      prev.competitorMinOutlier = Math.max(1.0, Number(patch.competitorMinOutlier) || 1.3);
+    }
+    if (patch.defaultThumbnailStyle !== undefined) {
+      prev.defaultThumbnailStyle = String(patch.defaultThumbnailStyle || 'viral_3d').trim();
+    }
+
     if (patch.autoBackupEnabled !== undefined) prev.autoBackupEnabled = Boolean(patch.autoBackupEnabled);
     if (patch.cloudBackupWebhookUrl !== undefined) {
       prev.cloudBackupWebhookUrl = String(patch.cloudBackupWebhookUrl).trim();
@@ -3021,7 +3033,7 @@ export class StudioStore {
     appendBotLog(
       this.state.meta,
       'Bot Center',
-      'Đã lưu cấu hình Trung tâm 4 Bot (Bot 1 Telegram + Bot 2 Nổ view + Bot 3 Nhắc lịch đăng + Bot 4 Sao lưu bất tử).',
+      'Đã lưu cấu hình Trung tâm 6 Bot tự động hóa (Bot 1-6).',
       'success'
     );
     this.#save();
@@ -3052,6 +3064,20 @@ export class StudioStore {
     );
     this.#save();
     return result;
+  }
+
+  async runCompetitorHunterScan(options = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const scanEntry = await huntCompetitorChannelOutliers(this, options);
+    this.#save();
+    return scanEntry;
+  }
+
+  async runThumbnailPromptGenerator(input = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const cloneEntry = await analyzeAndGenerateThumbnailPrompts(this, input);
+    this.#save();
+    return cloneEntry;
   }
 
   async createBackupSnapshot(options = {}) {

@@ -718,6 +718,44 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
       store.listChannels().some((c) => c.id === ch.id && c.name === 'Kênh Test Bot Nổ View'),
       true
     );
+
+    // 6. Bot 5 — Săn Ngách & Dò Kênh Đối Thủ (Outlier / NexLev Hunter)
+    const spyScan = await store.runCompetitorHunterScan({
+      handleOrUrl: '@MockCompetitor',
+      outlierThreshold: 1.5,
+      channelFetcher: async () => ({
+        name: 'Kênh Đối Thủ Test',
+        handle: '@MockCompetitor',
+        channelUrl: 'https://www.youtube.com/@MockCompetitor',
+        subscribers: 50000,
+        recentVideos: [
+          { videoId: 'vid001', title: 'Bí Mật Làm Giàu Ngách AI Automation', views: 10000, publishedText: '5 days ago' },
+          { videoId: 'vid002', title: 'Hướng Dẫn Cơ Bản AI Automation', views: 12000, publishedText: '4 days ago' },
+          { videoId: 'vid003', title: 'Siêu Phẩm AI Automation Nổ Triệu View', views: 95000, publishedText: '1 day ago' },
+        ],
+      }),
+    });
+    assert.equal(spyScan.channelName, 'Kênh Đối Thủ Test');
+    assert.equal(spyScan.outlierCount, 1);
+    assert.equal(spyScan.outliers[0].videoId, 'vid003');
+    assert.ok(spyScan.outliers[0].multiplier >= 2);
+    assert.ok(spyScan.hotKeywords.some((k) => k.word === 'automation'));
+
+    // 7. Bot 6 — Phân Tích & Sinh Prompt Thumbnail (Thumbnail Clone Bot)
+    const thumbRes = await fetch(`${baseUrl}/api/bots/thumbnail/clone`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        videoUrlOrTitle: 'Bí Mật Kiếm 10.000 USD Từ YouTube Nước Ngoài',
+        stylePreset: 'mrbeast',
+      }),
+    });
+    assert.equal(thumbRes.status, 200);
+    const thumbData = await thumbRes.json();
+    assert.equal(thumbData.ok, true);
+    assert.ok(thumbData.cloneItem.prompts.midjourney.includes('--ar 16:9'));
+    assert.ok(thumbData.cloneItem.prompts.fluxIdeogram.length > 20);
+    assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
   });
 });
 

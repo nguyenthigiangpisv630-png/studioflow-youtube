@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=62" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=62" />
+  <link rel="icon" href="/icon.svg?v=63" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=63" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -101,7 +101,7 @@
                 </svg>
                 <span class="nav-btn-label">Trung tâm Bot</span>
               </span>
-              <span class="nav-count" id="nav-count-bots">4</span>
+              <span class="nav-count" id="nav-count-bots">6</span>
             </button>
           </nav>
         </div>
@@ -483,17 +483,19 @@
           </div>
         </section>
 
-        <!-- TAB 5: TRUNG TÂM 4 BOT TỰ ĐỘNG HÓA (BOT 4: SAO LƯU BẤT TỬ · BOT 1: TELEGRAM · BOT 2: CANH NỔ VIEW · BOT 3: NHẮC LỊCH ĐĂNG VIDEO) -->
+        <!-- TAB 5: TRUNG TÂM 6 BOT TỰ ĐỘNG HÓA -->
         <section class="tab-panel" id="panel-bots">
           <div class="bots-page-shell">
             <div class="users-page-header bots-page-header">
               <div class="users-page-title-block">
-                <h2 class="users-page-title">🤖 Trung tâm 4 Bot Tự động hóa 24/7</h2>
+                <h2 class="users-page-title">🤖 Trung tâm 6 Bot Tự động hóa 24/7</h2>
                 <p class="panel-desc" style="margin-top:4px;">
-                  <strong>Bot 4:</strong> Sao lưu dữ liệu bất tử &nbsp;·&nbsp;
+                  <strong>Bot 4:</strong> Sao lưu bất tử &nbsp;·&nbsp;
                   <strong>Bot 1:</strong> Telegram duyệt User &amp; Báo cáo &nbsp;·&nbsp;
-                  <strong>Bot 2:</strong> Canh nổ view 24/7 &nbsp;·&nbsp;
-                  <strong>Bot 3:</strong> Nhắc lịch đăng video &amp; Kênh bỏ quên
+                  <strong>Bot 2:</strong> Canh nổ view &nbsp;·&nbsp;
+                  <strong>Bot 3:</strong> Nhắc lịch đăng video &nbsp;·&nbsp;
+                  <strong>Bot 5:</strong> Săn ngách &amp; Dò đối thủ &nbsp;·&nbsp;
+                  <strong>Bot 6:</strong> Sinh Prompt Thumbnail AI
                 </p>
               </div>
               <div class="users-page-header-actions" style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -512,7 +514,7 @@
               </div>
             </div>
 
-            <!-- LƯỚI 4 BOT TRUNG TÂM -->
+            <!-- LƯỚI 6 BOT TRUNG TÂM -->
             <div class="bots-grid-3 bots-grid-4">
               <!-- ==================== BOT 4: SAO LƯU DỮ LIỆU BẤT TỬ ==================== -->
               <div class="bot-card panel-box">
@@ -591,8 +593,8 @@
 
                 <div class="bot-guide-box">
                   <strong>⚡ Đã kết nối Bot <code>@acb9xbot</code>! Lệnh dùng nhanh trên Telegram:</strong><br />
-                  • <code>/report</code> (Báo cáo doanh thu) &nbsp;·&nbsp; <code>/top</code> (Video nổ view Bot 2)<br />
-                  • <code>/schedule</code> (Nhắc lịch đăng bài Bot 3) &nbsp;·&nbsp; <code>/users</code> (Duyệt User) &nbsp;·&nbsp; <code>/backup</code> (Lấy file sao lưu)
+                  • <code>/report</code> (Báo cáo doanh thu) &nbsp;·&nbsp; <code>/top</code> (Video nổ view Bot 2) &nbsp;·&nbsp; <code>/schedule</code> (Nhắc lịch Bot 3)<br />
+                  • <code>/spy @TenKenh</code> (Dò đối thủ Bot 5) &nbsp;·&nbsp; <code>/thumb Link_Video</code> (Prompt Thumbnail Bot 6) &nbsp;·&nbsp; <code>/backup</code>
                 </div>
 
                 <div class="bot-form-group">
@@ -625,7 +627,7 @@
                   <div class="bot-checks-stack" style="margin-top:10px;">
                     <label class="bot-check-row">
                       <input type="checkbox" id="chk-bot1-enabled" checked />
-                      <span>Kích hoạt Bot 1 Telegram (Hỗ trợ lệnh <code>/report</code>, <code>/top</code>, <code>/schedule</code>, <code>/users</code>, <code>/backup</code>)</span>
+                      <span>Kích hoạt Bot 1 Telegram (Hỗ trợ <code>/report</code>, <code>/top</code>, <code>/schedule</code>, <code>/spy</code>, <code>/thumb</code>, <code>/users</code>, <code>/backup</code>)</span>
                     </label>
                     <label class="bot-check-row">
                       <input type="checkbox" id="chk-bot1-notify-user" checked />
@@ -643,7 +645,7 @@
 
                   <div class="bot-actions-row" style="margin-top:12px;">
                     <button type="button" class="btn btn-primary btn-sm" id="btn-bot-save-config">
-                      💾 Lưu cấu hình 4 Bot
+                      💾 Lưu cấu hình 6 Bot
                     </button>
                     <button type="button" class="btn btn-secondary btn-sm" id="btn-bot1-test-report">
                       📨 Gửi Báo Cáo Ngay sang Telegram
@@ -769,12 +771,135 @@
                 </div>
                 <div id="bot3-schedule-list" class="bot-viral-list"></div>
               </div>
+
+              <!-- ==================== BOT 5: SĂN NGÁCH & DÒ KÊNH ĐỐI THỦ (OUTLIER / NEXLEV HUNTER BOT) ==================== -->
+              <div class="bot-card panel-box">
+                <div class="bot-card-header">
+                  <div class="bot-card-title-wrap">
+                    <span class="bot-icon-badge bot-badge-emerald" style="background:#ecfeff;border-color:#a5f3fc;">🕵️</span>
+                    <div>
+                      <h3 class="bot-card-title">Bot 5 — Săn Ngách &amp; Dò Kênh Đối Thủ (NexLev Hunter)</h3>
+                      <p class="bot-card-sub">Quét bất kỳ kênh đối thủ nào để tìm Video Outlier nổ đề xuất, lọc từ khóa ngách &amp; lưu Key</p>
+                    </div>
+                  </div>
+                  <span class="bot-status-pill active" id="bot5-status-pill">🟢 Sẵn sàng săn ngách</span>
+                </div>
+
+                <div class="bot-kpi-strip">
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">Kênh đối thủ đã dò</span>
+                    <strong class="bot-kpi-val num" id="bot5-kpi-scanned" style="color:#0284c7;">0 kênh</strong>
+                  </div>
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">Video Outlier đối thủ</span>
+                    <strong class="bot-kpi-val num" id="bot5-kpi-outliers" style="color:#d97706;">0 video nổ</strong>
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:end;">
+                  <label class="field" style="margin:0;">
+                    <span>Nhập @Handle hoặc Link kênh YouTube đối thủ cần dò</span>
+                    <input
+                      type="text"
+                      id="input-bot5-query"
+                      class="input-control"
+                      placeholder="VD: @MrBeast, @TinyWrist hoặc https://www.youtube.com/@..."
+                    />
+                  </label>
+                  <label class="field" style="margin:0;">
+                    <span>Ngưỡng nổ (xTB)</span>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="1.0"
+                      max="20"
+                      id="input-bot5-min-outlier"
+                      class="input-control"
+                      value="1.3"
+                    />
+                  </label>
+                </div>
+
+                <div class="bot-actions-row" style="margin-top:8px;">
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-bot5-scan-only">
+                    🕵️ Dò Kênh Đối Thủ ngay
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-bot5-scan-and-tg">
+                    📲 Dò &amp; Bắn kết quả về Telegram
+                  </button>
+                </div>
+
+                <div class="bot-section-divider">
+                  <span>🏆 Kết quả phân tích Kênh Đối Thủ &amp; Top Video Outlier (Bấm 1-Click Lưu Key / Clone Thumbnail)</span>
+                </div>
+                <div id="bot5-competitor-results" class="bot-viral-list" style="max-height:330px;"></div>
+              </div>
+
+              <!-- ==================== BOT 6: PHÂN TÍCH & SINH PROMPT THUMBNAIL AI (THUMBNAIL CLONE BOT) ==================== -->
+              <div class="bot-card panel-box">
+                <div class="bot-card-header">
+                  <div class="bot-card-title-wrap">
+                    <span class="bot-icon-badge bot-badge-amber" style="background:#fdf2f8;border-color:#fbcfe8;">🎨</span>
+                    <div>
+                      <h3 class="bot-card-title">Bot 6 — Phân Tích &amp; Sinh Prompt Thumbnail (Clone Bot)</h3>
+                      <p class="bot-card-sub">Bóc tách Thumbnail Full HD từ Link YouTube &amp; Viết sẵn bộ 3 Prompt Midjourney / Flux / Ideogram</p>
+                    </div>
+                  </div>
+                  <span class="bot-status-pill active" id="bot6-status-pill">🟢 AI Prompt Studio</span>
+                </div>
+
+                <div class="bot-form-group">
+                  <label class="field">
+                    <span>Dán Link Video YouTube (hoặc Mã Video ID) cần bóc tách Thumbnail</span>
+                    <input
+                      type="text"
+                      id="input-bot6-video-url"
+                      class="input-control"
+                      placeholder="VD: https://www.youtube.com/watch?v=... (Để trống nếu chỉ nhập Chủ đề bên dưới)"
+                    />
+                  </label>
+
+                  <div style="display:grid;grid-template-columns:1fr 165px;gap:8px;margin-top:8px;">
+                    <label class="field" style="margin:0;">
+                      <span>Tiêu đề / Ý tưởng chủ đề (Tự động lấy nếu dán Link YouTube)</span>
+                      <input
+                        type="text"
+                        id="input-bot6-title"
+                        class="input-control"
+                        placeholder="VD: Bí mật xây kênh YouTube AI 100K Sub..."
+                      />
+                    </label>
+                    <label class="field" style="margin:0;">
+                      <span>Phong cách AI</span>
+                      <select id="select-bot6-style" class="input-control">
+                        <option value="viral_3d">🔥 Viral 3D / High-CTR</option>
+                        <option value="cinematic_dark">🎬 Điện ảnh Bí ẩn (Dark)</option>
+                        <option value="bright_comparison">⚡ So sánh Trước / Sau</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div class="bot-actions-row" style="margin-top:10px;">
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-bot6-generate-only">
+                      🎨 Bóc tách &amp; Sinh Prompt ngay
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-bot6-generate-and-tg">
+                      📲 Bắn Ảnh + Prompt sang Telegram
+                    </button>
+                  </div>
+                </div>
+
+                <div class="bot-section-divider">
+                  <span>✨ Bộ Prompt Thumbnail AI &amp; Ảnh Gốc Full HD (1-Click Copy hoặc Lưu vào Kho nội dung)</span>
+                </div>
+                <div id="bot6-thumbnail-list" class="bot-viral-list" style="max-height:330px;"></div>
+              </div>
             </div>
 
-            <!-- NHẬT KÝ HOẠT ĐỘNG TỰ ĐỘNG CỦA 4 BOT -->
+            <!-- NHẬT KÝ HOẠT ĐỘNG TỰ ĐỘNG CỦA 6 BOT -->
             <div class="panel-box" style="margin-top:16px;padding:16px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <h3 style="font-size:0.95rem;font-weight:800;margin:0;">📜 Nhật ký hoạt động trực tiếp của 4 Bot</h3>
+                <h3 style="font-size:0.95rem;font-weight:800;margin:0;">📜 Nhật ký hoạt động trực tiếp của 6 Bot</h3>
                 <span style="font-size:0.75rem;color:#64748b;" id="bot-last-scan-time">Cập nhật tự động</span>
               </div>
               <div id="bot-activity-logs" class="bot-activity-logs"></div>
@@ -822,7 +947,7 @@
             <circle cx="9" cy="14" r="1.5" />
             <circle cx="15" cy="14" r="1.5" />
           </svg>
-          <span>4 Bot</span>
+          <span>6 Bot</span>
         </button>
       </nav>
     </div>
@@ -1177,7 +1302,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=62"></script>
+  <script type="module" src="/app.js?v=63"></script>
 </body>
 </html>
 
