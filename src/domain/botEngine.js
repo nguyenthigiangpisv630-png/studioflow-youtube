@@ -4345,23 +4345,30 @@ function splitCsvOrTsvCells(line = '') {
       .map((c) => c.trim())
       .filter(Boolean);
   }
+  // Chỉ tách dấu phẩy (CSV) khi dòng thực sự là cấu trúc bảng CSV (có dấu ngoặc kép "..." hoặc cột đầu là STT/Cảnh/Timecode)
   if (str.includes(',')) {
-    const cells = [];
-    let cur = '';
-    let inQuotes = false;
-    for (let i = 0; i < str.length; i += 1) {
-      const ch = str[i];
-      if (ch === '"') {
-        inQuotes = !inQuotes;
-      } else if (ch === ',' && !inQuotes) {
-        cells.push(cur.trim());
-        cur = '';
-      } else {
-        cur += ch;
+    const hasQuotedCsv = /"[^"]+"\s*,/.test(str) || /,\s*"[^"]+"/.test(str);
+    const startsWithSceneOrTime =
+      /^(?:cảnh|phân cảnh|scene|stt|#)?\s*\d+\s*,/i.test(str) ||
+      /^\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?\s*,/.test(str);
+    if (hasQuotedCsv || startsWithSceneOrTime) {
+      const cells = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < str.length; i += 1) {
+        const ch = str[i];
+        if (ch === '"') {
+          inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+          cells.push(cur.trim());
+          cur = '';
+        } else {
+          cur += ch;
+        }
       }
+      if (cur.trim()) cells.push(cur.trim());
+      if (cells.length >= 2) return cells.filter(Boolean);
     }
-    if (cur.trim()) cells.push(cur.trim());
-    if (cells.length >= 2) return cells.filter(Boolean);
   }
   return [str];
 }
@@ -4369,13 +4376,13 @@ function splitCsvOrTsvCells(line = '') {
 function isHeaderOrSeparatorRow(cells = []) {
   const joined = cells.join(' ').toLowerCase().trim();
   if (!joined) return true;
-  if (/^[-|:\s]+$/.test(joined)) return true;
+  if (/^[-|=━─_*:\s]+$/.test(joined)) return true;
   if (
     cells.length >= 2 &&
-    /^(stt|no\.?|#|cảnh|phân cảnh|scene|time|thời gian|thời lượng|từ khóa|keyword|lời thoại|kịch bản|voiceover|nội dung)$/i.test(
+    /^(stt|no\.?|#|cảnh|phân cảnh|scene|time|thời gian|thời lượng|từ khóa|keyword|lời thoại|kịch bản|voiceover|nội dung|canh|thoi_gian)$/i.test(
       cells[0].trim()
     ) &&
-    /(từ khóa|keyword|lời thoại|kịch bản|nội dung|thời gian|thời lượng|phân cảnh|scene|b-roll|footage|ghi chú)/i.test(
+    /(từ khóa|keyword|lời thoại|kịch bản|nội dung|thời gian|thời lượng|phân cảnh|scene|b-roll|footage|ghi chú|tu_khoa|loi_thoai)/i.test(
       joined
     )
   ) {
@@ -4384,13 +4391,51 @@ function isHeaderOrSeparatorRow(cells = []) {
   return false;
 }
 
+function isNonSceneMetadataLine(line = '') {
+  const s = String(line || '').trim();
+  if (!s) return true;
+  if (/^https?:\/\/\S+$/i.test(s)) return true;
+  if (/^[-=_━─*]{3,}$/.test(s)) return true;
+  if (/^(🔥\s*KEY VIDEO NỔ VIEW|📋\s*DÀN Ý KỊCH BẢN|📝\s*MÔ TẢ\s*&\s*HASHTAGS|🎙️\s*LỜI THOẠI MỞ ĐẦU|🎬\s*TIÊU ĐỀ GỢI Ý|🏷️\s*Bộ Thẻ Tags)/i.test(s)) {
+    return true;
+  }
+  if (/^[-•*]?\s*(kênh|lượt xem thực tế|link video gốc|thời điểm quét|nhóm kênh|quản lý|trạng thái|mã kênh)\s*:/i.test(s)) {
+    return true;
+  }
+  if (/^(🎯\s*Điểm vidIQ|🌊\s*Google Trends|🏷️\s*Phân loại|🌍\s*Thị trường|⚔️\s*Độ cạnh tranh|🎯\s*Điểm cơ hội)/i.test(s)) {
+    return true;
+  }
+  if (/^(#[a-z0-9_]+\s*){2,}$/i.test(s)) return true;
+  return false;
+}
+
+export function buildStoryboardFromTopicTitle(rawTitle = '') {
+  const cleanTitle = String(rawTitle || '')
+    .replace(/^\[[^\]]+\]\s*/g, '')
+    .replace(/^[-•*]\s*(tiêu đề gốc|tiêu đề|chủ đề)\s*:\s*/i, '')
+    .trim();
+  if (!cleanTitle) return [];
+  const coreKw = extractCoreVisualKeyword(cleanTitle);
+  return [
+    `00:00 - 00:05 | Mở đầu (Hook 5s): Cận cảnh ấn tượng & khoảnh khắc chấn động nhất về "${cleanTitle}" | ${coreKw} dramatic opening hook`,
+    `00:05 - 00:18 | Bối cảnh toàn cục (Establishing Shot): Toàn cảnh không gian, thời đại và nhân vật chính trong "${cleanTitle}" | ${coreKw} establishing wide shot`,
+    `00:18 - 00:35 | Phân cảnh 3 (Dẫn chứng & Tư liệu): Tư liệu lịch sử / hậu trường chân thực minh họa cho "${cleanTitle}" | ${coreKw} archival documentary footage`,
+    `00:35 - 00:52 | Phân cảnh 4 (Cao trào & Bước ngoặt): Khoảnh khắc kịch tính, xung đột hoặc bí mật đằng sau "${cleanTitle}" | ${coreKw} dramatic climax slow motion`,
+    `00:52 - 01:10 | Phân cảnh 5 (Phân tích chuyên sâu): Góc máy cận cảnh chi tiết (Macro Close-up) làm rõ sự thật về "${cleanTitle}" | ${coreKw} close up cinematic detail`,
+    `01:10 - 01:25 | Kết bài (Outro & Dư âm): Toàn cảnh điện ảnh khép lại câu chuyện "${cleanTitle}" và dẫn sang video tiếp theo | ${coreKw} cinematic sunset outro`,
+  ];
+}
+
 function extractCoreVisualKeyword(scriptLine = '') {
   const clean = String(scriptLine || '')
+    .replace(/^\[[^\]]*\]\s*/g, '')
+    .replace(/^[-•*]\s*(tiêu đề gốc|tiêu đề|chủ đề)\s*:\s*/i, '')
     .replace(/^(cảnh|phân cảnh|scene|đoạn|phần|bước)\s*\d+\s*[:.-]?\s*/i, '')
+    .replace(/^(mở đầu|bối cảnh|thân bài|cao trào|kết bài)\s*(\([^)]*\))?\s*[:.-]?\s*/i, '')
     .replace(/^\d+\s*[.)|-]\s*/, '')
     .replace(/\[[^\]]*\]/g, ' ')
     .replace(/\(\d{1,2}:\d{2}[^)]*\)/g, ' ')
-    .replace(/\b\d{1,2}:\d{2}(?:\s*-\s*\d{1,2}:\d{2})?\b/g, ' ')
+    .replace(/\b\d{1,2}:\d{2}(?:\s*[-–~to]+\s*\d{1,2}:\d{2})?\b/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   if (!clean) return 'cinematic b-roll';
@@ -4447,14 +4492,39 @@ export function parseScriptOrSheetToScenes(rawInput = '') {
   let rawLines = text
     .split('\n')
     .map((l) => l.trim())
-    .filter((l) => l.length > 1 && !/^```/.test(l) && !/^#{1,4}\s+(bảng|danh sách|kịch bản)/i.test(l));
+    .filter(
+      (l) =>
+        l.length > 1 &&
+        !/^```/.test(l) &&
+        !/^#{1,4}\s+(bảng|danh sách|kịch bản)/i.test(l) &&
+        !isNonSceneMetadataLine(l)
+    );
+
+  // Nếu dữ liệu nạp vào là Thẻ Key Outlier (chỉ có 1-2 dòng tiêu đề, chưa có kịch bản phân cảnh) -> Tự động triển khai thành 6 phân cảnh dựng chuẩn!
+  if (rawLines.length <= 2) {
+    const singleJoined = rawLines.join(' ').trim();
+    const isOutlierCard =
+      /tiêu đề gốc\s*:/i.test(singleJoined) ||
+      /^\[key nổ view/i.test(singleJoined) ||
+      (rawLines.length === 1 && singleJoined.length < 130 && !singleJoined.includes('|') && !singleJoined.includes('\t'));
+    if (isOutlierCard && singleJoined) {
+      const cleanTopic = singleJoined
+        .replace(/^\[[^\]]+\]\s*/i, '')
+        .replace(/^[-•*]?\s*tiêu đề gốc\s*:\s*/i, '')
+        .trim();
+      if (cleanTopic) {
+        rawLines = buildStoryboardFromTopicTitle(cleanTopic);
+      }
+    }
+  }
 
   // Nếu người dùng dán 1 đoạn văn kịch bản dài liền mạch (chỉ có 1-2 dòng nhưng nhiều câu thoại) -> Tự tách theo câu!
   if (rawLines.length <= 2 && text.length > 120 && !text.includes('\t')) {
-    const sentenceParts = text
+    const sentenceParts = rawLines
+      .join(' ')
       .split(/(?<=[.!?…。！？])\s+|\s*;\s*/)
       .map((s) => s.trim())
-      .filter((s) => s.length >= 6);
+      .filter((s) => s.length >= 6 && !isNonSceneMetadataLine(s));
     if (sentenceParts.length >= 2) {
       rawLines = sentenceParts;
     }
@@ -4475,16 +4545,30 @@ export function parseScriptOrSheetToScenes(rawInput = '') {
     const timeRegex = /\b\d{1,2}:\d{2}(?:\s*[-–~to]+\s*\d{1,2}:\d{2})?\b/i;
 
     if (cells.length === 1) {
-      const single = cells[0].replace(/^[-*•]\s*/, '').trim();
+      const single = cells[0]
+        .replace(/^[-*•]\s*(tiêu đề gốc\s*:\s*)?/i, '')
+        .trim();
       const timeMatch = single.match(timeRegex);
       if (timeMatch) {
         timeRange = timeMatch[0];
       }
-      // Hỗ trợ cú pháp "Lời thoại kịch bản | từ khóa" hoặc "Cảnh 1: Lời thoại -> từ khóa"
-      const arrowParts = single.split(/\s*(?:->|=>|\||—)\s*/).filter(Boolean);
-      if (arrowParts.length >= 2) {
-        scriptLine = arrowParts[0].trim();
-        explicitKeyword = arrowParts[arrowParts.length - 1].trim();
+      // Hỗ trợ cú pháp "00:00 - 00:05 | Lời thoại kịch bản | từ khóa" hoặc "Cảnh 1: Lời thoại -> từ khóa"
+      const arrowParts = single
+        .split(/\s*(?:->|=>|\|)\s*/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+      if (arrowParts.length >= 3 && timeRegex.test(arrowParts[0])) {
+        timeRange = arrowParts[0].match(timeRegex)[0];
+        scriptLine = arrowParts[1];
+        explicitKeyword = arrowParts.slice(2).join(' ');
+      } else if (arrowParts.length === 2) {
+        if (timeRegex.test(arrowParts[0]) && arrowParts[0].length <= 20) {
+          timeRange = arrowParts[0].match(timeRegex)[0];
+          scriptLine = arrowParts[1];
+        } else {
+          scriptLine = arrowParts[0];
+          explicitKeyword = arrowParts[1];
+        }
       } else {
         scriptLine = single;
       }
@@ -4507,7 +4591,7 @@ export function parseScriptOrSheetToScenes(rawInput = '') {
     }
 
     scriptLine = String(scriptLine || explicitKeyword || '').trim();
-    if (!scriptLine || scriptLine.length < 2) continue;
+    if (!scriptLine || scriptLine.length < 2 || isNonSceneMetadataLine(scriptLine)) continue;
 
     const extractedKeyword = String(
       explicitKeyword || extractCoreVisualKeyword(scriptLine)
@@ -4752,16 +4836,149 @@ function buildScriptScenesBreakdown(parsedScenes = [], categoryCode = 'all', age
   });
 }
 
+function parseNotionUrlInfo(rawUrl = '') {
+  const cleanUrl = String(rawUrl || '').trim();
+  if (!/notion\.(so|site|com)/i.test(cleanUrl)) return null;
+  const noQuery = cleanUrl.split('?')[0].split('#')[0];
+  const lastSeg = decodeURIComponent(noQuery.split('/').filter(Boolean).pop() || '');
+  const idMatch32 =
+    lastSeg.match(/([a-f0-9]{32})$/i) ||
+    noQuery.replace(/-/g, '').match(/([a-f0-9]{32})/i);
+  const hex32 = idMatch32 ? idMatch32[1].toLowerCase() : '';
+  const pageUuid = hex32
+    ? `${hex32.slice(0, 8)}-${hex32.slice(8, 12)}-${hex32.slice(12, 16)}-${hex32.slice(16, 20)}-${hex32.slice(20)}`
+    : '';
+  let slugTitle = lastSeg
+    .replace(/-?[a-f0-9]{20,36}$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // Làm sạch tiền tố kỹ thuật như "Voice v4 ElevenLabs " nếu có phần tiêu đề chính phía sau
+  const cleanedTopic = slugTitle
+    .replace(/^(voice\s*v\d+\s*elevenlabs|elevenlabs|script|draft|ban\s*nhap)\s*[-:]?\s*/i, '')
+    .trim();
+  return {
+    hex32,
+    pageUuid,
+    slugTitle: cleanedTopic || slugTitle,
+    fullSlugTitle: slugTitle,
+  };
+}
+
+async function fetchNotionBlocksText(store, notionInfo) {
+  if (!notionInfo) return '';
+
+  // Bước A: Kiểm tra trong Kho Nội Dung của hệ thống xem có bài viết nào trùng Notion ID hoặc Tiêu đề không
+  const contents = Array.isArray(store?.state?.contents) ? store.state.contents : [];
+  const vaultMatch = contents.find((c) => {
+    const cId = String(c.notionPageId || c.notionUrl || '').replace(/-/g, '').toLowerCase();
+    if (notionInfo.hex32 && cId.includes(notionInfo.hex32)) return true;
+    if (
+      notionInfo.slugTitle &&
+      String(c.title || '').toLowerCase().includes(notionInfo.slugTitle.toLowerCase().slice(0, 24))
+    ) {
+      return true;
+    }
+    return false;
+  });
+  if (vaultMatch && (vaultMatch.body || vaultMatch.script)) {
+    return String(vaultMatch.body || vaultMatch.script).trim();
+  }
+
+  // Bước B: Nếu có Notion API Token trong cấu hình hệ thống -> Đọc trực tiếp các block từ Notion Official API v1
+  const notionToken = String(
+    store?.state?.meta?.notion?.notionToken ||
+      store?.state?.meta?.notionConfig?.notionToken ||
+      process.env.NOTION_TOKEN ||
+      ''
+  ).trim();
+  if (notionToken && notionInfo.pageUuid) {
+    try {
+      const res = await fetch(
+        `https://api.notion.com/v1/blocks/${notionInfo.pageUuid}/children?page_size=100`,
+        {
+          headers: {
+            Authorization: `Bearer ${notionToken}`,
+            'Notion-Version': '2022-06-28',
+          },
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const lines = [];
+        for (const blk of data.results || []) {
+          const bType = blk.type;
+          const richArr = blk?.[bType]?.rich_text;
+          if (Array.isArray(richArr) && richArr.length > 0) {
+            const txt = richArr.map((r) => r.plain_text || r?.text?.content || '').join('').trim();
+            if (txt) lines.push(txt);
+          }
+        }
+        if (lines.length > 0) return lines.join('\n');
+      }
+    } catch {}
+  }
+
+  // Bước C: Thử đọc qua Notion Public Page Chunk API v3 (dành cho trang Notion bật Share to Web)
+  if (notionInfo.pageUuid) {
+    try {
+      const chunkRes = await fetch('https://www.notion.so/api/v3/loadPageChunk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        },
+        body: JSON.stringify({
+          pageId: notionInfo.pageUuid,
+          limit: 100,
+          cursor: { stack: [] },
+          chunkNumber: 0,
+          verticalColumns: false,
+        }),
+      });
+      if (chunkRes.ok) {
+        const chunkData = await chunkRes.json();
+        const blockMap = chunkData?.recordMap?.block || {};
+        const extractedLines = [];
+        for (const blkObj of Object.values(blockMap)) {
+          const val = blkObj?.value;
+          if (!val || val.type === 'page' || val.type === 'collection_view_page') continue;
+          const titleProp = val?.properties?.title;
+          if (Array.isArray(titleProp)) {
+            const lineTxt = titleProp.map((part) => (Array.isArray(part) ? part[0] : '')).join('').trim();
+            if (lineTxt && lineTxt.length > 2) {
+              extractedLines.push(lineTxt);
+            }
+          }
+        }
+        if (extractedLines.length > 0) {
+          return extractedLines.join('\n');
+        }
+      }
+    } catch {}
+  }
+
+  // Bước D: Nếu trang Notion đang khóa quyền riêng tư (chưa Share to Web hoặc chưa gắn Token), tự động trích xuất Chủ đề từ đường dẫn Notion & dựng kịch bản 6 phân cảnh chuẩn!
+  if (notionInfo.slugTitle) {
+    return buildStoryboardFromTopicTitle(notionInfo.slugTitle).join('\n');
+  }
+  return '';
+}
+
 async function resolveSheetOrFileScriptInput(store, options = {}) {
   const chunks = [];
   let sourceLabel = '';
+  let extractedTopicTitle = '';
 
   // 1. Nếu chọn từ Kho Nội Dung / Notion trong hệ thống (contentVaultId)
   if (options.contentVaultId) {
     const found = (store.state?.contents || []).find((c) => c.id === options.contentVaultId);
     if (found) {
       sourceLabel = `Kho Nội Dung / Notion: "${found.title}"`;
-      chunks.push([found.title, found.body || found.script || '', found.seoTags || ''].filter(Boolean).join('\n'));
+      extractedTopicTitle = String(found.title || '')
+        .replace(/^\[[^\]]+\]\s*/g, '')
+        .trim();
+      chunks.push([found.title, found.body || found.script || ''].filter(Boolean).join('\n'));
     }
   }
 
@@ -4778,10 +4995,12 @@ async function resolveSheetOrFileScriptInput(store, options = {}) {
     }
   }
 
-  // 3. Nếu dán Link Google Sheets hoặc Link Notion Public
+  // 3. Nếu dán Link Google Sheets hoặc Link Notion (app.notion.com / notion.so / notion.site)
   if (options.sheetUrl) {
     const rawUrl = String(options.sheetUrl).trim();
     const gsheetMatch = rawUrl.match(/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/i);
+    const notionInfo = parseNotionUrlInfo(rawUrl);
+
     if (gsheetMatch) {
       const sheetId = gsheetMatch[1];
       const gidMatch = rawUrl.match(/[?#&]gid=(\d+)/i);
@@ -4799,6 +5018,17 @@ async function resolveSheetOrFileScriptInput(store, options = {}) {
           }
         }
       } catch {}
+    } else if (notionInfo) {
+      const notionText = await fetchNotionBlocksText(store, notionInfo);
+      if (notionInfo.slugTitle) {
+        extractedTopicTitle = notionInfo.slugTitle;
+      }
+      if (notionText) {
+        sourceLabel = `Trang Notion: "${notionInfo.slugTitle || notionInfo.pageUuid.slice(0, 8)}"`;
+        // Khi người dùng dán Link Notion, ưu tiên nội dung từ Link Notion (không trộn lẫn văn bản cũ)
+        chunks.length = 0;
+        chunks.push(notionText);
+      }
     } else if (/^https?:\/\//i.test(rawUrl)) {
       try {
         const res = await fetch(rawUrl, {
@@ -4809,13 +5039,14 @@ async function resolveSheetOrFileScriptInput(store, options = {}) {
           const stripped = htmlOrTxt
             .replace(/<script[\s\S]*?<\/script>/gi, ' ')
             .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+            .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
             .replace(/<\/(p|div|tr|li|h[1-6])>/gi, '\n')
             .replace(/<td[^>]*>/gi, '\t')
             .replace(/<[^>]+>/g, ' ')
             .replace(/[ \t]+/g, ' ')
             .trim();
-          if (stripped) {
-            sourceLabel = `Link Kịch bản / Notion (${new URL(rawUrl).hostname})`;
+          if (stripped && !/enable javascript to run this app/i.test(stripped)) {
+            sourceLabel = `Link Kịch bản (${new URL(rawUrl).hostname})`;
             chunks.push(stripped.slice(0, 8000));
           }
         }
@@ -4823,8 +5054,8 @@ async function resolveSheetOrFileScriptInput(store, options = {}) {
     }
   }
 
-  // 4. Nếu dán trực tiếp Kịch bản dựng / Bảng từ khóa (scriptText)
-  if (options.scriptText && String(options.scriptText).trim()) {
+  // 4. Nếu dán trực tiếp Kịch bản dựng / Bảng từ khóa (scriptText) — chỉ dùng khi chưa có nội dung đọc từ Link Notion/Sheet hoặc người dùng sửa trực tiếp
+  if (options.scriptText && String(options.scriptText).trim() && chunks.length === 0) {
     if (!sourceLabel) {
       sourceLabel = 'Kịch bản dựng / Bảng từ khóa (Sheet · Notion · Excel)';
     }
@@ -4834,6 +5065,7 @@ async function resolveSheetOrFileScriptInput(store, options = {}) {
   return {
     combinedScriptText: chunks.join('\n').trim(),
     sourceLabel,
+    extractedTopicTitle,
   };
 }
 
@@ -5279,7 +5511,10 @@ export async function huntMultiPlatformFootage(store, options = {}) {
   const agentProfile = FOOTAGE_AGENT_PROFILES[agentMode] || FOOTAGE_AGENT_PROFILES.auto_director;
 
   // Đọc dữ liệu từ File Excel (.xlsx, .csv), Link Google Sheets, Kho Nội Dung / Notion hoặc Kịch Bản Dựng
-  const { combinedScriptText, sourceLabel } = await resolveSheetOrFileScriptInput(store, options);
+  const { combinedScriptText, sourceLabel, extractedTopicTitle } = await resolveSheetOrFileScriptInput(
+    store,
+    options
+  );
   const parsedScenes = combinedScriptText ? parseScriptOrSheetToScenes(combinedScriptText) : [];
   const scriptScenesBreakdown =
     parsedScenes.length > 0
@@ -5287,6 +5522,9 @@ export async function huntMultiPlatformFootage(store, options = {}) {
       : [];
 
   let rawQuery = String(options.query || options.topic || options.seedKeyword || '').trim();
+  if (extractedTopicTitle && (options.preferExternalSource || options.sheetUrl || !rawQuery)) {
+    rawQuery = extractedTopicTitle;
+  }
   if (!rawQuery && scriptScenesBreakdown.length > 0) {
     rawQuery =
       options.fileName

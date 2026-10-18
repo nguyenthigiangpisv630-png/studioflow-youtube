@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=74" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=74" />
+  <link rel="icon" href="/icon.svg?v=75" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=75" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -1168,7 +1168,7 @@
 
             <!-- BẢNG ĐIỀU KHIỂN TÌM KIẾM, AI AGENT & NẠP FILE EXCEL / SHEET / NOTION / KỊCH BẢN DỰNG -->
             <div class="panel-box" style="margin-top: 12px; padding: 16px;">
-              <div style="display: grid; grid-template-columns: 1fr 240px 290px; gap: 10px; align-items: end;">
+              <div style="display: grid; grid-template-columns: 1fr 220px 260px auto; gap: 10px; align-items: end;">
                 <label class="field" style="margin: 0;">
                   <span>🔍 Nhập Chủ đề, Từ khóa ngách hoặc Tiêu đề video cần săn Footage &amp; Tải B-Roll 4K</span>
                   <input
@@ -1199,6 +1199,15 @@
                     <option value="science_3d">🧬 Agent Giải Phẫu 3D / Y Khoa / AI (Bilibili 3D)</option>
                   </select>
                 </label>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  id="btn-footage-start-top"
+                  style="background: linear-gradient(135deg, #059669 0%, #0284c7 100%); border-color: #059669; color: #ffffff !important; font-weight: 800; padding: 0 18px; height: 38px; white-space: nowrap; font-size: 0.9rem; box-shadow: 0 3px 10px rgba(5, 150, 105, 0.25);"
+                  title="Bắt đầu chạy AI Agent săn Kho Footage 4K & bóc tách kịch bản ngay"
+                >
+                  ▶️ BẮT ĐẦU
+                </button>
               </div>
 
               <!-- KHỐI NẠP FILE EXCEL (.XLSX / .CSV), GOOGLE SHEETS, NOTION & KỊCH BẢN DỰNG TỪNG CẢNH -->
@@ -1217,7 +1226,16 @@
                       accept=".xlsx,.xls,.csv,.tsv,.md,.txt,.json"
                       hidden
                     />
-                    <button type="button" class="btn btn-primary btn-xs" id="btn-footage-upload-file" style="background:#0284c7; border-color:#0284c7;">
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-xs"
+                      id="btn-footage-start-script"
+                      style="background: #059669; border-color: #059669; color: #ffffff !important; font-weight: 800; padding: 5px 12px;"
+                      title="Bắt đầu đọc File / Link Notion / Kịch bản dựng và săn Footage"
+                    >
+                      ▶️ Bắt Đầu Bóc Tách
+                    </button>
+                    <button type="button" class="btn btn-primary btn-xs" id="btn-footage-upload-file" style="background:#0284c7; border-color:#0284c7; color:#ffffff !important;">
                       📂 Chọn File Excel (.xlsx/.csv) / Notion (.md/.txt)
                     </button>
                     <button type="button" class="btn btn-secondary btn-xs" id="btn-footage-sample-csv" title="Tải file Excel/CSV mẫu để điền danh sách cảnh hoặc từ khóa">
@@ -1232,16 +1250,28 @@
                   </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
-                  <label class="field" style="margin: 0;">
-                    <span style="font-size: 0.75rem;">🔗 Dán Link Google Sheets (Chế độ Xem công khai) hoặc Link Notion Public</span>
-                    <input
-                      type="url"
-                      id="input-footage-sheet-url"
-                      class="input-control"
-                      placeholder="https://docs.google.com/spreadsheets/d/... hoặc Link Notion..."
-                    />
-                  </label>
+                <div style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 10px; margin-bottom: 8px;">
+                  <div class="field" style="margin: 0;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: #0f172a; display: block; margin-bottom: 4px;">🔗 Dán Link Google Sheets (Chế độ Xem công khai) hoặc Link Notion rồi bấm "▶️ Bắt Đầu"</span>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                      <input
+                        type="url"
+                        id="input-footage-sheet-url"
+                        class="input-control"
+                        style="flex: 1;"
+                        placeholder="https://docs.google.com/spreadsheets/d/... hoặc Link Notion..."
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                        id="btn-footage-start-sheet-url"
+                        style="background: #059669; border-color: #059669; color: #ffffff !important; font-weight: 800; white-space: nowrap; padding: 7px 14px;"
+                        title="Bắt đầu đọc Link Google Sheets / Link Notion và tách cảnh Footage ngay"
+                      >
+                        ▶️ Bắt Đầu Đọc Link
+                      </button>
+                    </div>
+                  </div>
                   <label class="field" style="margin: 0;">
                     <span style="font-size: 0.75rem;">🗂️ Hoặc chọn trực tiếp Kịch bản từ Kho Nội Dung / Notion trong hệ thống</span>
                     <select id="select-footage-vault-item" class="input-control">
@@ -1277,10 +1307,15 @@
                 <button type="button" class="btn btn-secondary btn-xs" data-quick-footage-topic="thiên nhiên đại dương hoang dã 4k">🌊 Thiên nhiên &amp; Đại dương 4K</button>
               </div>
 
-              <!-- HÀNG NÚT HÀNH ĐỘNG CHÍNH (CÓ NÚT AGAIN / ĐỔI GÓC MÁY KHÁC) -->
+              <!-- HÀNG NÚT HÀNH ĐỘNG CHÍNH (CÓ NÚT BẮT ĐẦU & NÚT AGAIN / ĐỔI GÓC MÁY KHÁC) -->
               <div class="bot-actions-row" style="margin-top: 12px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-primary" id="btn-footage-hunt-only">
-                  🎬 Chạy AI Agent Săn Kho Footage &amp; Bóc Tách Kịch Bản Ngay
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  id="btn-footage-hunt-only"
+                  style="background: linear-gradient(135deg, #059669 0%, #0284c7 100%); border-color: #059669; color: #ffffff !important; font-weight: 800; padding: 9px 18px; font-size: 0.9rem; box-shadow: 0 3px 10px rgba(5, 150, 105, 0.25);"
+                >
+                  ▶️ BẮT ĐẦU — Chạy AI Agent Săn Kho Footage &amp; Bóc Tách Kịch Bản Ngay
                 </button>
                 <button type="button" class="btn btn-secondary" id="btn-footage-hunt-again" style="background:#f5f3ff; color:#6d28d9; border-color:#c4b5fd; font-weight:700;" title="Chạy lại AI Agent (Again / Re-roll) để đổi sang góc máy mới, từ khóa B-Roll mới & clip MP4 khác">
                   🔄 Săn Lại / Đổi Bộ Cảnh Khác (Again)
@@ -1692,7 +1727,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=74"></script>
+  <script type="module" src="/app.js?v=75"></script>
 </body>
 </html>
 

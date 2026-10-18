@@ -7931,7 +7931,8 @@ function initBotsCenterEvents() {
     notifyTelegram = false,
     btn = null,
     overrideQuery = '',
-    isRerollAgain = false
+    isRerollAgain = false,
+    preferExternalSource = false
   ) => {
     const inp = document.getElementById('input-footage-query');
     const selCat = document.getElementById('select-footage-category');
@@ -7939,6 +7940,7 @@ function initBotsCenterEvents() {
     const sheetUrlInp = document.getElementById('input-footage-sheet-url');
     const vaultSel = document.getElementById('select-footage-vault-item');
     const scriptTa = document.getElementById('textarea-footage-script');
+    const badge = document.getElementById('footage-file-status-badge');
 
     const activeScan = state.botCenter?.footageScans?.[0] || null;
     let query = String(overrideQuery || inp?.value || '').trim();
@@ -7972,7 +7974,7 @@ function initBotsCenterEvents() {
         ? `🔄 AI Agent đang đổi bộ cảnh mới (Phương án #${currentFootageVariationSeed + 1})...`
         : notifyTelegram
         ? '🎬 AI Agent đang săn 10 nền tảng & bắn Telegram...'
-        : '🎬 4 AI Agent đang bóc tách & săn Kho Footage...';
+        : '⏳ AI Agent đang đọc & săn Kho Footage...';
     }
     try {
       const res = await apiRequest('/api/bots/footage/scan', {
@@ -7984,16 +7986,27 @@ function initBotsCenterEvents() {
           variationSeed: currentFootageVariationSeed,
           sheetUrl,
           contentVaultId,
-          scriptText,
+          scriptText: preferExternalSource && sheetUrl ? '' : scriptText,
+          preferExternalSource: Boolean(preferExternalSource || sheetUrl),
           fileName: uploadedFootageFile.fileName,
           fileBase64: uploadedFootageFile.fileBase64,
           notifyTelegram,
         }),
       });
       if (res.status) state.botCenter = res.status;
+      const s = res.scanItem || res.footageScan || state.botCenter?.footageScans?.[0] || {};
+      // Hiển thị nội dung vừa đọc được từ Link Notion / Google Sheets / File lên khung kịch bản để người dùng thấy rõ
+      if (s.rawScriptText && scriptTa && (preferExternalSource || sheetUrl || !scriptText)) {
+        scriptTa.value = s.rawScriptText;
+      }
+      if (s.query && inp && (preferExternalSource || sheetUrl || !query)) {
+        inp.value = s.query;
+      }
+      if (s.scriptSourceLabel && badge) {
+        badge.textContent = `✅ Đã đọc: ${s.scriptSourceLabel} (${(s.scriptScenesBreakdown || []).length} phân cảnh)`;
+      }
       renderFootageStudioTab();
       renderBotsCenterTab();
-      const s = res.scanItem || res.footageScan || {};
       const sceneCount = (s.scriptScenesBreakdown || []).length;
       showBanner(
         isRerollAgain
@@ -8022,19 +8035,34 @@ function initBotsCenterEvents() {
     }
   };
 
+  document.getElementById('btn-footage-start-top')?.addEventListener('click', (e) =>
+    runFootageHuntAction(false, e.currentTarget, '', false, false)
+  );
+  document.getElementById('btn-footage-start-script')?.addEventListener('click', (e) =>
+    runFootageHuntAction(false, e.currentTarget, '', false, false)
+  );
+  document.getElementById('btn-footage-start-sheet-url')?.addEventListener('click', (e) =>
+    runFootageHuntAction(false, e.currentTarget, '', false, true)
+  );
   document.getElementById('btn-footage-hunt-only')?.addEventListener('click', (e) =>
-    runFootageHuntAction(false, e.currentTarget, '', false)
+    runFootageHuntAction(false, e.currentTarget, '', false, false)
   );
   document.getElementById('btn-footage-hunt-again')?.addEventListener('click', (e) =>
-    runFootageHuntAction(false, e.currentTarget, '', true)
+    runFootageHuntAction(false, e.currentTarget, '', true, false)
   );
   document.getElementById('btn-footage-hunt-and-tg')?.addEventListener('click', (e) =>
-    runFootageHuntAction(true, e.currentTarget, '', false)
+    runFootageHuntAction(true, e.currentTarget, '', false, false)
   );
   document.getElementById('input-footage-query')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      document.getElementById('btn-footage-hunt-only')?.click();
+      document.getElementById('btn-footage-start-top')?.click();
+    }
+  });
+  document.getElementById('input-footage-sheet-url')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('btn-footage-start-sheet-url')?.click();
     }
   });
 
@@ -8935,7 +8963,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=74', { updateViaCache: 'none' })
+      .register('/sw.js?v=75', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
