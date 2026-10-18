@@ -83,8 +83,8 @@ const TAB_TITLES = {
     subtitle: 'Quản lý danh sách thành viên đăng nhập bằng Gmail, cấu hình Không gian làm việc tách riêng và phân quyền theo Group / Kênh',
   },
   bots: {
-    title: 'Trung tâm 3 Bot Tự động hóa 24/7',
-    subtitle: 'Bot 4: Sao lưu dữ liệu bất tử · Bot 1: Telegram Duyệt User & Báo cáo · Bot 2: Canh nổ view & Sức khỏe kênh 24/7',
+    title: 'Trung tâm 4 Bot Tự động hóa 24/7',
+    subtitle: 'Bot 4: Sao lưu bất tử · Bot 1: Telegram Duyệt User & Báo cáo · Bot 2: Canh nổ view 24/7 · Bot 3: Nhắc lịch đăng video & Kênh bỏ quên',
   },
   brand: {
     title: 'Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại',
@@ -5705,6 +5705,7 @@ function renderBotsCenterTab() {
 
   const cfg = bc.config || {};
   const watchdog = bc.watchdog || { viralVideos: [], healthAlerts: [], summary: {} };
+  const scheduleRadar = bc.scheduleRadar || { scheduleItems: [], summary: {} };
   const snapshots = Array.isArray(bc.snapshots) ? bc.snapshots : [];
   const logs = Array.isArray(bc.activityLogs) ? bc.activityLogs : [];
 
@@ -5716,7 +5717,7 @@ function renderBotsCenterTab() {
   // Cập nhật số lượng trên thanh điều hướng
   const viralCount = Number(watchdog.summary?.viralCount ?? watchdog.viralVideos?.length) || 0;
   const alertCount = Number(watchdog.summary?.healthAlertCount ?? watchdog.healthAlerts?.length) || 0;
-  setText('nav-count-bots', viralCount > 0 ? `🔥${viralCount}` : '3');
+  setText('nav-count-bots', viralCount > 0 ? `🔥${viralCount}` : '4');
 
   // --- BOT 4: SAO LƯU BẤT TỬ ---
   setText('bot4-kpi-snapshots', `${snapshots.length} / 10 bản`);
@@ -5888,6 +5889,78 @@ function renderBotsCenterTab() {
     }
   }
 
+  // --- BOT 3: NHẮC LỊCH ĐĂNG VIDEO & CANH KÊNH BỎ QUÊN ---
+  const schedSummary = scheduleRadar.summary || {};
+  setText('bot3-kpi-dead', `${Number(schedSummary.deadCount) || 0} kênh`);
+  setText('bot3-kpi-due', `${Number(schedSummary.dueSoonCount) || 0} kênh`);
+  setText('bot3-kpi-ontrack', `${Number(schedSummary.onTrackCount) || 0} kênh`);
+
+  const inpTargetDays = document.getElementById('input-bot3-target-days');
+  if (inpTargetDays && document.activeElement !== inpTargetDays) {
+    inpTargetDays.value = cfg.targetUploadEveryDays || 2;
+  }
+  const inpDeadDays = document.getElementById('input-bot3-dead-days');
+  if (inpDeadDays && document.activeElement !== inpDeadDays) {
+    inpDeadDays.value = cfg.deadChannelDays || 5;
+  }
+  setCheck('chk-bot3-auto-tg', cfg.autoTelegramScheduleDaily !== false);
+
+  const schedListEl = document.getElementById('bot3-schedule-list');
+  if (schedListEl) {
+    const schedItems = Array.isArray(scheduleRadar.scheduleItems) ? scheduleRadar.scheduleItems : [];
+    if (schedItems.length === 0) {
+      schedListEl.innerHTML = `
+        <div class="bot-empty-note">
+          Chưa có kênh nào trong danh sách theo dõi lịch đăng.
+        </div>
+      `;
+    } else {
+      schedListEl.innerHTML = schedItems
+        .map((item) => {
+          const pillBg =
+            item.status === 'dead'
+              ? 'background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;'
+              : item.status === 'due_soon'
+              ? 'background:#fffbeb;color:#b45309;border:1px solid #fde68a;'
+              : 'background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;';
+          return `
+            <div class="bot-viral-item">
+              <div class="bot-viral-left">
+                <div class="bot-viral-info">
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <a href="${escapeHtml(item.channelUrl || '#')}" target="_blank" rel="noopener" class="bot-viral-title">
+                      📺 ${escapeHtml(item.channelName)} ↗
+                    </a>
+                    <span style="font-size:0.68rem;font-weight:800;padding:2px 7px;border-radius:999px;${pillBg}">
+                      ${escapeHtml(item.badgeText)}
+                    </span>
+                  </div>
+                  <div class="bot-viral-sub">
+                    📁 ${escapeHtml(item.group)} · 👤 QL: <strong>${escapeHtml(item.manager)}</strong> ·
+                    📅 Video gần nhất: <strong>${escapeHtml(item.lastUploadDate)}</strong>
+                  </div>
+                  <div class="bot-viral-sub" style="color:#475569;margin-top:2px;">
+                    💡 ${escapeHtml(item.recommendation)}
+                  </div>
+                </div>
+              </div>
+              <div class="bot-viral-right num">
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  data-open-schedule-channel="${escapeHtml(item.channelId)}"
+                  title="Mở chi tiết kênh này để kiểm tra và đăng bài"
+                >
+                  Mở kênh →
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+  }
+
   // --- NHẬT KÝ HOẠT ĐỘNG ---
   setText(
     'bot-last-scan-time',
@@ -5926,6 +5999,9 @@ function collectBotConfigFromDom() {
     outlierThreshold: Number(document.getElementById('input-bot2-outlier')?.value) || 1.5,
     minViralViews: Number(document.getElementById('input-bot2-min-views')?.value) || 0,
     staleDaysThreshold: Number(document.getElementById('input-bot2-stale-days')?.value) || 5,
+    targetUploadEveryDays: Number(document.getElementById('input-bot3-target-days')?.value) || 2,
+    deadChannelDays: Number(document.getElementById('input-bot3-dead-days')?.value) || 5,
+    autoTelegramScheduleDaily: Boolean(document.getElementById('chk-bot3-auto-tg')?.checked),
     autoBackupEnabled: Boolean(document.getElementById('chk-bot4-auto-backup')?.checked),
     cloudBackupWebhookUrl: String(document.getElementById('input-bot4-webhook-url')?.value || '').trim(),
   };
@@ -5964,7 +6040,7 @@ function initBotsCenterEvents() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Lưu cấu hình 3 Bot
+  // Lưu cấu hình 4 Bot
   document.getElementById('btn-bot-save-config')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget;
     const orig = btn.textContent;
@@ -5980,7 +6056,7 @@ function initBotsCenterEvents() {
       const inpTok = document.getElementById('input-bot1-token');
       if (inpTok) inpTok.value = '';
       renderBotsCenterTab();
-      showBanner('✅ Đã lưu cấu hình Trung tâm 3 Bot thành công!');
+      showBanner('✅ Đã lưu cấu hình Trung tâm 4 Bot thành công!');
     } catch (err) {
       showBanner(err.message, true);
     } finally {
@@ -6056,8 +6132,19 @@ function initBotsCenterEvents() {
     }
   });
 
-  // Bot 4: Khôi phục 1-Click từ Snapshot trong danh sách
+  // Bot 4: Khôi phục 1-Click từ Snapshot trong danh sách + Mở nhanh kênh từ Bot 3
   document.getElementById('panel-bots')?.addEventListener('click', async (e) => {
+    const openChBtn = e.target.closest('[data-open-schedule-channel]');
+    if (openChBtn) {
+      const channelId = openChBtn.dataset.openScheduleChannel;
+      if (channelId) {
+        state.activeChannelDeepId = channelId;
+        switchTab('youtube');
+        renderYoutubeTab();
+      }
+      return;
+    }
+
     const restoreBtn = e.target.closest('[data-restore-snapshot-id]');
     if (!restoreBtn) return;
     const snapshotId = restoreBtn.dataset.restoreSnapshotId;
@@ -6206,6 +6293,54 @@ function initBotsCenterEvents() {
   document.getElementById('btn-bot2-scan-and-tg')?.addEventListener('click', (e) =>
     runWatchdogAction(true, e.currentTarget)
   );
+
+  // Bot 3: Quét Lịch Đăng Video & Canh Kênh Bỏ Quên
+  const runScheduleAction = async (notifyTelegram, btn) => {
+    const orig = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏰ Đang kiểm tra...';
+    }
+    try {
+      const payload = {
+        ...collectBotConfigFromDom(),
+        notifyTelegram: Boolean(notifyTelegram),
+      };
+      await apiRequest('/api/bots/config', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      const res = await apiRequest('/api/bots/schedule/scan', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      if (res.status) state.botCenter = res.status;
+      renderBotsCenterTab();
+      const s = res.scheduleRadar?.summary || {};
+      showBanner(
+        notifyTelegram
+          ? `📲 Đã bắn Báo cáo Nhắc lịch đăng video (${s.needActionCount || 0} kênh cần đăng bài) về Telegram @acb9xbot!`
+          : `⏰ Đã kiểm tra lịch đăng: ${s.deadCount || 0} kênh bỏ quên, ${s.dueSoonCount || 0} kênh đến hạn hôm nay, ${s.onTrackCount || 0} kênh đúng lịch!`
+      );
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+  };
+
+  document.getElementById('btn-bot-schedule-now')?.addEventListener('click', (e) =>
+    runScheduleAction(false, e.currentTarget)
+  );
+  document.getElementById('btn-bot3-scan-only')?.addEventListener('click', (e) =>
+    runScheduleAction(false, e.currentTarget)
+  );
+  document.getElementById('btn-bot3-scan-and-tg')?.addEventListener('click', (e) =>
+    runScheduleAction(true, e.currentTarget)
+  );
 }
 
 // Đăng ký Service Worker cho Mobile App (PWA) & dọn cache cũ tránh lỗi hiển thị CSS
@@ -6217,7 +6352,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=61', { updateViaCache: 'none' })
+      .register('/sw.js?v=62', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

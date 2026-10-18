@@ -7,6 +7,7 @@ import {
   ensureBotCenterState,
   appendBotLog,
   scanViralAndChannelHealth,
+  scanUploadScheduleAndDeadChannels,
   buildBackupPayload,
   createImmortalSnapshot,
   notifyTelegramNewUser,
@@ -2936,6 +2937,7 @@ export class StudioStore {
     if (!this.state.meta) this.state.meta = {};
     const center = ensureBotCenterState(this.state.meta);
     const watchdog = scanViralAndChannelHealth(this);
+    const scheduleRadar = scanUploadScheduleAndDeadChannels(this);
     const snapshots = (center.snapshots || []).map((snap) => ({
       id: snap.id,
       label: snap.label,
@@ -2957,6 +2959,7 @@ export class StudioStore {
         maskedTelegramToken: maskedToken,
       },
       watchdog,
+      scheduleRadar,
       snapshots,
       activityLogs: (center.activityLogs || []).slice(0, 30),
     };
@@ -2996,6 +2999,20 @@ export class StudioStore {
       prev.staleDaysThreshold = Math.max(1, Number(patch.staleDaysThreshold) || 5);
     }
 
+    // Bot 3: Schedule & Dead-Channel Reminder
+    if (patch.scheduleBotEnabled !== undefined) {
+      prev.scheduleBotEnabled = Boolean(patch.scheduleBotEnabled);
+    }
+    if (patch.targetUploadEveryDays !== undefined) {
+      prev.targetUploadEveryDays = Math.max(1, Number(patch.targetUploadEveryDays) || 2);
+    }
+    if (patch.deadChannelDays !== undefined) {
+      prev.deadChannelDays = Math.max(2, Number(patch.deadChannelDays) || 5);
+    }
+    if (patch.autoTelegramScheduleDaily !== undefined) {
+      prev.autoTelegramScheduleDaily = Boolean(patch.autoTelegramScheduleDaily);
+    }
+
     if (patch.autoBackupEnabled !== undefined) prev.autoBackupEnabled = Boolean(patch.autoBackupEnabled);
     if (patch.cloudBackupWebhookUrl !== undefined) {
       prev.cloudBackupWebhookUrl = String(patch.cloudBackupWebhookUrl).trim();
@@ -3004,7 +3021,7 @@ export class StudioStore {
     appendBotLog(
       this.state.meta,
       'Bot Center',
-      'Đã lưu cấu hình Trung tâm Bot (Bot 1 Telegram + Bot 2 Canh nổ view + Bot 4 Sao lưu bất tử).',
+      'Đã lưu cấu hình Trung tâm 4 Bot (Bot 1 Telegram + Bot 2 Nổ view + Bot 3 Nhắc lịch đăng + Bot 4 Sao lưu bất tử).',
       'success'
     );
     this.#save();
@@ -3019,6 +3036,19 @@ export class StudioStore {
       'Bot 2 (Canh nổ view)',
       `Quét xong ${result.summary.totalChannelsScanned} kênh: Phát hiện ${result.summary.viralCount} video nổ đề xuất (>= x${result.outlierThreshold}) và ${result.summary.healthAlertCount} cảnh báo kênh.`,
       result.summary.viralCount > 0 ? 'success' : 'info'
+    );
+    this.#save();
+    return result;
+  }
+
+  runScheduleReminderScan(customOptions = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const result = scanUploadScheduleAndDeadChannels(this, customOptions);
+    appendBotLog(
+      this.state.meta,
+      'Bot 3 (Nhắc lịch đăng)',
+      `Kiểm tra lịch đăng ${result.summary.totalChannels} kênh: ${result.summary.deadCount} kênh bỏ quên/đứt lịch, ${result.summary.dueSoonCount} kênh đến hạn đăng hôm nay, ${result.summary.onTrackCount} kênh đúng tiến độ.`,
+      result.summary.needActionCount > 0 ? 'warning' : 'success'
     );
     this.#save();
     return result;

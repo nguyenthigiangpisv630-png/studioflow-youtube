@@ -674,6 +674,18 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(scanData.ok, true);
     assert.ok(scanData.watchdog.viralVideos.some((v) => v.title === 'Video Cắn Đề Xuất Nổ View'));
 
+    // 2b. Quét Bot 3 Nhắc Lịch Đăng Video & Canh Kênh Bỏ Quên
+    const schedRes = await fetch(`${baseUrl}/api/bots/schedule/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetUploadEveryDays: 2, deadChannelDays: 5 }),
+    });
+    assert.equal(schedRes.status, 200);
+    const schedData = await schedRes.json();
+    assert.equal(schedData.ok, true);
+    assert.ok(Array.isArray(schedData.scheduleRadar.scheduleItems));
+    assert.ok(schedData.scheduleRadar.scheduleItems.some((it) => it.channelId === ch.id));
+
     // 3. Tạo Snapshot Bất Tử (Bot 4) khi đang có kênh Test
     const snapRes = await fetch(`${baseUrl}/api/bots/backup/create`, {
       method: 'POST',

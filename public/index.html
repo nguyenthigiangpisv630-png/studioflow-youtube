@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=61" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=61" />
+  <link rel="icon" href="/icon.svg?v=62" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=62" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -101,7 +101,7 @@
                 </svg>
                 <span class="nav-btn-label">Trung tâm Bot</span>
               </span>
-              <span class="nav-count" id="nav-count-bots">3</span>
+              <span class="nav-count" id="nav-count-bots">4</span>
             </button>
           </nav>
         </div>
@@ -483,21 +483,25 @@
           </div>
         </section>
 
-        <!-- TAB 5: TRUNG TÂM 3 BOT TỰ ĐỘNG HÓA (BOT 4: SAO LƯU BẤT TỬ · BOT 1: TELEGRAM · BOT 2: CANH NỔ VIEW) -->
+        <!-- TAB 5: TRUNG TÂM 4 BOT TỰ ĐỘNG HÓA (BOT 4: SAO LƯU BẤT TỬ · BOT 1: TELEGRAM · BOT 2: CANH NỔ VIEW · BOT 3: NHẮC LỊCH ĐĂNG VIDEO) -->
         <section class="tab-panel" id="panel-bots">
           <div class="bots-page-shell">
             <div class="users-page-header bots-page-header">
               <div class="users-page-title-block">
-                <h2 class="users-page-title">🤖 Trung tâm 3 Bot Tự động hóa 24/7</h2>
+                <h2 class="users-page-title">🤖 Trung tâm 4 Bot Tự động hóa 24/7</h2>
                 <p class="panel-desc" style="margin-top:4px;">
-                  <strong>Bot 4:</strong> Sao lưu dữ liệu bất tử (Auto-Backup &amp; 1-Click Restore) &nbsp;·&nbsp;
-                  <strong>Bot 1:</strong> Telegram duyệt User &amp; Báo cáo từ xa &nbsp;·&nbsp;
-                  <strong>Bot 2:</strong> Canh nổ view &amp; Sức khỏe kênh 24/7
+                  <strong>Bot 4:</strong> Sao lưu dữ liệu bất tử &nbsp;·&nbsp;
+                  <strong>Bot 1:</strong> Telegram duyệt User &amp; Báo cáo &nbsp;·&nbsp;
+                  <strong>Bot 2:</strong> Canh nổ view 24/7 &nbsp;·&nbsp;
+                  <strong>Bot 3:</strong> Nhắc lịch đăng video &amp; Kênh bỏ quên
                 </p>
               </div>
               <div class="users-page-header-actions" style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button type="button" class="btn btn-secondary btn-sm" id="btn-bot-scan-now">
-                  🔥 Quét Nổ View ngay (Bot 2)
+                  🔥 Quét Nổ View (Bot 2)
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-bot-schedule-now">
+                  ⏰ Kiểm tra Lịch đăng (Bot 3)
                 </button>
                 <button type="button" class="btn btn-secondary btn-sm" id="btn-bot-snapshot-now">
                   💾 Tạo Snapshot Bất Tử (Bot 4)
@@ -508,8 +512,8 @@
               </div>
             </div>
 
-            <!-- LƯỚI 3 BOT TRUNG TÂM -->
-            <div class="bots-grid-3">
+            <!-- LƯỚI 4 BOT TRUNG TÂM -->
+            <div class="bots-grid-3 bots-grid-4">
               <!-- ==================== BOT 4: SAO LƯU DỮ LIỆU BẤT TỬ ==================== -->
               <div class="bot-card panel-box">
                 <div class="bot-card-header">
@@ -586,10 +590,9 @@
                 </div>
 
                 <div class="bot-guide-box">
-                  <strong>⚡ Hướng dẫn kết nối trong 30 giây:</strong><br />
-                  1️⃣ Mở Telegram tìm <code>@BotFather</code> → gõ <code>/newbot</code> để lấy <strong>Bot Token</strong> dán vào ô dưới.<br />
-                  2️⃣ Mở Bot vừa tạo trên Telegram, bấm <strong>Start</strong> (hoặc nhắn <code>/start</code>).<br />
-                  3️⃣ Bấm nút <strong>🔍 Tự dò Chat ID</strong> bên dưới → Hệ thống tự điền Chat ID và kết nối ngay!
+                  <strong>⚡ Đã kết nối Bot <code>@acb9xbot</code>! Lệnh dùng nhanh trên Telegram:</strong><br />
+                  • <code>/report</code> (Báo cáo doanh thu) &nbsp;·&nbsp; <code>/top</code> (Video nổ view Bot 2)<br />
+                  • <code>/schedule</code> (Nhắc lịch đăng bài Bot 3) &nbsp;·&nbsp; <code>/users</code> (Duyệt User) &nbsp;·&nbsp; <code>/backup</code> (Lấy file sao lưu)
                 </div>
 
                 <div class="bot-form-group">
@@ -622,7 +625,7 @@
                   <div class="bot-checks-stack" style="margin-top:10px;">
                     <label class="bot-check-row">
                       <input type="checkbox" id="chk-bot1-enabled" checked />
-                      <span>Kích hoạt Bot 1 Telegram (Hỗ trợ lệnh <code>/report</code>, <code>/top</code>, <code>/users</code>, <code>/backup</code>)</span>
+                      <span>Kích hoạt Bot 1 Telegram (Hỗ trợ lệnh <code>/report</code>, <code>/top</code>, <code>/schedule</code>, <code>/users</code>, <code>/backup</code>)</span>
                     </label>
                     <label class="bot-check-row">
                       <input type="checkbox" id="chk-bot1-notify-user" checked />
@@ -640,7 +643,7 @@
 
                   <div class="bot-actions-row" style="margin-top:12px;">
                     <button type="button" class="btn btn-primary btn-sm" id="btn-bot-save-config">
-                      💾 Lưu cấu hình 3 Bot
+                      💾 Lưu cấu hình 4 Bot
                     </button>
                     <button type="button" class="btn btn-secondary btn-sm" id="btn-bot1-test-report">
                       📨 Gửi Báo Cáo Ngay sang Telegram
@@ -656,7 +659,7 @@
                     <span class="bot-icon-badge bot-badge-amber">🔥</span>
                     <div>
                       <h3 class="bot-card-title">Bot 2 — Canh Nổ View 24/7 (Watchdog)</h3>
-                      <p class="bot-card-sub">Tự động phát hiện Video cắn đề xuất (Outlier) &amp; Cảnh báo kênh ngâm video</p>
+                      <p class="bot-card-sub">Tự động phát hiện Video cắn đề xuất (Outlier) &amp; Cảnh báo sức khỏe kênh</p>
                     </div>
                   </div>
                   <span class="bot-status-pill active" id="bot2-status-pill">🟢 Đang canh 24/7</span>
@@ -703,16 +706,75 @@
                 <div id="bot2-viral-list" class="bot-viral-list"></div>
 
                 <div class="bot-section-divider" style="margin-top:12px;">
-                  <span>⚠️ Cảnh báo Kênh ngâm video / BKT</span>
+                  <span>⚠️ Cảnh báo Sức khỏe Kênh / BKT</span>
                 </div>
                 <div id="bot2-health-list" class="bot-health-list"></div>
               </div>
+
+              <!-- ==================== BOT 3: NHẮC LỊCH ĐĂNG VIDEO & CANH KÊNH BỎ QUÊN ==================== -->
+              <div class="bot-card panel-box">
+                <div class="bot-card-header">
+                  <div class="bot-card-title-wrap">
+                    <span class="bot-icon-badge bot-badge-violet">⏰</span>
+                    <div>
+                      <h3 class="bot-card-title">Bot 3 — Nhắc Lịch Đăng Video (Schedule Bot)</h3>
+                      <p class="bot-card-sub">Theo dõi nhịp đăng bài từng kênh, báo động kênh bỏ quên &amp; nhắc Quản lý</p>
+                    </div>
+                  </div>
+                  <span class="bot-status-pill active" id="bot3-status-pill">🟢 Đang nhắc lịch 24/7</span>
+                </div>
+
+                <div class="bot-kpi-strip">
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">🚨 Kênh bỏ quên / Đứt lịch</span>
+                    <strong class="bot-kpi-val num" id="bot3-kpi-dead" style="color:#dc2626;">0 kênh</strong>
+                  </div>
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">⏰ Đến hạn đăng hôm nay</span>
+                    <strong class="bot-kpi-val num" id="bot3-kpi-due" style="color:#d97706;">0 kênh</strong>
+                  </div>
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">🟢 Đúng tiến độ</span>
+                    <strong class="bot-kpi-val num" id="bot3-kpi-ontrack" style="color:#059669;">0 kênh</strong>
+                  </div>
+                </div>
+
+                <div class="bot-watchdog-controls" style="grid-template-columns:1fr 1fr;">
+                  <label class="field">
+                    <span>Chu kỳ đăng mục tiêu (ngày/video)</span>
+                    <input type="number" step="1" min="1" max="30" id="input-bot3-target-days" class="input-control" value="2" />
+                  </label>
+                  <label class="field">
+                    <span>Báo động đỏ khi bỏ quên quá (ngày)</span>
+                    <input type="number" step="1" min="2" max="90" id="input-bot3-dead-days" class="input-control" value="5" />
+                  </label>
+                </div>
+
+                <label class="bot-check-row" style="margin-top:8px;">
+                  <input type="checkbox" id="chk-bot3-auto-tg" checked />
+                  <span>Tự động bắn nhắc lịch đăng video về Telegram <code>@acb9xbot</code> (Hoặc gõ lệnh <code>/schedule</code>)</span>
+                </label>
+
+                <div class="bot-actions-row" style="margin-top:8px;">
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-bot3-scan-only">
+                    ⏰ Kiểm tra Lịch đăng ngay
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-bot3-scan-and-tg">
+                    📲 Bắn Nhắc Lịch về Telegram
+                  </button>
+                </div>
+
+                <div class="bot-section-divider">
+                  <span>📋 Tiến độ Đăng Video từng Kênh &amp; Quản lý phụ trách</span>
+                </div>
+                <div id="bot3-schedule-list" class="bot-viral-list"></div>
+              </div>
             </div>
 
-            <!-- NHẬT KÝ HOẠT ĐỘNG TỰ ĐỘNG CỦA 3 BOT -->
+            <!-- NHẬT KÝ HOẠT ĐỘNG TỰ ĐỘNG CỦA 4 BOT -->
             <div class="panel-box" style="margin-top:16px;padding:16px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <h3 style="font-size:0.95rem;font-weight:800;margin:0;">📜 Nhật ký hoạt động trực tiếp của 3 Bot</h3>
+                <h3 style="font-size:0.95rem;font-weight:800;margin:0;">📜 Nhật ký hoạt động trực tiếp của 4 Bot</h3>
                 <span style="font-size:0.75rem;color:#64748b;" id="bot-last-scan-time">Cập nhật tự động</span>
               </div>
               <div id="bot-activity-logs" class="bot-activity-logs"></div>
@@ -760,7 +822,7 @@
             <circle cx="9" cy="14" r="1.5" />
             <circle cx="15" cy="14" r="1.5" />
           </svg>
-          <span>3 Bot</span>
+          <span>4 Bot</span>
         </button>
       </nav>
     </div>
@@ -1115,7 +1177,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=61"></script>
+  <script type="module" src="/app.js?v=62"></script>
 </body>
 </html>
 

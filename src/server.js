@@ -8,6 +8,7 @@ import {
   detectTelegramChatId,
   sendTelegramBackupDocument,
   formatTelegramSystemReport,
+  formatTelegramScheduleReport,
   pollTelegramBotUpdates,
   appendBotLog,
 } from './domain/botEngine.js';
@@ -714,6 +715,32 @@ export function createAppServer({
             }).catch(() => {});
           }
           return sendJson(res, 200, { ok: true, watchdog, status: store.getBotCenterStatus() });
+        }
+
+        if (pathname === '/api/bots/schedule/scan' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const scheduleRadar = store.runScheduleReminderScan(body);
+          const cfg = store.state?.meta?.botCenter?.config || {};
+          if (body.notifyTelegram && cfg.telegramBotToken && cfg.telegramChatId) {
+            const schedHtml = formatTelegramScheduleReport(store, body);
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: cfg.telegramChatId,
+              text: schedHtml,
+              parse_mode: 'HTML',
+            });
+            appendBotLog(
+              store.state.meta,
+              'Bot 3 -> Telegram',
+              `Đã bắn Báo cáo Nhắc lịch đăng video & Kênh bỏ quên về Telegram (Chat ID: ${cfg.telegramChatId}).`,
+              'success'
+            );
+            store.saveState();
+          }
+          return sendJson(res, 200, {
+            ok: true,
+            scheduleRadar,
+            status: store.getBotCenterStatus(),
+          });
         }
 
         if (pathname === '/api/bots/backup/create' && method === 'POST') {

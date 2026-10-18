@@ -24,6 +24,13 @@ export function getDefaultBotConfig() {
     staleDaysThreshold: 5, // Quá 5 ngày chưa ra video mới
     lastWatchdogScanAt: null,
 
+    // Bot 3: Dead-Channel & Schedule Reminder Bot (Nhắc lịch đăng video)
+    scheduleBotEnabled: true,
+    targetUploadEveryDays: 2, // Chu kỳ chuẩn: 2 ngày phải ra 1 video mới
+    deadChannelDays: 5, // Quá 5 ngày không đăng = Kênh bỏ quên (Dead/Stale)
+    autoTelegramScheduleDaily: true,
+    lastScheduleScanAt: null,
+
     // Bot 4: Auto-Backup Cloud & Immortal Snapshot
     autoBackupEnabled: true,
     cloudBackupWebhookUrl: '',
@@ -230,6 +237,187 @@ export function scanViralAndChannelHealth(store, customOptions = {}) {
     healthAlerts: channelAlerts,
     channelAlerts,
   };
+}
+
+// ============================================================================
+// BOT 3: DEAD-CHANNEL & SCHEDULE REMINDER BOT (NHẮC LỊCH ĐĂNG VIDEO & CANH KÊNH BỎ QUÊN)
+// ============================================================================
+export function scanUploadScheduleAndDeadChannels(store, customOptions = {}) {
+  const center = ensureBotCenterState(store.state.meta);
+  const cfg = center.config;
+  const targetUploadEveryDays = Math.max(
+    1,
+    Number(customOptions.targetUploadEveryDays ?? cfg.targetUploadEveryDays) || 2
+  );
+  const deadChannelDays = Math.max(
+    targetUploadEveryDays + 1,
+    Number(customOptions.deadChannelDays ?? cfg.deadChannelDays ?? cfg.staleDaysThreshold) || 5
+  );
+
+  const channels = store.state.channels || [];
+  const allVideos = store.state.videos || [];
+  const allContents = store.state.contents || [];
+  const nowMs = Date.now();
+
+  const scheduleItems = [];
+  let deadCount = 0;
+  let dueSoonCount = 0;
+  let onTrackCount = 0;
+
+  for (const ch of channels) {
+    const fromStore = allVideos.filter((v) => v.channelId === ch.id);
+    const mergedVids = [];
+    const seenKeys = new Set();
+
+    for (const v of fromStore) {
+      const k = v.youtubeVideoId || v.id || v.title;
+      if (!seenKeys.has(k)) {
+        seenKeys.add(k);
+        mergedVids.push({
+          title: v.title || 'Video YouTube',
+          publishedAt: v.publishedAt || v.lastUpdatedDate || '',
+          views: Number(v.currentViews ?? v.views) || 0,
+        });
+      }
+    }
+    if (Array.isArray(ch.topVideos)) {
+      for (const tv of ch.topVideos) {
+        const k = tv.youtubeVideoId || tv.id || tv.title;
+        if (!seenKeys.has(k)) {
+          seenKeys.add(k);
+          mergedVids.push({
+            title: tv.title || 'Video YouTube',
+            publishedAt: tv.publishedAt || '',
+            views: Number(tv.views ?? tv.currentViews) || 0,
+          });
+        }
+      }
+    }
+
+    const datedVids = mergedVids
+      .filter((v) => v.publishedAt)
+      .sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));
+
+    const latestVid = datedVids[0] || null;
+    const lastUploadDate = latestVid?.publishedAt || ch.firstVideoDate || '';
+    let daysSinceUpload = null;
+    if (lastUploadDate) {
+      const parsedMs = new Date(lastUploadDate).getTime();
+      if (Number.isFinite(parsedMs)) {
+        daysSinceUpload = Math.max(0, Math.floor((nowMs - parsedMs) / (24 * 60 * 60 * 1000)));
+      }
+    }
+
+    const totalVideosCount = Math.max(mergedVids.length, Number(ch.totalVideos) || 0);
+    let status = 'on_track';
+    let badgeText = '✅ Đúng lịch';
+    let recommendation = 'Đang duy trì nhịp đăng video tốt.';
+
+    if (totalVideosCount === 0 || daysSinceUpload === null) {
+      status = 'dead';
+      deadCount += 1;
+      badgeText = '🚨 Chưa có lịch / Chưa đăng bài';
+      recommendation = 'Kênh chưa có dữ liệu ngày đăng video mới. Cần lên lịch đăng bài ngay!';
+    } else if (daysSinceUpload >= deadChannelDays) {
+      status = 'dead';
+      deadCount += 1;
+      badgeText = `🚨 Bỏ quên ${daysSinceUpload} ngày`;
+      recommendation = `Đã ngâm ${daysSinceUpload} ngày (vượt ngưỡng ${deadChannelDays} ngày). Cần đăng video ngay hôm nay để giữ đề xuất!`;
+    } else if (daysSinceUpload >= targetUploadEveryDays) {
+      status = 'due_soon';
+      dueSoonCount += 1;
+      badgeText = `⏰ Đến lịch đăng (${daysSinceUpload} ngày)`;
+      recommendation = `Đã đến chu kỳ ${targetUploadEveryDays} ngày/video. Hãy đăng 1 video mới trong hôm nay!`;
+    } else {
+      status = 'on_track';
+      onTrackCount += 1;
+      const nextDueIn = Math.max(1, targetUploadEveryDays - daysSinceUpload);
+      badgeText =
+        daysSinceUpload === 0 ? '🟢 Vừa đăng hôm nay' : `🟢 Mới đăng ${daysSinceUpload} ngày trước`;
+      recommendation = `Lịch đăng tiếp theo sau ${nextDueIn} ngày nữa.`;
+    }
+
+    scheduleItems.push({
+      channelId: ch.id,
+      channelName: ch.name,
+      channelHandle: ch.handle || '',
+      channelUrl: ch.channelUrl || '#',
+      group: ch.group || 'Chưa gắn Group',
+      manager: ch.managerEmail || ch.manager || 'Admin (timhanhphuc)',
+      totalVideos: totalVideosCount,
+      lastUploadDate: lastUploadDate || 'Chưa rõ',
+      latestVideoTitle: latestVid?.title || '',
+      daysSinceUpload: daysSinceUpload ?? 999,
+      status,
+      badgeText,
+      recommendation,
+    });
+  }
+
+  // Sắp xếp ưu tiên kênh Bỏ quên (dead) -> Đến hạn hôm nay (due_soon) -> Đúng lịch (on_track)
+  const priorityOrder = { dead: 0, due_soon: 1, on_track: 2 };
+  scheduleItems.sort(
+    (a, b) =>
+      (priorityOrder[a.status] ?? 9) - (priorityOrder[b.status] ?? 9) ||
+      b.daysSinceUpload - a.daysSinceUpload
+  );
+
+  center.config.lastScheduleScanAt = new Date().toISOString();
+
+  return {
+    scannedAt: center.config.lastScheduleScanAt,
+    targetUploadEveryDays,
+    deadChannelDays,
+    summary: {
+      totalChannels: channels.length,
+      deadCount,
+      dueSoonCount,
+      onTrackCount,
+      needActionCount: deadCount + dueSoonCount,
+      savedVaultKeysCount: allContents.length,
+    },
+    scheduleItems,
+  };
+}
+
+export function formatTelegramScheduleReport(store, customOptions = {}) {
+  const sched = scanUploadScheduleAndDeadChannels(store, customOptions);
+  const s = sched.summary;
+  const urgentItems = sched.scheduleItems.filter((it) => it.status === 'dead' || it.status === 'due_soon');
+
+  const urgentLines =
+    urgentItems.length > 0
+      ? urgentItems
+          .slice(0, 12)
+          .map((it, idx) => {
+            const icon = it.status === 'dead' ? '🚨' : '⏰';
+            const dayNote =
+              it.daysSinceUpload >= 999
+                ? 'Chưa có video mới'
+                : `Đã <b>${it.daysSinceUpload} ngày</b> chưa đăng (gần nhất: ${escapeTgHtml(
+                    it.lastUploadDate
+                  )})`;
+            return `${idx + 1}. ${icon} <b>${escapeTgHtml(it.channelName)}</b> (${escapeTgHtml(
+              it.group
+            )})\n   👤 QL: <code>${escapeTgHtml(it.manager)}</code> — ${dayNote}`;
+          })
+          .join('\n\n')
+      : '✅ <b>Tuyệt vời! Toàn bộ kênh đều đang đúng lịch đăng video, không có kênh nào bị bỏ quên.</b>';
+
+  return [
+    `⏰ <b>BÁO CÁO NHẮC LỊCH ĐĂNG VIDEO &amp; KÊNH BỎ QUÊN (BOT 3)</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `🎯 Chu kỳ mục tiêu: <b>${sched.targetUploadEveryDays} ngày/video</b> | Ngưỡng báo động đỏ: <b>${sched.deadChannelDays} ngày</b>`,
+    `🚨 Kênh bỏ quên / Đứt lịch: <b>${s.deadCount} kênh</b>`,
+    `⏰ Kênh đến hạn đăng hôm nay: <b>${s.dueSoonCount} kênh</b>`,
+    `🟢 Kênh đúng tiến độ: <b>${s.onTrackCount} / ${s.totalChannels} kênh</b>`,
+    `🗂️ Kho Key nội dung dự trữ: <b>${s.savedVaultKeysCount} chủ đề</b>`,
+    ``,
+    `📋 <b>DANH SÁCH KÊNH CẦN ĐĂNG BÀI NGAY:</b>`,
+    urgentLines,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `💡 <i>Gõ /schedule (hoặc /lich) bất cứ lúc nào để kiểm tra tiến độ đăng video của cả dàn kênh!</i>`,
+  ].join('\n');
 }
 
 // ============================================================================
@@ -614,6 +802,7 @@ export async function pollTelegramBotUpdates(store) {
             `Xin chào Admin <b>timhanhphuc</b>! Các lệnh điều khiển nhanh:`,
             `• /report — Xem báo cáo tổng hợp Kênh, Views & Doanh thu`,
             `• /top — Xem danh sách Video đang nổ đề xuất (Bot 2)`,
+            `• /schedule — Kiểm tra Lịch đăng video & Kênh bỏ quên (Bot 3)`,
             `• /users — Danh sách thành viên đang chờ duyệt kèm nút Duyệt`,
             `• /backup — Nhận ngay file Sao lưu dữ liệu bất tử (.json)`,
           ].join('\n'),
@@ -624,6 +813,13 @@ export async function pollTelegramBotUpdates(store) {
           chat_id: chatId,
           parse_mode: 'HTML',
           text: reportHtml,
+        });
+      } else if (text.startsWith('/schedule') || text.startsWith('/lich')) {
+        const schedHtml = formatTelegramScheduleReport(store);
+        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+          chat_id: chatId,
+          parse_mode: 'HTML',
+          text: schedHtml,
         });
       } else if (text.startsWith('/top') || text.startsWith('/no')) {
         const scan = scanViralAndChannelHealth(store);

@@ -16,12 +16,17 @@
         "notifyOnViralVideo": true,
         "autoTelegramBackupDaily": true,
         "lastTelegramReportAt": "2026-10-18T04:08:26.691Z",
-        "lastTelegramUpdateId": 618454746,
+        "lastTelegramUpdateId": 618454747,
         "watchdogEnabled": true,
         "outlierThreshold": 1.5,
         "minViralViews": 500,
         "staleDaysThreshold": 5,
-        "lastWatchdogScanAt": "2026-10-18T04:11:39.386Z",
+        "lastWatchdogScanAt": "2026-10-18T04:15:11.222Z",
+        "scheduleBotEnabled": true,
+        "targetUploadEveryDays": 2,
+        "deadChannelDays": 5,
+        "autoTelegramScheduleDaily": true,
+        "lastScheduleScanAt": "2026-10-18T04:29:38.555Z",
         "autoBackupEnabled": true,
         "cloudBackupWebhookUrl": "",
         "lastBackupAt": "2026-10-18T04:04:09.984Z",
@@ -1216,6 +1221,13 @@
       ],
       "notifiedViralVideoIds": [],
       "activityLogs": [
+        {
+          "id": "log-9e566390",
+          "botName": "Bot 3 (Nhắc lịch đăng)",
+          "message": "Kiểm tra lịch đăng 2 kênh: 1 kênh bỏ quên/đứt lịch, 1 kênh đến hạn đăng hôm nay, 0 kênh đúng tiến độ.",
+          "level": "warning",
+          "createdAt": "2026-10-18T04:29:38.555Z"
+        },
         {
           "id": "log-8424f7c2",
           "botName": "Bot 4 -> Telegram",
