@@ -6384,3 +6384,128 @@ select:focus-visible {
 #auth-saved-gmails-box {
   display: none !important;
 }
+
+/* =========================================================================
+   GIAO DIỆN PC WEB 1 HÀNG DUY NHẤT & SẮP XẾP THỨ TỰ THÔNG MINH (v58)
+   Thứ tự từ trái qua phải:
+   1. Tên kênh + @Handle ↗
+   2. Chỉ số chính: SUB -> TỔNG VIEWS -> VIDEO
+   3. Trạng thái BKT -> Ngách -> Group
+   4. Quản lý -> Gà kết nối -> Ngày đầu
+   5. Nút thao tác (Đồng bộ | Xóa) căn phải
+   ========================================================================= */
+@media (min-width: 769px) {
+  .platform-wrapper:not(.mode-app) .channel-single-line.channel-two-rows {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    padding-bottom: 2px !important;
+    scrollbar-width: thin;
+  }
+
+  .platform-wrapper:not(.mode-app) .channel-line-row-1,
+  .platform-wrapper:not(.mode-app) .channel-line-row-2 {
+    display: contents !important;
+    border-top: none !important;
+    padding-top: 0 !important;
+  }
+
+  .platform-wrapper:not(.mode-app) .channel-single-line > * ,
+  .platform-wrapper:not(.mode-app) .channel-line-row-1 > *,
+  .platform-wrapper:not(.mode-app) .channel-line-row-2 > * {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* 1. Định danh Kênh */
+  .platform-wrapper:not(.mode-app) .channel-single-line .channel-name-btn {
+    order: 1 !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .channel-handle-link,
+  .platform-wrapper:not(.mode-app) .channel-single-line .channel-handle-muted {
+    order: 2 !important;
+    padding: 3px 8px !important;
+    font-size: 0.74rem !important;
+  }
+
+  /* 2. Cụm 3 chỉ số hiệu suất chính đặt ngay sau tên kênh để dò mắt nhanh */
+  .platform-wrapper:not(.mode-app) .channel-single-line .hero-stat-subs {
+    order: 3 !important;
+    padding: 3px 9px !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .hero-stat-views {
+    order: 4 !important;
+    padding: 3px 9px !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .hero-stat-videos {
+    order: 5 !important;
+    padding: 3px 9px !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .hero-stat-num {
+    font-size: 0.96rem !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .hero-stat-label {
+    font-size: 0.64rem !important;
+  }
+
+  /* 3. Trạng thái BKT & Phân loại Ngách + Group */
+  .platform-wrapper:not(.mode-app) .channel-single-line .bkt-pill-select {
+    order: 6 !important;
+    padding: 4px 9px !important;
+    font-size: 0.75rem !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .niche-chip {
+    order: 7 !important;
+    padding: 4px 9px !important;
+    font-size: 0.75rem !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .inline-group-pill {
+    order: 8 !important;
+    padding: 3px 8px !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .inline-group-pill .inline-group-input {
+    min-width: 7ch !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* 4. Quản trị nội bộ: Quản lý -> Gà kết nối -> Ngày đầu */
+  .platform-wrapper:not(.mode-app) .channel-single-line .inline-meta-mail {
+    order: 9 !important;
+    padding: 3px 8px !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .inline-meta-mail .inline-meta-input {
+    min-width: 8ch !important;
+    font-size: 0.75rem !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .inline-meta-ga {
+    order: 10 !important;
+    padding: 3px 8px !important;
+    gap: 4px !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .inline-meta-ga .ga-eye-btn {
+    padding: 2px 6px !important;
+    font-size: 0.7rem !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .inline-meta-date {
+    order: 11 !important;
+    padding: 3px 8px !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .inline-meta-date .inline-meta-input {
+    font-size: 0.75rem !important;
+  }
+
+  /* 5. Cụm nút thao tác (Đồng bộ / Xóa) đẩy gọn về sát lề phải */
+  .platform-wrapper:not(.mode-app) .channel-single-line .channel-inline-actions {
+    order: 12 !important;
+    margin-left: auto !important;
+    gap: 5px !important;
+  }
+  .platform-wrapper:not(.mode-app) .channel-single-line .channel-inline-actions .btn-xs {
+    padding: 4px 9px !important;
+    font-size: 0.74rem !important;
+  }
+}
+

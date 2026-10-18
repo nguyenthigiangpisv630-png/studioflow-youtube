@@ -2254,11 +2254,11 @@ function renderChannelGaPill(ch, isDeep = false) {
   if (isUnlocked) {
     return `
       <div class="inline-meta-field inline-meta-ga unlocked" ${extraStyle} title="Gà kết nối (Google AdSense / Mail GA) — Tự động lưu khi nhập xong">
-        <span class="inline-meta-label">Gà kết nối:</span>
+        <span class="inline-meta-label">Gà:</span>
         <input
           type="text"
           class="inline-meta-input ga-input-unlocked"
-          style="${calcAutoInputChStyle(gaValue, 16, 4)}"
+          style="${calcAutoInputChStyle(gaValue, 9, 2)}"
           data-channel-ga="${escapeHtml(ch.id)}"
           value="${escapeHtml(gaValue)}"
           placeholder="Tên / Mail Gà..."
@@ -2286,8 +2286,8 @@ function renderChannelGaPill(ch, isDeep = false) {
       data-unlock-ga-id="${escapeHtml(ch.id)}"
       title="Thông tin Gà kết nối đang được ẩn — Bấm Xem để mở hoặc bấm Pass để đặt/lấy lại mật khẩu"
     >
-      <span class="inline-meta-label">Gà kết nối:</span>
-      <span class="ga-masked-dots" aria-label="Đang ẩn bảo mật">••••••••</span>
+      <span class="inline-meta-label">Gà:</span>
+      <span class="ga-masked-dots" aria-label="Đang ẩn bảo mật">••••</span>
       <button
         type="button"
         class="ga-eye-btn"
@@ -2502,7 +2502,7 @@ function renderYoutubeChannelsBoard() {
                       type="text"
                       list="yt-groups-datalist"
                       class="inline-group-input"
-                      style="${calcAutoInputChStyle(chGroup, 16, 6)}"
+                      style="${calcAutoInputChStyle(chGroup, 8, 2)}"
                       data-channel-group="${escapeHtml(ch.id)}"
                       value="${escapeHtml(chGroup)}"
                       placeholder="Chọn Group..."
@@ -2514,7 +2514,7 @@ function renderYoutubeChannelsBoard() {
                     <input
                       type="text"
                       class="inline-meta-input"
-                      style="${calcAutoInputChStyle(managerMailValue, 15, 4)}"
+                      style="${calcAutoInputChStyle(managerMailValue, 8, 2)}"
                       data-channel-manager-mail="${escapeHtml(ch.id)}"
                       value="${escapeHtml(managerMailValue)}"
                       placeholder="Tên / Gmail..."
@@ -5669,7 +5669,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=57', { updateViaCache: 'none' })
+      .register('/sw.js?v=58', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
