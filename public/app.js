@@ -7840,15 +7840,111 @@ function initBotsCenterEvents() {
   });
 
   // =========================================================================
-  // TRANG RIÊNG BOT 10: SĂN KHO FOOTAGE ĐA NỀN TẢNG & TẢI VIDEO 4K (/footage)
+  // TRANG RIÊNG BOT 10: AI AGENT SĂN KHO FOOTAGE, BÓC TÁCH EXCEL/SHEET/NOTION & TẢI VIDEO 4K (/footage)
   // =========================================================================
-  const runFootageHuntAction = async (notifyTelegram = false, btn = null, overrideQuery = '') => {
+  let uploadedFootageFile = { fileName: '', fileBase64: '' };
+  let currentFootageVariationSeed = 0;
+
+  const SCENE_REROLL_CLIP_POOL = [
+    {
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+      durationText: '00:15',
+      badge: '🟢 CC0 Direct MP4 (Cinematic High-Contrast B-Roll)',
+    },
+    {
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+      durationText: '00:15',
+      badge: '🟢 CC0 Direct MP4 (Aerial / Wide Drone B-Roll)',
+    },
+    {
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+      durationText: '01:00',
+      badge: '🟢 CC0 Direct MP4 (Story / Lifestyle B-Roll)',
+    },
+    {
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+      durationText: '00:15',
+      badge: '🟢 CC0 Direct MP4 (Dynamic Action B-Roll)',
+    },
+    {
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+      durationText: '00:15',
+      badge: '🟢 CC0 Direct MP4 (Dramatic Climax B-Roll)',
+    },
+    {
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+      durationText: '00:47',
+      badge: '🟢 CC0 Direct MP4 (Documentary Motion B-Roll)',
+    },
+  ];
+
+  const SCENE_REROLL_ANGLES = [
+    {
+      angleVi: '🚁 Góc 1: Flycam / Drone Toàn Cảnh Từ Trên Cao (Establishing Aerial Shot)',
+      angleEn: 'sweeping aerial drone shot 4k',
+      angleZh: '航拍全景 4K',
+      editTip: 'Zoom In nhẹ 100% -> 108% trong 3 giây đầu',
+    },
+    {
+      angleVi: '🔍 Góc 2: Cận Cảnh Chi Tiết Xóa Phông (Macro Close-Up Shallow DOF)',
+      angleEn: 'macro close up detail shallow depth of field 4k',
+      angleZh: '特写镜头 景深 4K',
+      editTip: 'Lật ngang khung hình (Horizontal Flip) + Làm mờ hậu cảnh',
+    },
+    {
+      angleVi: '⚡ Góc 3: Chuyển Động Chậm Điện Ảnh 120fps (Dramatic Slow Motion)',
+      angleEn: 'dramatic slow motion 120fps cinematic lighting 4k',
+      angleZh: '慢动作 电影光影 4K',
+      editTip: 'Speed Ramp nhanh 200% ở đầu cảnh rồi hãm về 50% tạo điểm nhấn',
+    },
+    {
+      angleVi: '🎥 Góc 4: Máy Quay Di Chuyển Theo Nhân Vật (Gimbal Tracking / Low Angle)',
+      angleEn: 'dynamic gimbal tracking low angle shot 4k',
+      angleZh: '跟随镜头 仰拍 4K',
+      editTip: 'Kèm hiệu ứng âm thanh Whoosh + Rung nhẹ camera (Camera Shake)',
+    },
+    {
+      angleVi: '🧬 Góc 5: Mô Phỏng 3D / Tư Liệu Xuyên Thấu (3D Explainer / X-Ray Visualization)',
+      angleEn: '3d cinematic visualization x-ray animation 4k',
+      angleZh: '3D动画演示 深度拆解 4K',
+      editTip: 'Chèn Text Callout số liệu nổi bật giữa màn hình',
+    },
+  ];
+
+  const runFootageHuntAction = async (
+    notifyTelegram = false,
+    btn = null,
+    overrideQuery = '',
+    isRerollAgain = false
+  ) => {
     const inp = document.getElementById('input-footage-query');
     const selCat = document.getElementById('select-footage-category');
-    const query = String(overrideQuery || inp?.value || '').trim();
-    const category = String(selCat?.value || 'all').trim();
-    if (!query) {
-      showBanner('Vui lòng nhập Chủ đề hoặc Từ khóa cần săn Footage (VD: tiểu sử tỷ phú, lịch sử cổ đại, AI robot)!', true);
+    const selAgent = document.getElementById('select-footage-agent-mode');
+    const sheetUrlInp = document.getElementById('input-footage-sheet-url');
+    const vaultSel = document.getElementById('select-footage-vault-item');
+    const scriptTa = document.getElementById('textarea-footage-script');
+
+    const activeScan = state.botCenter?.footageScans?.[0] || null;
+    let query = String(overrideQuery || inp?.value || '').trim();
+    const category = String(selCat?.value || activeScan?.category || 'all').trim();
+    const agentMode = String(selAgent?.value || activeScan?.agentMode || 'auto_director').trim();
+    const sheetUrl = String(sheetUrlInp?.value || '').trim();
+    const contentVaultId = String(vaultSel?.value || '').trim();
+    let scriptText = String(scriptTa?.value || '').trim();
+
+    if (isRerollAgain) {
+      currentFootageVariationSeed = (Number(activeScan?.variationSeed) || currentFootageVariationSeed || 0) + 1;
+      if (!query && activeScan?.query) query = activeScan.query;
+      if (!scriptText && activeScan?.rawScriptText) scriptText = activeScan.rawScriptText;
+    } else {
+      currentFootageVariationSeed = 0;
+    }
+
+    if (!query && !scriptText && !sheetUrl && !contentVaultId && !uploadedFootageFile.fileBase64) {
+      showBanner(
+        'Vui lòng nhập Chủ đề / Từ khóa HOẶC tải File Excel (.xlsx, .csv) / Google Sheets / Notion / Kịch Bản Dựng cần săn Footage!',
+        true
+      );
       inp?.focus();
       return;
     }
@@ -7856,22 +7952,46 @@ function initBotsCenterEvents() {
     const orig = btn ? btn.textContent : '';
     if (btn) {
       btn.disabled = true;
-      btn.textContent = notifyTelegram
-        ? '🎬 Đang săn 10 nền tảng & bắn Telegram...'
-        : '🎬 Đang săn Kho Footage 10 nền tảng...';
+      btn.textContent = isRerollAgain
+        ? `🔄 AI Agent đang đổi bộ cảnh mới (Phương án #${currentFootageVariationSeed + 1})...`
+        : notifyTelegram
+        ? '🎬 AI Agent đang săn 10 nền tảng & bắn Telegram...'
+        : '🎬 4 AI Agent đang bóc tách & săn Kho Footage...';
     }
     try {
       const res = await apiRequest('/api/bots/footage/scan', {
         method: 'POST',
-        body: JSON.stringify({ query, category, notifyTelegram }),
+        body: JSON.stringify({
+          query,
+          category,
+          agentMode,
+          variationSeed: currentFootageVariationSeed,
+          sheetUrl,
+          contentVaultId,
+          scriptText,
+          fileName: uploadedFootageFile.fileName,
+          fileBase64: uploadedFootageFile.fileBase64,
+          notifyTelegram,
+        }),
       });
       if (res.status) state.botCenter = res.status;
       renderFootageStudioTab();
       renderBotsCenterTab();
       const s = res.scanItem || res.footageScan || {};
+      const sceneCount = (s.scriptScenesBreakdown || []).length;
       showBanner(
-        notifyTelegram
-          ? `📲 Đã săn Kho Footage cho "${s.query || query}" & bắn báo cáo về Telegram @acb9xbot!`
+        isRerollAgain
+          ? `🔄 [Again #${(s.variationSeed || 0) + 1}] AI Agent đã đổi sang Góc máy mới & xoay vòng bộ Video .MP4 cho "${
+              s.query || query
+            }"!`
+          : notifyTelegram
+          ? `📲 Đã săn Kho Footage (${sceneCount > 0 ? `${sceneCount} cảnh kịch bản · ` : ''}"${
+              s.query || query
+            }") & bắn báo cáo về Telegram @acb9xbot!`
+          : sceneCount > 0
+          ? `🎬 AI Agent đã bóc tách ${sceneCount} phân cảnh từ "${
+              s.scriptSourceLabel || 'Kịch bản / Sheet'
+            }" -> Gán sẵn ${sceneCount} file Scene-01..${String(sceneCount).padStart(2, '0')}.mp4 & 10 kho nền tảng!`
           : `🎬 Đã săn xong Kho Footage cho "${s.query || query}": ${
               (s.directDownloadClips || []).length
             } file .MP4 tải trực tiếp + ${(s.youtubeBrollClips || []).length} video YouTube 4K + 10 kho nền tảng!`
@@ -7887,10 +8007,13 @@ function initBotsCenterEvents() {
   };
 
   document.getElementById('btn-footage-hunt-only')?.addEventListener('click', (e) =>
-    runFootageHuntAction(false, e.currentTarget)
+    runFootageHuntAction(false, e.currentTarget, '', false)
+  );
+  document.getElementById('btn-footage-hunt-again')?.addEventListener('click', (e) =>
+    runFootageHuntAction(false, e.currentTarget, '', true)
   );
   document.getElementById('btn-footage-hunt-and-tg')?.addEventListener('click', (e) =>
-    runFootageHuntAction(true, e.currentTarget)
+    runFootageHuntAction(true, e.currentTarget, '', false)
   );
   document.getElementById('input-footage-query')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -7899,10 +8022,121 @@ function initBotsCenterEvents() {
     }
   });
 
+  // Nút tải File Excel (.xlsx, .csv, .tsv) / File Notion (.md, .txt, .json)
+  document.getElementById('btn-footage-upload-file')?.addEventListener('click', () => {
+    document.getElementById('input-footage-file')?.click();
+  });
+
+  document.getElementById('input-footage-file')?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const badge = document.getElementById('footage-file-status-badge');
+    const scriptTa = document.getElementById('textarea-footage-script');
+    const queryInp = document.getElementById('input-footage-query');
+
+    // Nếu là file text (.csv, .tsv, .md, .txt, .json) thì hiển thị luôn nội dung lên khung kịch bản để dễ chỉnh sửa
+    if (/\.(csv|tsv|md|txt|json)$/i.test(file.name)) {
+      const textReader = new FileReader();
+      textReader.onload = () => {
+        if (scriptTa && typeof textReader.result === 'string') {
+          scriptTa.value = textReader.result.slice(0, 12000);
+        }
+      };
+      textReader.readAsText(file, 'UTF-8');
+    }
+
+    const b64Reader = new FileReader();
+    b64Reader.onload = async () => {
+      const dataUrl = String(b64Reader.result || '');
+      uploadedFootageFile = {
+        fileName: file.name,
+        fileBase64: dataUrl,
+      };
+      if (badge) {
+        badge.textContent = `✅ Đã nạp file: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+      }
+      if (queryInp && !queryInp.value.trim()) {
+        queryInp.value = file.name.replace(/\.[^.]+$/, '');
+      }
+      await runFootageHuntAction(false, document.getElementById('btn-footage-hunt-only'));
+    };
+    b64Reader.readAsDataURL(file);
+  });
+
+  // Nút tải File Mẫu Excel/CSV chuẩn
+  document.getElementById('btn-footage-sample-csv')?.addEventListener('click', () => {
+    const sampleCsv =
+      '\uFEFF' +
+      [
+        '"Canh","Thoi_Gian","Loi_Thoai_Kich_Ban_Dung","Tu_Khoa_Footage"',
+        '"Cảnh 1","00:00 - 00:05","Mở đầu bằng cảnh siêu du thuyền tỷ phú lướt trên đại dương lúc hoàng hôn","siêu du thuyền tỷ phú"',
+        '"Cảnh 2","00:05 - 00:15","Bên trong sàn giao dịch chứng khoán Phố Wall căng thẳng khi thị trường biến động","chứng khoán phố wall"',
+        '"Cảnh 3","00:15 - 00:30","Trí tuệ nhân tạo AI và robot tự động hóa đang thay đổi toàn bộ thế giới","trí tuệ nhân tạo AI"',
+        '"Cảnh 4","00:30 - 00:45","Bí ẩn các kim tự tháp và đế chế cổ đại từng thống trị lịch sử nhân loại","lịch sử cổ đại"',
+        '"Cảnh 5","00:45 - 01:00","Bí quyết tập thể dục và dinh dưỡng giúp người cao tuổi sống khỏe mạnh trường thọ","sức khỏe người cao tuổi"',
+      ].join('\r\n');
+    triggerTextPackageDownload(
+      sampleCsv,
+      'ACB9x-File-Mau-Kich-Ban-Sheet-Footage.csv',
+      'text/csv;charset=utf-8',
+      '📄 Đã tải File Mẫu Excel/CSV! Anh có thể mở bằng Excel hoặc đưa lên Google Sheets / Notion điền kịch bản rồi nạp lại vào Bot!'
+    );
+  });
+
+  // Nút Điền Thử Kịch Bản Mẫu 5 Cảnh
+  document.getElementById('btn-footage-fill-demo-script')?.addEventListener('click', async () => {
+    const scriptTa = document.getElementById('textarea-footage-script');
+    const queryInp = document.getElementById('input-footage-query');
+    const demoLines = [
+      '00:00 - 00:05 | Mở đầu bằng cảnh siêu du thuyền tỷ phú và chuyên cơ riêng lướt qua bầu trời đêm | siêu du thuyền tỷ phú',
+      '00:05 - 00:15 | Bên trong sàn giao dịch chứng khoán Phố Wall nơi dòng tiền hàng tỷ đô la luân chuyển | chứng khoán phố wall',
+      '00:15 - 00:30 | Trung tâm siêu máy tính và trí tuệ nhân tạo AI đang âm thầm điều khiển thị trường | trí tuệ nhân tạo AI',
+      '00:30 - 00:45 | Nhìn lại lịch sử các đế chế tài chính cổ đại từng thống trị thế giới | lịch sử cổ đại',
+      '00:45 - 01:00 | Tầm nhìn vũ trụ không gian 4K và tương lai của nền văn minh nhân loại | vũ trụ không gian',
+    ].join('\n');
+    if (scriptTa) scriptTa.value = demoLines;
+    if (queryInp && !queryInp.value.trim()) {
+      queryInp.value = 'Đế Chế Tỷ Phú & Tương Lai AI';
+    }
+    await runFootageHuntAction(false, document.getElementById('btn-footage-hunt-only'));
+  });
+
+  // Nút Xóa File / Kịch bản đang nạp
+  document.getElementById('btn-footage-clear-script')?.addEventListener('click', () => {
+    uploadedFootageFile = { fileName: '', fileBase64: '' };
+    const fileInp = document.getElementById('input-footage-file');
+    const scriptTa = document.getElementById('textarea-footage-script');
+    const sheetInp = document.getElementById('input-footage-sheet-url');
+    const vaultSel = document.getElementById('select-footage-vault-item');
+    const badge = document.getElementById('footage-file-status-badge');
+    if (fileInp) fileInp.value = '';
+    if (scriptTa) scriptTa.value = '';
+    if (sheetInp) sheetInp.value = '';
+    if (vaultSel) vaultSel.value = '';
+    if (badge) badge.textContent = '';
+    showBanner('🧹 Đã xóa dữ liệu File / Kịch bản dựng trong ô nhập!');
+  });
+
+  // Khi chọn Kịch bản từ Kho Nội Dung / Notion trong hệ thống -> tự động điền và chạy
+  document.getElementById('select-footage-vault-item')?.addEventListener('change', async (e) => {
+    const val = e.target.value;
+    if (!val) return;
+    const found = (state.contents || []).find((c) => c.id === val);
+    if (found) {
+      const queryInp = document.getElementById('input-footage-query');
+      const scriptTa = document.getElementById('textarea-footage-script');
+      if (queryInp) queryInp.value = found.title || '';
+      if (scriptTa && (found.body || found.script)) {
+        scriptTa.value = String(found.body || found.script || '').trim();
+      }
+      await runFootageHuntAction(false, document.getElementById('btn-footage-hunt-only'));
+    }
+  });
+
   // Tải 3 gói công cụ trên Trang riêng Bot 10 (.BAT / .TXT / .CSV)
   const triggerTextPackageDownload = (content, filename, mimeType, bannerMsg) => {
     if (!content) {
-      showBanner('Hãy bấm "🎬 Săn Kho Footage" trước khi tải xuống!', true);
+      showBanner('Hãy bấm "🎬 Chạy AI Agent Săn Kho Footage" trước khi tải xuống!', true);
       return;
     }
     const blob = new Blob([content], { type: mimeType });
@@ -7935,7 +8169,7 @@ function initBotsCenterEvents() {
       pkg?.shotlistTxt,
       pkg?.shotlistFilename || 'ACB9x-Footage-Shotlist.txt',
       'text/plain;charset=utf-8',
-      '⬇️ Đã tải Hồ sơ Shotlist 5 Phân cảnh + Link 10 Nền tảng + Prompt Video AI (.TXT) về máy!'
+      '⬇️ Đã tải Hồ sơ Shotlist Phân cảnh + Link 10 Nền tảng + Prompt Video AI (.TXT) về máy!'
     );
   });
 
@@ -7982,7 +8216,7 @@ function initBotsCenterEvents() {
     }
   });
 
-  // Sự kiện click toàn cục cho nút "🎬 Tìm Footage" từ Bot 7 hoặc từ trong #panel-footage
+  // Sự kiện click toàn cục cho nút "🎬 Tìm Footage", nút "🔄 Again" toàn cục và nút "🔄 Đổi Cảnh Khác (Again)" trên từng dòng cảnh
   document.body.addEventListener('click', async (e) => {
     const openFootageBtn = e.target.closest('[data-open-footage-query]');
     if (openFootageBtn) {
@@ -7990,7 +8224,7 @@ function initBotsCenterEvents() {
       switchTab('footage');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (q) {
-        await runFootageHuntAction(false, document.getElementById('btn-footage-hunt-only'), q);
+        await runFootageHuntAction(false, document.getElementById('btn-footage-hunt-only'), q, false);
       }
       return;
     }
@@ -7999,7 +8233,66 @@ function initBotsCenterEvents() {
     if (quickTopicBtn) {
       const q = quickTopicBtn.dataset.quickFootageTopic || '';
       if (q) {
-        await runFootageHuntAction(false, document.getElementById('btn-footage-hunt-only'), q);
+        await runFootageHuntAction(false, document.getElementById('btn-footage-hunt-only'), q, false);
+      }
+      return;
+    }
+
+    const rerollAllBtn = e.target.closest('[data-footage-reroll-again]');
+    if (rerollAllBtn) {
+      await runFootageHuntAction(false, rerollAllBtn, '', true);
+      return;
+    }
+
+    // Đổi cảnh (Again / Re-roll) cho RIÊNG 1 PHÂN CẢNH cụ thể trong Bảng Kịch Bản Dựng
+    const rerollSceneBtn = e.target.closest('[data-reroll-single-scene-idx]');
+    if (rerollSceneBtn) {
+      const sceneIdx = Number(rerollSceneBtn.dataset.rerollSingleSceneIdx);
+      const activeScan = state.botCenter?.footageScans?.[0];
+      const sceneList = activeScan?.scriptScenesBreakdown;
+      if (Array.isArray(sceneList) && sceneList[sceneIdx]) {
+        const sc = sceneList[sceneIdx];
+        const nextSeed = (Number(sc.variationSeed) || 0) + 1;
+        sc.variationSeed = nextSeed;
+        const angleObj = SCENE_REROLL_ANGLES[(sceneIdx + nextSeed) % SCENE_REROLL_ANGLES.length];
+        const clipObj = SCENE_REROLL_CLIP_POOL[(sceneIdx + nextSeed) % SCENE_REROLL_CLIP_POOL.length];
+        const baseEn = String(sc.englishShortQuery || 'cinematic').split(' sweeping ')[0].split(' macro ')[0].split(' dramatic ')[0].split(' dynamic ')[0].split(' 3d ')[0].trim();
+        const newEn = `${baseEn} ${angleObj.angleEn}`;
+        const baseZh = String(sc.chineseDouyinQuery || '4K素材').split(' ')[0].trim();
+        const newZh = `${baseZh} ${angleObj.angleZh}`;
+        const scenePad = String(sc.sceneNumber).padStart(2, '0');
+        const safeSlug = baseEn.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 20) || `canh-${scenePad}`;
+        const newFilename = `Scene-${scenePad}-${safeSlug}-v${nextSeed + 1}.mp4`;
+
+        sc.englishShortQuery = newEn;
+        sc.englishBrollQuery = `${newEn} 4k cinematic b-roll`;
+        sc.chineseDouyinQuery = newZh;
+        sc.agentDirectorNote = {
+          ...(sc.agentDirectorNote || {}),
+          cameraAngle: angleObj.angleVi,
+          editTip: angleObj.editTip,
+        };
+        sc.matchedClip = {
+          filename: newFilename,
+          directVideoUrl: clipObj.url,
+          durationText: clipObj.durationText,
+          licenseBadge: clipObj.badge,
+          downloadApiUrl: `/api/bots/footage/download?url=${encodeURIComponent(clipObj.url)}&filename=${encodeURIComponent(newFilename)}`,
+        };
+        sc.platformLinks = {
+          ...sc.platformLinks,
+          pexelsUrl: `https://www.pexels.com/search/videos/${encodeURIComponent(newEn)}/`,
+          pixabayUrl: `https://pixabay.com/videos/search/${encodeURIComponent(newEn)}/`,
+          youtubeCcUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${newEn} 4k b-roll no copyright`)}&sp=EgIwAQ%253D%253D`,
+          douyinUrl: `https://www.douyin.com/search/${encodeURIComponent(newZh)}?type=video`,
+          bilibiliUrl: `https://search.bilibili.com/all?keyword=${encodeURIComponent(newZh)}`,
+        };
+        sc.aiVideoPrompt = `[Again #${nextSeed + 1}] Cinematic 4K B-roll for scene #${sc.sceneNumber} (${sc.timeRange}): ${newEn}, illustrating "${sc.extractedKeyword}", photorealistic 8k, 16:9 --ar 16:9`;
+
+        renderFootageStudioTab();
+        showBanner(
+          `🔄 [Again Cảnh #${sc.sceneNumber}] AI Agent đã đổi sang "${angleObj.angleVi}" & gán clip mới "${newFilename}"!`
+        );
       }
       return;
     }
@@ -8077,6 +8370,22 @@ function renderFootageStudioTab() {
   const container = document.getElementById('footage-studio-results');
   if (!container) return;
 
+  // Đổ danh sách kịch bản từ Kho Nội Dung / Notion vào dropdown #select-footage-vault-item
+  const vaultSelect = document.getElementById('select-footage-vault-item');
+  if (vaultSelect) {
+    const currentVal = vaultSelect.value;
+    const contents = Array.isArray(state.contents) ? state.contents : [];
+    vaultSelect.innerHTML = [
+      `<option value="">-- Chọn Kịch bản từ Kho Nội Dung / Notion (${contents.length} bài) --</option>`,
+      ...contents.map(
+        (c) => `<option value="${escapeHtml(c.id)}">📄 ${escapeHtml(c.title || 'Kịch bản không tên')}</option>`
+      ),
+    ].join('');
+    if (currentVal && contents.some((c) => c.id === currentVal)) {
+      vaultSelect.value = currentVal;
+    }
+  }
+
   const footageScans = Array.isArray(state.botCenter?.footageScans) ? state.botCenter.footageScans : [];
   const activeScan = footageScans[0] || null;
 
@@ -8086,17 +8395,26 @@ function renderFootageStudioTab() {
   };
   setText('footage-kpi-scans', `${footageScans.length} chủ đề`);
   if (activeScan) {
-    setText('footage-kpi-direct', `${(activeScan.directDownloadClips || []).length} file .MP4 sẵn sàng`);
-    setText('footage-kpi-yt', `${(activeScan.youtubeBrollClips || []).length} video 4K CC-BY`);
+    const scLen = (activeScan.scriptScenesBreakdown || []).length;
+    setText(
+      'footage-kpi-direct',
+      scLen > 0
+        ? `${scLen} cảnh MP4 + ${(activeScan.directDownloadClips || []).length} clip gốc`
+        : `${(activeScan.directDownloadClips || []).length} file .MP4 sẵn sàng`
+    );
+    setText(
+      'footage-kpi-yt',
+      `Phương án #${(Number(activeScan.variationSeed) || 0) + 1} · ${(activeScan.youtubeBrollClips || []).length} YT 4K`
+    );
   }
 
   if (!activeScan) {
     container.innerHTML = `
       <div class="panel-box" style="padding: 28px; text-align: center;">
         <div style="font-size: 2rem; margin-bottom: 8px;">🎬</div>
-        <h3 style="margin: 0 0 6px 0; font-size: 1.05rem;">Đang khởi tạo Kho Footage Đa Nền Tảng...</h3>
+        <h3 style="margin: 0 0 6px 0; font-size: 1.05rem;">Đang khởi tạo Kho Footage Đa Nền Tảng &amp; AI Agent...</h3>
         <p style="margin: 0; color: #64748b; font-size: 0.88rem;">
-          Hãy nhập chủ đề (VD: <code>tiểu sử tỷ phú</code>, <code>lịch sử cổ đại</code>, <code>AI robot</code>) hoặc bấm vào 1 trong 6 nút gợi ý ở trên để săn và tải Video .MP4 ngay!
+          Hãy nhập chủ đề, tải <strong>File Excel (.xlsx/.csv) / Google Sheets / Notion</strong> hoặc bấm <strong>"✨ Điền Thử Kịch Bản Mẫu 5 Cảnh"</strong> ở trên để AI Agent bóc tách và tải Video .MP4 ngay!
         </p>
       </div>
     `;
@@ -8109,11 +8427,13 @@ function renderFootageStudioTab() {
   const hubs = Array.isArray(activeScan.platformHubs) ? activeScan.platformHubs : [];
   const shots = Array.isArray(activeScan.shotlist5Scenes) ? activeScan.shotlist5Scenes : [];
   const rules = Array.isArray(activeScan.fairUseShield) ? activeScan.fairUseShield : [];
+  const scriptScenes = Array.isArray(activeScan.scriptScenesBreakdown) ? activeScan.scriptScenesBreakdown : [];
+  const agentDir = activeScan.aiAgentDirector || null;
 
   const historyChipsHtml =
     footageScans.length > 1
       ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 12px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;">
-          <span style="font-size:11.5px;font-weight:800;color:#475569;">🕘 Lịch sử chủ đề đã săn:</span>
+          <span style="font-size:11.5px;font-weight:800;color:#475569;">🕘 Lịch sử chủ đề &amp; kịch bản đã săn:</span>
           ${footageScans
             .map(
               (s, i) => `
@@ -8122,7 +8442,7 @@ function renderFootageStudioTab() {
                 class="btn ${i === 0 ? 'btn-primary' : 'btn-secondary'} btn-xs"
                 data-select-footage-scan-id="${escapeHtml(s.id)}"
               >
-                🎬 ${escapeHtml(s.query)}
+                🎬 ${escapeHtml(s.query)}${s.totalScriptScenes ? ` (${s.totalScriptScenes} cảnh)` : ''}
               </button>
             `
             )
@@ -8130,8 +8450,182 @@ function renderFootageStudioTab() {
         </div>`
       : '';
 
+  // KHỐI AI AGENT DIRECTOR PIPELINE + NÚT SĂN LẠI (AGAIN)
+  const aiAgentDirectorHtml = agentDir
+    ? `
+    <div class="panel-box" style="padding: 14px 16px; background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%); border: 1.5px solid #c4b5fd;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;background:#6d28d9;color:#ffffff;">
+              ${escapeHtml(agentDir.agentModeLabel || '🤖 4 AI Agent Đạo Diễn Hình Ảnh')}
+            </span>
+            <span style="font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;background:#fef3c7;color:#b45309;border:1px solid #fde68a;">
+              🔄 ${escapeHtml(agentDir.variationLabel || 'Phương án #1')}
+            </span>
+          </div>
+          <div style="font-size:12px;color:#334155;margin-top:4px;">
+            ⏱️ <strong>Nhịp cắt chuẩn Agent:</strong> ${escapeHtml(agentDir.pacingRule || '')} · 🎨 <strong>Phủ màu:</strong> <code>${escapeHtml(agentDir.colorLut || '')}</code>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary btn-xs"
+          style="background:#6d28d9;border-color:#6d28d9;padding:7px 12px;font-weight:800;"
+          data-footage-reroll-again="true"
+        >
+          🔄 Chạy Lại AI Agent — Đổi Góc Máy &amp; Cảnh Khác (Again)
+        </button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:8px;">
+        ${(agentDir.agents || [])
+          .map(
+            (ag) => `
+            <div style="padding:8px 10px;border-radius:8px;background:#ffffff;border:1px solid #ddd6fe;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
+                <strong style="font-size:11.5px;color:#4c1d95;">${escapeHtml(ag.name)}</strong>
+                <span style="font-size:10px;font-weight:800;color:#059669;">${escapeHtml(ag.status)}</span>
+              </div>
+              <div style="font-size:11px;color:#475569;margin-top:3px;line-height:1.35;">${escapeHtml(ag.summary)}</div>
+            </div>
+          `
+          )
+          .join('')}
+      </div>
+    </div>
+  `
+    : '';
+
+  // KHỐI BẢNG BÓC TÁCH FOOTAGE THEO TỪNG CẢNH KỊCH BẢN / FILE EXCEL / GOOGLE SHEET / NOTION
+  const scriptScenesHtml =
+    scriptScenes.length > 0
+      ? `
+    <div class="panel-box" style="padding: 16px; border: 2px solid #0284c7; background: #f8fafc;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+        <div>
+          <h3 style="margin:0;font-size:1.02rem;font-weight:800;color:#0369a1;">
+            📜 0. Bảng Bóc Tách Footage Theo Từng Cảnh Kịch Bản / File Sheet (${scriptScenes.length} Phân Cảnh — ${escapeHtml(
+              activeScan.scriptSourceLabel || 'Kịch bản dựng'
+            )})
+          </h3>
+          <p style="margin:3px 0 0 0;font-size:12px;color:#475569;">
+            Mỗi dòng từ khóa hoặc câu thoại đã được <strong>AI Agent</strong> gán sẵn 1 file <code>Scene-XX.mp4</code> xem &amp; tải trực tiếp + Link tìm đúng cảnh đó trên 6 nền tảng. Chưa ưng cảnh nào, bấm <strong>"🔄 Đổi Cảnh Khác (Again)"</strong> ngay trên dòng đó!
+          </p>
+        </div>
+        <button
+          type="button"
+          class="btn btn-secondary btn-xs"
+          style="background:#f5f3ff;color:#6d28d9;border-color:#c4b5fd;font-weight:800;"
+          data-footage-reroll-again="true"
+        >
+          🔄 Đổi Lại Toàn Bộ ${scriptScenes.length} Cảnh (Again)
+        </button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${scriptScenes
+          .map(
+            (sc, idx) => `
+            <div style="border:1px solid #bae6fd;border-radius:10px;padding:12px;background:#ffffff;display:grid;grid-template-columns:255px 1fr;gap:12px;align-items:start;">
+              <div>
+                <video
+                  controls
+                  preload="metadata"
+                  style="width:100%;height:142px;object-fit:cover;border-radius:8px;background:#0f172a;"
+                  src="${escapeHtml(sc.matchedClip?.directVideoUrl || '')}"
+                ></video>
+                <div style="display:flex;gap:5px;margin-top:6px;">
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-xs"
+                    style="flex:1;"
+                    data-download-direct-mp4-api="${escapeHtml(sc.matchedClip?.downloadApiUrl || '')}"
+                    data-download-direct-mp4-url="${escapeHtml(sc.matchedClip?.directVideoUrl || '')}"
+                    data-download-direct-mp4-name="${escapeHtml(sc.matchedClip?.filename || `Scene-${idx + 1}.mp4`)}"
+                  >
+                    ⬇️ Tải ${escapeHtml(sc.matchedClip?.filename || `Scene-${idx + 1}.mp4`)}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-xs"
+                    style="background:#f5f3ff;color:#6d28d9;border-color:#c4b5fd;font-weight:800;"
+                    data-reroll-single-scene-idx="${idx}"
+                    title="Đổi góc máy khác & video MP4 khác cho riêng Cảnh #${sc.sceneNumber} này (Again)"
+                  >
+                    🔄 Again
+                  </button>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px;min-width:0;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:6px;background:#0284c7;color:#ffffff;">
+                      🎬 Cảnh #${sc.sceneNumber} (${escapeHtml(sc.timeRange)})
+                    </span>
+                    <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:#f0fdf4;color:#047857;border:1px solid #bbf7d0;">
+                      🔑 Từ khóa bóc tách: "${escapeHtml(sc.extractedKeyword)}"
+                    </span>
+                    ${
+                      sc.variationSeed > 0
+                        ? `<span style="font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#b45309;">🔄 Phương án #${
+                            sc.variationSeed + 1
+                          }</span>`
+                        : ''
+                    }
+                  </div>
+                  <span style="font-size:11px;color:#64748b;font-weight:700;">
+                    📁 File: <code>${escapeHtml(sc.matchedClip?.filename || '')}</code>
+                  </span>
+                </div>
+
+                <div style="font-size:13px;font-weight:700;color:#0f172a;background:#f8fafc;padding:6px 10px;border-radius:6px;border-left:3px solid #0284c7;">
+                  🎙️ "${escapeHtml(sc.scriptLine)}"
+                </div>
+
+                ${
+                  sc.agentDirectorNote
+                    ? `<div style="font-size:11px;color:#5b21b6;background:#f5f3ff;padding:5px 8px;border-radius:6px;">
+                        🤖 <strong>Chỉ dẫn AI Agent:</strong> ${escapeHtml(sc.agentDirectorNote.cameraAngle || '')} · ✂️ <em>${escapeHtml(
+                        sc.agentDirectorNote.editTip || ''
+                      )}</em>
+                      </div>`
+                    : ''
+                }
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px;font-size:11px;">
+                  <div style="padding:4px 8px;background:#f0f9ff;border-radius:6px;color:#0369a1;">
+                    🇺🇸 <strong>Key 4K B-Roll:</strong> <code>${escapeHtml(sc.englishShortQuery)}</code>
+                  </div>
+                  <div style="padding:4px 8px;background:#faf5ff;border-radius:6px;color:#7e22ce;">
+                    🇨🇳 <strong>Key Douyin / Bilibili:</strong> <code>${escapeHtml(sc.chineseDouyinQuery)}</code>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:2px;">
+                  <span style="font-size:11px;font-weight:700;color:#475569;">🌍 Mở kho cảnh #${sc.sceneNumber}:</span>
+                  <a href="${escapeHtml(sc.platformLinks?.pexelsUrl || '#')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;">🟢 Pexels 4K ↗</a>
+                  <a href="${escapeHtml(sc.platformLinks?.pixabayUrl || '#')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;">🟢 Pixabay ↗</a>
+                  <a href="${escapeHtml(sc.platformLinks?.youtubeCcUrl || '#')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;">🔵 YouTube CC ↗</a>
+                  <a href="${escapeHtml(sc.platformLinks?.douyinUrl || '#')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;">🟣 Douyin 抖音 ↗</a>
+                  <a href="${escapeHtml(sc.platformLinks?.bilibiliUrl || '#')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;">🟣 Bilibili ↗</a>
+                  <a href="${escapeHtml(sc.platformLinks?.archiveUrl || '#')}" target="_blank" rel="noopener" class="btn btn-secondary btn-xs" style="text-decoration:none;">🟢 Archive.org ↗</a>
+                  <button type="button" class="btn btn-secondary btn-xs" data-copy-prompt-text="${escapeHtml(sc.aiVideoPrompt || '')}">📋 Copy Prompt AI</button>
+                </div>
+              </div>
+            </div>
+          `
+          )
+          .join('')}
+      </div>
+    </div>
+  `
+      : '';
+
   container.innerHTML = `
     ${historyChipsHtml}
+    ${aiAgentDirectorHtml}
+    ${scriptScenesHtml}
 
     <!-- BẢNG TỪ KHÓA ĐÃ DỊCH TỰ ĐỘNG SANG TIẾNG ANH ĐIỆN ẢNH & TIẾNG TRUNG (DOUYIN / BILIBILI) -->
     <div class="panel-box" style="padding: 14px 16px; border-left: 4px solid #0284c7;">
@@ -8425,7 +8919,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=71', { updateViaCache: 'none' })
+      .register('/sw.js?v=72', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

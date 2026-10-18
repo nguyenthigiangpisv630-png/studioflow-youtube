@@ -941,6 +941,46 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(
       footageData.footageScan.downloadPackages.footageCsv.includes('Direct MP4 Clip')
     );
+    assert.ok(
+      footageData.footageScan.aiAgentDirector &&
+        Array.isArray(footageData.footageScan.aiAgentDirector.agents) &&
+        footageData.footageScan.aiAgentDirector.agents.length === 4
+    );
+
+    // 12. Bot 10 — Bóc tách File Excel/Sheet/Notion/Kịch Bản Dựng Từng Cảnh + AI Agent + Nút Again (Re-roll)
+    const scriptRes = await fetch(`${baseUrl}/api/bots/footage/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: 'Đế chế tỷ phú & AI',
+        category: 'cinematic',
+        agentMode: 'luxury_cinema',
+        variationSeed: 1,
+        scriptText: [
+          '00:00-00:05 | Mở đầu bằng cảnh siêu du thuyền tỷ phú lướt trên đại dương | siêu du thuyền tỷ phú',
+          '00:05-00:15 | Bên trong sàn giao dịch chứng khoán Phố Wall căng thẳng | chứng khoán phố wall',
+          '00:15-00:30 | Trí tuệ nhân tạo AI và robot điều khiển ngân hàng | trí tuệ nhân tạo AI',
+        ].join('\n'),
+        notifyTelegram: false,
+      }),
+    });
+    assert.equal(scriptRes.status, 200);
+    const scriptData = await scriptRes.json();
+    assert.equal(scriptData.ok, true);
+    assert.equal(scriptData.footageScan.agentMode, 'luxury_cinema');
+    assert.equal(scriptData.footageScan.variationSeed, 1);
+    assert.equal(scriptData.footageScan.totalScriptScenes, 3);
+    assert.equal(scriptData.footageScan.scriptScenesBreakdown.length, 3);
+    assert.ok(
+      scriptData.footageScan.scriptScenesBreakdown[0].matchedClip.filename.includes('Scene-01-') &&
+        scriptData.footageScan.scriptScenesBreakdown[0].matchedClip.filename.includes('-v2.mp4')
+    );
+    assert.ok(
+      scriptData.footageScan.scriptScenesBreakdown[0].agentDirectorNote.cameraAngle.length > 0
+    );
+    assert.ok(
+      scriptData.footageScan.downloadPackages.batchDownloaderBat.includes('Scene-01-')
+    );
   });
 });
 

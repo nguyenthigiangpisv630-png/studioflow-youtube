@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=71" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=71" />
+  <link rel="icon" href="/icon.svg?v=72" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=72" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -1117,26 +1117,26 @@
           </div>
         </section>
 
-        <!-- ==================== TRANG RIÊNG CHẠY BOT 10: SĂN KHO FOOTAGE ĐA NỀN TẢNG & TẢI VIDEO 4K (/footage) ==================== -->
+        <!-- ==================== TRANG RIÊNG CHẠY BOT 10: SĂN KHO FOOTAGE ĐA NỀN TẢNG, AI AGENT & TẢI VIDEO 4K (/footage) ==================== -->
         <section class="tab-panel" id="panel-footage">
           <div class="bots-center-shell">
             <!-- BANNER ĐẦU TRANG RIÊNG BOT 10 FOOTAGE STUDIO -->
             <div class="bots-hero-banner" style="background: linear-gradient(135deg, #0f172a 0%, #0369a1 55%, #047857 100%);">
               <div class="bots-hero-left">
-                <div class="bots-hero-badge">🎬 BOT 10 FOOTAGE STUDIO · 10 NỀN TẢNG · TẢI VIDEO .MP4 TRỰC TIẾP</div>
-                <h2 class="bots-hero-title">Trang Riêng Bot 10 — Săn Kho Footage Đa Nền Tảng &amp; Tải Video 4K Không Bản Quyền</h2>
-                <p class="bots-hero-sub">
-                  Nhập bất kỳ <strong>Chủ đề, Từ khóa hoặc Kịch bản</strong>: Bot tự động dịch sang <strong>Tiếng Anh Điện Ảnh</strong> &amp; <strong>Tiếng Trung (Douyin 抖音 / Bilibili)</strong>, trích xuất <strong>Video .MP4 Xem &amp; Tải Trực Tiếp (Public Domain / CC0)</strong>, lọc <strong>YouTube 4K B-Roll Creative Commons</strong>, mở <strong>10 Kho Stock Quốc Tế</strong> và xuất <strong>Bộ Công Cụ Tự Động Tải Video (.BAT / .TXT / .CSV)</strong>.
+                <div class="bots-hero-badge" style="color:#ffffff;">🎬 BOT 10 FOOTAGE STUDIO · 🤖 4 AI AGENT ĐẠO DIỄN · 📂 EXCEL / SHEET / NOTION · 🔄 SĂN LẠI (AGAIN)</div>
+                <h2 class="bots-hero-title" style="color:#ffffff;">Trang Riêng Bot 10 — AI Agent Săn Kho Footage Đa Nền Tảng, Bóc Tách Kịch Bản &amp; Tải Video 4K</h2>
+                <p class="bots-hero-sub" style="color:#e2e8f0;">
+                  Nhập <strong>Từ khóa</strong> hoặc nạp <strong>File Excel (<code>.xlsx</code>, <code>.csv</code>), Link Google Sheets, File Notion (<code>.md</code>, <code>.txt</code>), Kịch Bản Dựng</strong>: Hệ thống <strong>4 AI Agent Đạo Diễn</strong> tự động bóc tách từng cảnh, chọn góc máy, dịch sang <strong>Tiếng Anh 4K &amp; Tiếng Trung (Douyin 抖音 / Bilibili)</strong>, gán <strong>Video .MP4 Tải Trực Tiếp</strong> và hỗ trợ nút <strong>🔄 Săn Lại / Đổi Cảnh Khác (Again)</strong> không giới hạn!
                 </p>
               </div>
               <div class="bots-hero-actions">
-                <button type="button" class="btn btn-primary" id="btn-footage-download-bat" title="Tải file .BAT tự động kéo toàn bộ Video .MP4 Public Domain & YouTube 4K B-Roll về thư mục máy tính">
+                <button type="button" class="btn btn-primary" id="btn-footage-download-bat" title="Tải file .BAT tự động kéo toàn bộ Video .MP4 theo từng cảnh Kịch bản & YouTube 4K B-Roll về máy tính">
                   ⬇️ Tải Auto-Downloader (.BAT)
                 </button>
-                <button type="button" class="btn btn-secondary" id="btn-footage-download-txt" title="Tải toàn bộ Hồ sơ Shotlist 5 cảnh + Link 10 nền tảng + Prompt AI (.TXT)">
+                <button type="button" class="btn btn-secondary" id="btn-footage-download-txt" title="Tải toàn bộ Hồ sơ Phân cảnh Kịch bản + Link 10 nền tảng + Prompt AI (.TXT)">
                   ⬇️ Tải Hồ Sơ Shotlist (.TXT)
                 </button>
-                <button type="button" class="btn btn-secondary" id="btn-footage-download-csv" title="Tải bảng Excel .CSV tổng hợp toàn bộ link video & nền tảng">
+                <button type="button" class="btn btn-secondary" id="btn-footage-download-csv" title="Tải bảng Excel .CSV tổng hợp toàn bộ cảnh kịch bản & link video">
                   ⬇️ Tải Bảng Link (.CSV)
                 </button>
               </div>
@@ -1145,16 +1145,16 @@
             <!-- DẢI KPI THỐNG KÊ KHO FOOTAGE -->
             <div class="bot-kpi-strip" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-top: 12px;">
               <div class="bot-kpi-box">
-                <span class="bot-kpi-label">Chủ đề đã săn Footage</span>
+                <span class="bot-kpi-label">Chủ đề / Kịch bản đã săn</span>
                 <strong class="bot-kpi-val num" id="footage-kpi-scans" style="color:#0284c7;">0 chủ đề</strong>
               </div>
               <div class="bot-kpi-box">
                 <span class="bot-kpi-label">🟢 Video .MP4 Tải Trực Tiếp</span>
-                <strong class="bot-kpi-val num" id="footage-kpi-direct" style="color:#059669;">6 clip MP4/chủ đề</strong>
+                <strong class="bot-kpi-val num" id="footage-kpi-direct" style="color:#059669;">6 clip MP4 + Theo cảnh</strong>
               </div>
               <div class="bot-kpi-box">
-                <span class="bot-kpi-label">🔵 YouTube 4K B-Roll / CC-BY</span>
-                <strong class="bot-kpi-val num" id="footage-kpi-yt" style="color:#4f46e5;">8 video 4K</strong>
+                <span class="bot-kpi-label">🤖 AI Agent Đạo Diễn &amp; Again</span>
+                <strong class="bot-kpi-val num" id="footage-kpi-yt" style="color:#4f46e5;">4 AI Agent · 5 Góc máy</strong>
               </div>
               <div class="bot-kpi-box">
                 <span class="bot-kpi-label">🌍 Kho Đa Nền Tảng Kết Nối</span>
@@ -1162,9 +1162,9 @@
               </div>
             </div>
 
-            <!-- BẢNG ĐIỀU KHIỂN TÌM KIẾM & TẢI FOOTAGE TRÊN WEB -->
+            <!-- BẢNG ĐIỀU KHIỂN TÌM KIẾM, AI AGENT & NẠP FILE EXCEL / SHEET / NOTION / KỊCH BẢN DỰNG -->
             <div class="panel-box" style="margin-top: 12px; padding: 16px;">
-              <div style="display: grid; grid-template-columns: 1fr 270px; gap: 10px; align-items: end;">
+              <div style="display: grid; grid-template-columns: 1fr 240px 290px; gap: 10px; align-items: end;">
                 <label class="field" style="margin: 0;">
                   <span>🔍 Nhập Chủ đề, Từ khóa ngách hoặc Tiêu đề video cần săn Footage &amp; Tải B-Roll 4K</span>
                   <input
@@ -1175,7 +1175,7 @@
                   />
                 </label>
                 <label class="field" style="margin: 0;">
-                  <span>🎬 Chọn Phong cách / Nguồn cảnh quay ưu tiên</span>
+                  <span>🎬 Nguồn cảnh quay ưu tiên</span>
                   <select id="select-footage-category" class="input-control">
                     <option value="all">🎬 Tất cả Nền tảng (4K Stock + YT + Douyin)</option>
                     <option value="cinematic">✨ Điện ảnh 4K / Luxury (Pexels · Pixabay · Coverr)</option>
@@ -1184,6 +1184,80 @@
                     <option value="health_elderly">🏥 Sức khỏe / Người cao tuổi / Y học 3D</option>
                     <option value="viral_short">📱 Clip Ngắn Ngoại Quốc (Douyin 抖音 · Bilibili · TikTok)</option>
                   </select>
+                </label>
+                <label class="field" style="margin: 0;">
+                  <span>🤖 Chọn AI Agent Đạo Diễn Hình Ảnh</span>
+                  <select id="select-footage-agent-mode" class="input-control">
+                    <option value="auto_director">🤖 AI Agent Đạo Diễn Toàn Năng (4 Agent Phối Hợp)</option>
+                    <option value="luxury_cinema">💎 Agent Điện Ảnh Tỷ Phú &amp; Luxury (Slow-Mo · Dark Gold)</option>
+                    <option value="viral_fast_cut">⚡ Agent Viral Hook Nhanh 2.5s (MrBeast · Douyin)</option>
+                    <option value="docu_archive">📜 Agent Phim Tài Liệu &amp; Lịch Sử (Archive · Ken Burns)</option>
+                    <option value="science_3d">🧬 Agent Giải Phẫu 3D / Y Khoa / AI (Bilibili 3D)</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- KHỐI NẠP FILE EXCEL (.XLSX / .CSV), GOOGLE SHEETS, NOTION & KỊCH BẢN DỰNG TỪNG CẢNH -->
+              <div style="margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%); border: 1.5px dashed #38bdf8;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                  <div>
+                    <strong style="font-size: 0.88rem; color: #0369a1;">📂 Nạp File Excel (<code>.xlsx</code> / <code>.csv</code>) · Google Sheets · File Notion (<code>.md</code> / <code>.txt</code>) · Kịch Bản Dựng</strong>
+                    <div style="font-size: 0.76rem; color: #475569; margin-top: 2px;">
+                      AI Agent tự động đọc từng dòng từ khóa hoặc bóc tách từng câu thoại trong kịch bản -> Dịch sang Tiếng Anh 4K &amp; Tiếng Trung Douyin -> Gán sẵn file <code>Scene-01.mp4</code>, <code>Scene-02.mp4</code>...
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                    <input
+                      type="file"
+                      id="input-footage-file"
+                      accept=".xlsx,.xls,.csv,.tsv,.md,.txt,.json"
+                      hidden
+                    />
+                    <button type="button" class="btn btn-primary btn-xs" id="btn-footage-upload-file" style="background:#0284c7; border-color:#0284c7;">
+                      📂 Chọn File Excel (.xlsx/.csv) / Notion (.md/.txt)
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-xs" id="btn-footage-sample-csv" title="Tải file Excel/CSV mẫu để điền danh sách cảnh hoặc từ khóa">
+                      📄 Tải File Mẫu Excel/CSV
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-xs" id="btn-footage-fill-demo-script" title="Điền thử 1 kịch bản dựng 5 phân cảnh mẫu để test ngay">
+                      ✨ Điền Thử Kịch Bản Mẫu 5 Cảnh
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-xs" id="btn-footage-clear-script" title="Xóa kịch bản / file đang nạp">
+                      🧹 Xóa File/Kịch Bản
+                    </button>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                  <label class="field" style="margin: 0;">
+                    <span style="font-size: 0.75rem;">🔗 Dán Link Google Sheets (Chế độ Xem công khai) hoặc Link Notion Public</span>
+                    <input
+                      type="url"
+                      id="input-footage-sheet-url"
+                      class="input-control"
+                      placeholder="https://docs.google.com/spreadsheets/d/... hoặc Link Notion..."
+                    />
+                  </label>
+                  <label class="field" style="margin: 0;">
+                    <span style="font-size: 0.75rem;">🗂️ Hoặc chọn trực tiếp Kịch bản từ Kho Nội Dung / Notion trong hệ thống</span>
+                    <select id="select-footage-vault-item" class="input-control">
+                      <option value="">-- Chọn Kịch bản từ Kho Nội Dung (Tùy chọn) --</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label class="field" style="margin: 0;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size: 0.75rem;">📜 Dán Bảng Từ Khóa (Copy từ Excel / Google Sheet / Notion) HOẶC Kịch Bản Dựng Từng Cảnh (Mỗi dòng 1 cảnh)</span>
+                    <span id="footage-file-status-badge" style="font-size: 0.72rem; font-weight: 700; color: #059669;"></span>
+                  </div>
+                  <textarea
+                    id="textarea-footage-script"
+                    class="input-control"
+                    rows="4"
+                    style="font-family: inherit; font-size: 0.8rem; line-height: 1.45;"
+                    placeholder="Ví dụ dán Kịch bản dựng hoặc Copy-Paste các dòng từ Excel / Google Sheet / Notion vào đây:&#10;00:00-00:05 | Mở đầu bằng cảnh siêu du thuyền tỷ phú lướt trên đại dương lúc hoàng hôn | siêu du thuyền tỷ phú&#10;00:05-00:15 | Bên trong sàn giao dịch chứng khoán Phố Wall căng thẳng khi thị trường sụp đổ | chứng khoán phố wall&#10;00:15-00:30 | Trí tuệ nhân tạo AI và siêu máy tính đang thay đổi toàn bộ ngân hàng thế giới | trí tuệ nhân tạo AI"
+                  ></textarea>
                 </label>
               </div>
 
@@ -1199,10 +1273,13 @@
                 <button type="button" class="btn btn-secondary btn-xs" data-quick-footage-topic="thiên nhiên đại dương hoang dã 4k">🌊 Thiên nhiên &amp; Đại dương 4K</button>
               </div>
 
-              <!-- HÀNG NÚT HÀNH ĐỘNG CHÍNH -->
+              <!-- HÀNG NÚT HÀNH ĐỘNG CHÍNH (CÓ NÚT AGAIN / ĐỔI GÓC MÁY KHÁC) -->
               <div class="bot-actions-row" style="margin-top: 12px; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary" id="btn-footage-hunt-only">
-                  🎬 Săn Kho Footage 10 Nền Tảng &amp; Lấy Link Tải .MP4 Ngay
+                  🎬 Chạy AI Agent Săn Kho Footage &amp; Bóc Tách Kịch Bản Ngay
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-footage-hunt-again" style="background:#f5f3ff; color:#6d28d9; border-color:#c4b5fd; font-weight:700;" title="Chạy lại AI Agent (Again / Re-roll) để đổi sang góc máy mới, từ khóa B-Roll mới & clip MP4 khác">
+                  🔄 Săn Lại / Đổi Bộ Cảnh Khác (Again)
                 </button>
                 <button type="button" class="btn btn-secondary" id="btn-footage-hunt-and-tg">
                   📲 Săn &amp; Bắn Hồ Sơ Footage Về Telegram @acb9xbot
@@ -1213,7 +1290,7 @@
               </div>
             </div>
 
-            <!-- KẾT QUẢ CHI TIẾT TRANG RIÊNG BOT 10 (VIDEO MP4 XEM THỬ & TẢI VỀ + YOUTUBE 4K + 10 NỀN TẢNG + SHOTLIST) -->
+            <!-- KẾT QUẢ CHI TIẾT TRANG RIÊNG BOT 10 (4 AI AGENT + BẢNG PHÂN CẢNH KỊCH BẢN/SHEET + VIDEO MP4 + YOUTUBE 4K + 10 NỀN TẢNG) -->
             <div id="footage-studio-results" style="margin-top: 14px; display: flex; flex-direction: column; gap: 14px;"></div>
           </div>
         </section>
@@ -1611,7 +1688,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=71"></script>
+  <script type="module" src="/app.js?v=72"></script>
 </body>
 </html>
 
