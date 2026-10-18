@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=63" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=63" />
+  <link rel="icon" href="/icon.svg?v=64" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=64" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -483,19 +483,22 @@
           </div>
         </section>
 
-        <!-- TAB 5: TRUNG TÂM 6 BOT TỰ ĐỘNG HÓA -->
+        <!-- TAB 5: TRUNG TÂM 9 BOT TỰ ĐỘNG HÓA -->
         <section class="tab-panel" id="panel-bots">
           <div class="bots-page-shell">
             <div class="users-page-header bots-page-header">
               <div class="users-page-title-block">
-                <h2 class="users-page-title">🤖 Trung tâm 6 Bot Tự động hóa 24/7</h2>
+                <h2 class="users-page-title">🤖 Trung tâm 9 Bot Tự động hóa 24/7</h2>
                 <p class="panel-desc" style="margin-top:4px;">
                   <strong>Bot 4:</strong> Sao lưu bất tử &nbsp;·&nbsp;
-                  <strong>Bot 1:</strong> Telegram duyệt User &amp; Báo cáo &nbsp;·&nbsp;
+                  <strong>Bot 1:</strong> Telegram Admin &nbsp;·&nbsp;
                   <strong>Bot 2:</strong> Canh nổ view &nbsp;·&nbsp;
-                  <strong>Bot 3:</strong> Nhắc lịch đăng video &nbsp;·&nbsp;
-                  <strong>Bot 5:</strong> Săn ngách &amp; Dò đối thủ &nbsp;·&nbsp;
-                  <strong>Bot 6:</strong> Sinh Prompt Thumbnail AI
+                  <strong>Bot 3:</strong> Nhắc lịch đăng &nbsp;·&nbsp;
+                  <strong>Bot 5:</strong> Dò kênh đối thủ &nbsp;·&nbsp;
+                  <strong>Bot 6:</strong> Prompt Thumbnail &nbsp;·&nbsp;
+                  <strong>Bot 7:</strong> Săn Trend <code>/trend</code> &nbsp;·&nbsp;
+                  <strong>Bot 11:</strong> Khiên Gà &amp; BKT <code>/ga</code> &nbsp;·&nbsp;
+                  <strong>Bot 12:</strong> Đồng bộ Đám mây <code>/cloud</code>
                 </p>
               </div>
               <div class="users-page-header-actions" style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -514,7 +517,7 @@
               </div>
             </div>
 
-            <!-- LƯỚI 6 BOT TRUNG TÂM -->
+            <!-- LƯỚI 9 BOT TRUNG TÂM -->
             <div class="bots-grid-3 bots-grid-4">
               <!-- ==================== BOT 4: SAO LƯU DỮ LIỆU BẤT TỬ ==================== -->
               <div class="bot-card panel-box">
@@ -592,9 +595,10 @@
                 </div>
 
                 <div class="bot-guide-box">
-                  <strong>⚡ Đã kết nối Bot <code>@acb9xbot</code>! Lệnh dùng nhanh trên Telegram:</strong><br />
-                  • <code>/report</code> (Báo cáo doanh thu) &nbsp;·&nbsp; <code>/top</code> (Video nổ view Bot 2) &nbsp;·&nbsp; <code>/schedule</code> (Nhắc lịch Bot 3)<br />
-                  • <code>/spy @TenKenh</code> (Dò đối thủ Bot 5) &nbsp;·&nbsp; <code>/thumb Link_Video</code> (Prompt Thumbnail Bot 6) &nbsp;·&nbsp; <code>/backup</code>
+                  <strong>⚡ Đã kết nối Bot <code>@acb9xbot</code>! Lệnh điều khiển 9 Bot trên Telegram:</strong><br />
+                  • <code>/report</code> (Báo cáo tổng) &nbsp;·&nbsp; <code>/top</code> (Nổ view Bot 2) &nbsp;·&nbsp; <code>/schedule</code> (Nhắc lịch Bot 3) &nbsp;·&nbsp; <code>/backup</code><br />
+                  • <code>/spy @Kenh</code> (Đối thủ Bot 5) &nbsp;·&nbsp; <code>/thumb Link</code> (Thumb Bot 6) &nbsp;·&nbsp; <code>/trend TuKhoa</code> (Săn Trend Bot 7)<br />
+                  • <code>/ga</code> hoặc <code>/revenue</code> (Khiên Gà &amp; BKT Bot 11) &nbsp;·&nbsp; <code>/cloud</code> (Báo cáo Đám mây Bot 12)
                 </div>
 
                 <div class="bot-form-group">
@@ -894,12 +898,181 @@
                 </div>
                 <div id="bot6-thumbnail-list" class="bot-viral-list" style="max-height:330px;"></div>
               </div>
+
+              <!-- ==================== BOT 7 (BOT 9): SĂN TỪ KHÓA NGÁCH & TREND TÌM KIẾM THỰC TẾ (/trend) ==================== -->
+              <div class="bot-card panel-box">
+                <div class="bot-card-header">
+                  <div class="bot-card-title-wrap">
+                    <span class="bot-icon-badge bot-badge-blue" style="background:#eef2ff;border-color:#c7d2fe;">🔍</span>
+                    <div>
+                      <h3 class="bot-card-title">Bot 7 — Săn Từ Khóa Ngách &amp; Trend Tìm Kiếm (<code>/trend</code>)</h3>
+                      <p class="bot-card-sub">Quét trực tiếp YouTube Search Autocomplete tìm ngách con (Micro-Niche) &amp; gợi ý tiêu đề CTR cao</p>
+                    </div>
+                  </div>
+                  <span class="bot-status-pill active" id="bot7-status-pill">🟢 Sẵn sàng săn Trend</span>
+                </div>
+
+                <div class="bot-kpi-strip">
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">Chủ đề đã quét Trend</span>
+                    <strong class="bot-kpi-val num" id="bot7-kpi-scans" style="color:#4f46e5;">0 chủ đề</strong>
+                  </div>
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">Ngách con phát hiện</span>
+                    <strong class="bot-kpi-val num" id="bot7-kpi-microniche" style="color:#059669;">0 ngách con</strong>
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 145px;gap:8px;align-items:end;">
+                  <label class="field" style="margin:0;">
+                    <span>Nhập từ khóa gốc cần săn xu hướng tìm kiếm YouTube</span>
+                    <input
+                      type="text"
+                      id="input-bot7-seed"
+                      class="input-control"
+                      placeholder="VD: tiểu sử tỷ phú, AI story, nhạc thư giãn..."
+                    />
+                  </label>
+                  <label class="field" style="margin:0;">
+                    <span>Thị trường YouTube</span>
+                    <select id="select-bot7-market" class="input-control">
+                      <option value="vi">🇻🇳 Việt Nam (VI)</option>
+                      <option value="en">🇺🇸 Quốc tế / US (EN)</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="bot-actions-row" style="margin-top:8px;">
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-bot7-scan-only">
+                    🔍 Quét Từ Khóa Trend ngay
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-bot7-scan-and-tg">
+                    📲 Quét &amp; Bắn Trend về Telegram
+                  </button>
+                </div>
+
+                <div class="bot-section-divider">
+                  <span>🔑 Từ khóa Khán giả đang gõ tìm &amp; Tiêu đề Gợi ý (1-Click +Lưu Key hoặc Tạo Thumbnail)</span>
+                </div>
+                <div id="bot7-trend-results" class="bot-viral-list" style="max-height:330px;"></div>
+              </div>
+
+              <!-- ==================== BOT 11: CẢNH BÁO BẬT KIẾM TIỀN & BẢO VỆ GÀ ADSENSE (/ga & /revenue) ==================== -->
+              <div class="bot-card panel-box">
+                <div class="bot-card-header">
+                  <div class="bot-card-title-wrap">
+                    <span class="bot-icon-badge bot-badge-emerald" style="background:#ecfdf5;border-color:#a7f3d0;">💰</span>
+                    <div>
+                      <h3 class="bot-card-title">Bot 11 — Cảnh Báo Bật Kiếm Tiền &amp; Bảo Vệ Gà AdSense</h3>
+                      <p class="bot-card-sub">Canh kênh sắp đủ 1.000 Sub / 4.000h BKT, chống rủi ro chết chùm Gà AdSense &amp; Tổng hợp Doanh thu</p>
+                    </div>
+                  </div>
+                  <span class="bot-status-pill active" id="bot11-status-pill">🛡️ Khiên Gà 24/7</span>
+                </div>
+
+                <div class="bot-kpi-strip" style="grid-template-columns:repeat(3,1fr);">
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">Kênh Đã BKT / Sắp BKT</span>
+                    <strong class="bot-kpi-val num" id="bot11-kpi-bkt" style="color:#059669;">0 / 0</strong>
+                  </div>
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">Cảnh báo Gà AdSense</span>
+                    <strong class="bot-kpi-val num" id="bot11-kpi-garisk" style="color:#dc2626;">0 rủi ro</strong>
+                  </div>
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">Tổng Doanh Thu Năm</span>
+                    <strong class="bot-kpi-val num" id="bot11-kpi-revenue" style="color:#d97706;">$0</strong>
+                  </div>
+                </div>
+
+                <div class="bot-watchdog-controls" style="grid-template-columns:1fr 1fr;">
+                  <label class="field">
+                    <span>Số kênh tối đa khuyến nghị / 1 Gà AdSense</span>
+                    <input type="number" step="1" min="1" max="20" id="input-bot11-max-ga" class="input-control" value="3" />
+                  </label>
+                  <label class="field">
+                    <span>Báo tin vui khi tiến độ BKT đạt từ (%)</span>
+                    <input type="number" step="5" min="20" max="100" id="input-bot11-bkt-pct" class="input-control" value="70" />
+                  </label>
+                </div>
+
+                <div class="bot-actions-row" style="margin-top:8px;">
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-bot11-scan-only">
+                    🛡️ Quét Khiên Gà &amp; BKT ngay
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-bot11-scan-and-tg">
+                    📲 Bắn Báo cáo Gà &amp; Doanh thu về Telegram
+                  </button>
+                </div>
+
+                <div class="bot-section-divider">
+                  <span>🛡️ Tình trạng Gà AdSense, Tiến độ Bật kiếm tiền &amp; Top Doanh thu</span>
+                </div>
+                <div id="bot11-shield-list" class="bot-viral-list" style="max-height:330px;"></div>
+              </div>
+
+              <!-- ==================== BOT 12: ĐỒNG BỘ BÁO CÁO ĐÁM MÂY TỰ ĐỘNG (NOTION / GOOGLE SHEETS / CSV) ==================== -->
+              <div class="bot-card panel-box">
+                <div class="bot-card-header">
+                  <div class="bot-card-title-wrap">
+                    <span class="bot-icon-badge bot-badge-blue" style="background:#f0f9ff;border-color:#bae6fd;">☁️</span>
+                    <div>
+                      <h3 class="bot-card-title">Bot 12 — Đồng Bộ Báo Cáo Đám Mây Tự Động (<code>/cloud</code>)</h3>
+                      <p class="bot-card-sub">Xuất bảng tổng hợp Kênh, Views &amp; Doanh thu sang Google Sheets, Excel (.CSV), Notion &amp; Webhook</p>
+                    </div>
+                  </div>
+                  <span class="bot-status-pill active" id="bot12-status-pill">☁️ Cloud Ready</span>
+                </div>
+
+                <div class="bot-kpi-strip">
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">Kênh trong Bảng Đám mây</span>
+                    <strong class="bot-kpi-val num" id="bot12-kpi-rows" style="color:#0284c7;">0 kênh</strong>
+                  </div>
+                  <div class="bot-kpi-box">
+                    <span class="bot-kpi-label">Đồng bộ gần nhất</span>
+                    <strong class="bot-kpi-val" id="bot12-kpi-last-sync">Sẵn sàng</strong>
+                  </div>
+                </div>
+
+                <div class="bot-form-group">
+                  <label class="field">
+                    <span>Google Sheets / Make / Notion Webhook URL (Tùy chọn — tự động bắn JSON báo cáo)</span>
+                    <input
+                      type="url"
+                      id="input-bot12-webhook"
+                      class="input-control"
+                      placeholder="https://script.google.com/macros/s/... hoặc https://hook.eu1.make.com/..."
+                    />
+                  </label>
+                </div>
+
+                <div class="bot-actions-row" style="margin-top:8px;flex-wrap:wrap;">
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-bot12-copy-sheets" title="Copy bảng dữ liệu chuẩn Tab để dán (Ctrl+V) thẳng vào Google Sheets hoặc Excel">
+                    📋 Copy Bảng Google Sheets
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-bot12-copy-notion" title="Copy bảng báo cáo định dạng Markdown để dán thẳng vào trang Notion">
+                    📝 Copy Báo cáo Notion
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-bot12-download-csv">
+                    ⬇️ Tải File Excel (.CSV)
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-bot12-send-tg">
+                    📲 Gửi File .CSV về Telegram &amp; Đồng bộ Webhook
+                  </button>
+                </div>
+
+                <div class="bot-section-divider">
+                  <span>📊 Xem trước Bảng Báo Cáo Đám Mây (Kênh · Group · Quản lý · Views · Doanh thu · Tiến độ)</span>
+                </div>
+                <div id="bot12-cloud-preview" class="bot-viral-list" style="max-height:330px;"></div>
+              </div>
             </div>
 
-            <!-- NHẬT KÝ HOẠT ĐỘNG TỰ ĐỘNG CỦA 6 BOT -->
+            <!-- NHẬT KÝ HOẠT ĐỘNG TỰ ĐỘNG CỦA 9 BOT -->
             <div class="panel-box" style="margin-top:16px;padding:16px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <h3 style="font-size:0.95rem;font-weight:800;margin:0;">📜 Nhật ký hoạt động trực tiếp của 6 Bot</h3>
+                <h3 style="font-size:0.95rem;font-weight:800;margin:0;">📜 Nhật ký hoạt động trực tiếp của 9 Bot</h3>
                 <span style="font-size:0.75rem;color:#64748b;" id="bot-last-scan-time">Cập nhật tự động</span>
               </div>
               <div id="bot-activity-logs" class="bot-activity-logs"></div>
@@ -1302,7 +1475,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=63"></script>
+  <script type="module" src="/app.js?v=64"></script>
 </body>
 </html>
 

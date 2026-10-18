@@ -83,8 +83,9 @@ const TAB_TITLES = {
     subtitle: 'Quản lý danh sách thành viên đăng nhập bằng Gmail, cấu hình Không gian làm việc tách riêng và phân quyền theo Group / Kênh',
   },
   bots: {
-    title: 'Trung tâm 6 Bot Tự động hóa 24/7',
-    subtitle: 'Bot 4: Sao lưu bất tử · Bot 1: Telegram · Bot 2: Canh nổ view · Bot 3: Nhắc lịch đăng · Bot 5: Săn ngách đối thủ · Bot 6: Sinh Prompt Thumbnail AI',
+    title: 'Trung tâm 9 Bot Tự động hóa 24/7',
+    subtitle:
+      'Bot 4: Sao lưu bất tử · Bot 1: Telegram · Bot 2: Nổ view · Bot 3: Lịch đăng · Bot 5: Đối thủ · Bot 6: Prompt Thumb · Bot 7: Săn Trend · Bot 11: Khiên Gà & BKT · Bot 12: Đồng bộ Đám mây',
   },
   brand: {
     title: 'Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại',
@@ -5706,8 +5707,16 @@ function renderBotsCenterTab() {
   const cfg = bc.config || {};
   const watchdog = bc.watchdog || { viralVideos: [], healthAlerts: [], summary: {} };
   const scheduleRadar = bc.scheduleRadar || { scheduleItems: [], summary: {} };
+  const monetizationShield = bc.monetizationShield || {
+    summary: {},
+    bktCandidates: [],
+    adsenseGroups: [],
+    topEarningChannels: [],
+  };
+  const cloudReport = bc.cloudReport || { summary: {}, rows: [], sheetsTsv: '', notionMarkdown: '', csvContent: '' };
   const competitorScans = Array.isArray(bc.competitorScans) ? bc.competitorScans : [];
   const thumbnailClones = Array.isArray(bc.thumbnailClones) ? bc.thumbnailClones : [];
+  const trendScans = Array.isArray(bc.trendScans) ? bc.trendScans : [];
   const snapshots = Array.isArray(bc.snapshots) ? bc.snapshots : [];
   const logs = Array.isArray(bc.activityLogs) ? bc.activityLogs : [];
 
@@ -5719,7 +5728,7 @@ function renderBotsCenterTab() {
   // Cập nhật số lượng trên thanh điều hướng
   const viralCount = Number(watchdog.summary?.viralCount ?? watchdog.viralVideos?.length) || 0;
   const alertCount = Number(watchdog.summary?.healthAlertCount ?? watchdog.healthAlerts?.length) || 0;
-  setText('nav-count-bots', viralCount > 0 ? `🔥${viralCount}` : '6');
+  setText('nav-count-bots', viralCount > 0 ? `🔥${viralCount}` : '9');
 
   // --- BOT 4: SAO LƯU BẤT TỬ ---
   setText('bot4-kpi-snapshots', `${snapshots.length} / 10 bản`);
@@ -6199,6 +6208,261 @@ function renderBotsCenterTab() {
     }
   }
 
+  // --- BOT 7 (BOT 9): SĂN TỪ KHÓA NGÁCH & TREND TÌM KIẾM THỰC TẾ (/trend) ---
+  const totalMicroNiches = trendScans.reduce((s, it) => s + (Number(it.microNicheCount) || 0), 0);
+  setText('bot7-kpi-scans', `${trendScans.length} chủ đề`);
+  setText('bot7-kpi-microniche', `${totalMicroNiches} ngách con`);
+  const bot7Pill = document.getElementById('bot7-status-pill');
+  if (bot7Pill) {
+    bot7Pill.textContent =
+      trendScans.length > 0 ? `🔍 Đã quét ${trendScans.length} chủ đề` : '🟢 Sẵn sàng săn Trend';
+  }
+  const bot7ListEl = document.getElementById('bot7-trend-results');
+  if (bot7ListEl) {
+    if (trendScans.length === 0) {
+      bot7ListEl.innerHTML = `
+        <div class="bot-empty-note">
+          Chưa có chủ đề nào được quét. Nhập từ khóa gốc (VD: <code>tiểu sử tỷ phú</code>, <code>AI story</code>) ở trên rồi bấm <strong>"🔍 Quét Từ Khóa Trend ngay"</strong>!
+        </div>
+      `;
+    } else {
+      bot7ListEl.innerHTML = trendScans
+        .slice(0, 5)
+        .map((scan) => {
+          const kws = Array.isArray(scan.keywords) ? scan.keywords.slice(0, 8) : [];
+          return `
+            <div class="bot-viral-item" style="flex-direction: column; align-items: stretch; gap: 8px; border-left: 3px solid #4f46e5;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div>
+                  <strong style="font-size: 13px; color: var(--text);">
+                    🔍 Từ khóa gốc: "${escapeHtml(scan.seedKeyword || '')}"
+                  </strong>
+                  <span style="font-size: 11px; color: var(--text-muted); margin-left: 6px;">
+                    (${escapeHtml(String(scan.market || 'vi').toUpperCase())}) · ${escapeHtml(
+                      formatDateTimeVi(scan.scannedAt)
+                    )}
+                  </span>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <span class="bot-mult-badge" style="background: rgba(79,70,229,0.14); color: #6366f1;">
+                    🔑 ${Number(scan.totalKeywords || kws.length)} từ khóa
+                  </span>
+                  <span class="bot-mult-badge" style="background: rgba(16,185,129,0.14); color: #059669;">
+                    💎 ${Number(scan.microNicheCount || 0)} ngách con
+                  </span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                ${kws
+                  .map(
+                    (k) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; background: rgba(15,23,42,0.45); border: 1px solid rgba(148,163,184,0.12);">
+                      <div style="min-width: 0; flex: 1;">
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text);">
+                          #${k.rank} · <a href="${escapeHtml(k.youtubeSearchUrl || '#')}" target="_blank" rel="noopener" style="color: #38bdf8; text-decoration: none;">${escapeHtml(k.keyword)}</a>
+                          <span style="font-size: 10.5px; font-weight: 500; color: var(--text-muted); margin-left: 6px;">${escapeHtml(k.intentTag || '')}</span>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          🎬 <em>Tiêu đề gợi ý:</em> ${escapeHtml(k.suggestedTitle || '')}
+                        </div>
+                      </div>
+                      <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-xs"
+                          data-clone-thumb-url=""
+                          data-clone-thumb-title="${escapeHtml(k.suggestedTitle || k.keyword)}"
+                          title="Đưa sang Bot 6 để tạo bộ 3 Prompt Thumbnail cho tiêu đề này"
+                        >
+                          🎨 Tạo Thumb
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-xs"
+                          data-save-spy-key-title="[Key Trend ${escapeHtml(String(scan.market || 'vi').toUpperCase())}] ${escapeHtml(k.keyword)}"
+                          data-save-spy-key-url="${escapeHtml(k.youtubeSearchUrl || '')}"
+                          data-save-spy-key-notes="Phân loại: ${escapeHtml(k.intentTag || '')} | Gợi ý tiêu đề: ${escapeHtml(k.suggestedTitle || '')}"
+                          title="Lưu từ khóa & tiêu đề gợi ý này vào Kho Nội Dung & Key"
+                        >
+                          + Lưu Key
+                        </button>
+                      </div>
+                    </div>
+                  `
+                  )
+                  .join('')}
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+  }
+
+  // --- BOT 11: CẢNH BÁO BẬT KIẾM TIỀN & BẢO VỆ GÀ ADSENSE (/ga & /revenue) ---
+  const mSum = monetizationShield.summary || {};
+  setText(
+    'bot11-kpi-bkt',
+    `${Number(mSum.monetizedCount || 0)} Đã BKT · ${Number(mSum.readyOrAlmostBktCount || 0)} Sắp BKT`
+  );
+  setText(
+    'bot11-kpi-garisk',
+    Number(mSum.riskyGaCount || 0) > 0
+      ? `🚨 ${mSum.riskyGaCount} Gà rủi ro`
+      : `✅ ${Number(mSum.totalGaAccounts || 0)} Gà an toàn`
+  );
+  setText('bot11-kpi-revenue', `$${Number(mSum.totalYearlyRevenue || 0).toLocaleString('vi-VN')}`);
+
+  const inpMaxGa = document.getElementById('input-bot11-max-ga');
+  if (inpMaxGa && document.activeElement !== inpMaxGa) {
+    inpMaxGa.value = cfg.maxChannelsPerGa ?? 3;
+  }
+  const inpBktPct = document.getElementById('input-bot11-bkt-pct');
+  if (inpBktPct && document.activeElement !== inpBktPct) {
+    inpBktPct.value = cfg.bktAlertThresholdPct ?? 70;
+  }
+
+  const bot11ListEl = document.getElementById('bot11-shield-list');
+  if (bot11ListEl) {
+    const gaGroups = Array.isArray(monetizationShield.adsenseGroups) ? monetizationShield.adsenseGroups : [];
+    const bktList = Array.isArray(monetizationShield.bktCandidates) ? monetizationShield.bktCandidates : [];
+    const topRev = Array.isArray(monetizationShield.topEarningChannels) ? monetizationShield.topEarningChannels : [];
+
+    const gaHtml =
+      gaGroups.length > 0
+        ? gaGroups
+            .slice(0, 5)
+            .map((g) => {
+              const borderCol =
+                g.riskLevel === 'DANGER' ? '#ef4444' : g.riskLevel === 'WARNING' ? '#f59e0b' : '#10b981';
+              return `
+                <div class="bot-viral-item" style="border-left: 3px solid ${borderCol};">
+                  <div class="bot-viral-main">
+                    <div class="bot-viral-title-row">
+                      <span class="bot-mult-badge" style="background: rgba(16,185,129,0.14); color: ${borderCol};">
+                        Gà: ${escapeHtml(g.maskedGa)} (${g.channelCount} kênh)
+                      </span>
+                      <strong style="font-size: 12px;">💵 $${Number(g.totalRevenueUsd || 0).toLocaleString('vi-VN')}</strong>
+                    </div>
+                    <div class="bot-viral-meta" style="margin-top: 3px;">
+                      ${escapeHtml(g.riskMessage || '')}
+                    </div>
+                  </div>
+                </div>
+              `;
+            })
+            .join('')
+        : `<div class="bot-empty-note" style="padding: 8px;">Chưa có kênh nào khai báo mã Gà kết nối (AdSense).</div>`;
+
+    const bktHtml =
+      bktList.length > 0
+        ? bktList
+            .slice(0, 5)
+            .map((c) => {
+              const badgeColor =
+                c.bktStage === 'READY_NOW'
+                  ? '#10b981'
+                  : c.bktStage === 'ALMOST_THERE'
+                  ? '#f59e0b'
+                  : '#64748b';
+              return `
+                <div class="bot-viral-item" style="border-left: 3px solid ${badgeColor};">
+                  <div class="bot-viral-main">
+                    <div class="bot-viral-title-row">
+                      <span class="bot-mult-badge" style="color: ${badgeColor};">
+                        🎯 Tiến độ BKT: ${c.overallPct}%
+                      </span>
+                      <strong>${escapeHtml(c.channelName)}</strong>
+                      <span style="font-size: 11px; color: var(--text-muted);">(${escapeHtml(c.group)})</span>
+                    </div>
+                    <div class="bot-viral-meta">
+                      👥 ${Number(c.subscribers || 0).toLocaleString('vi-VN')} / 1.000 sub (${c.subPct}%) ·
+                      ⏱️ ${Number(c.watchHours || 0).toLocaleString('vi-VN')} / 4.000 giờ (${c.watchPct}%)
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-xs"
+                    data-open-schedule-channel="${escapeHtml(c.channelId)}"
+                  >
+                    Mở kênh →
+                  </button>
+                </div>
+              `;
+            })
+            .join('')
+        : '';
+
+    const revHtml =
+      topRev.length > 0
+        ? topRev
+            .slice(0, 4)
+            .map(
+              (ch, i) => `
+              <div class="bot-viral-item" style="border-left: 3px solid #d97706;">
+                <div class="bot-viral-main">
+                  <div class="bot-viral-title-row">
+                    <span class="bot-mult-badge">🏆 Top ${i + 1} Doanh Thu</span>
+                    <strong>${escapeHtml(ch.channelName)}</strong>
+                    <strong style="color: #10b981; margin-left: auto;">$${Number(ch.totalYearlyRevenue || 0).toLocaleString('vi-VN')}</strong>
+                  </div>
+                  <div class="bot-viral-meta">
+                    🏷️ ${escapeHtml(ch.group)} · 👤 Quản lý: ${escapeHtml(ch.manager)} · 🛡️ Gà: ${escapeHtml(ch.maskedGa)}
+                  </div>
+                </div>
+              </div>
+            `
+            )
+            .join('')
+        : '';
+
+    bot11ListEl.innerHTML = [gaHtml, bktHtml, revHtml].filter(Boolean).join('');
+  }
+
+  // --- BOT 12: ĐỒNG BỘ BÁO CÁO ĐÁM MÂY TỰ ĐỘNG (NOTION / GOOGLE SHEETS / CSV) ---
+  const cRows = Array.isArray(cloudReport.rows) ? cloudReport.rows : [];
+  setText('bot12-kpi-rows', `${cRows.length} kênh`);
+  setText(
+    'bot12-kpi-last-sync',
+    cfg.lastCloudReportSyncAt ? formatDateTimeVi(cfg.lastCloudReportSyncAt) : 'Trực tiếp (Live)'
+  );
+  const inpBot12Webhook = document.getElementById('input-bot12-webhook');
+  if (inpBot12Webhook && document.activeElement !== inpBot12Webhook) {
+    inpBot12Webhook.value = cfg.cloudReportWebhookUrl || '';
+  }
+
+  const bot12PreviewEl = document.getElementById('bot12-cloud-preview');
+  if (bot12PreviewEl) {
+    if (cRows.length === 0) {
+      bot12PreviewEl.innerHTML = `<div class="bot-empty-note">Chưa có dữ liệu kênh để xuất báo cáo.</div>`;
+    } else {
+      bot12PreviewEl.innerHTML = cRows
+        .slice(0, 8)
+        .map(
+          (r) => `
+          <div class="bot-viral-item" style="border-left: 3px solid #0284c7;">
+            <div class="bot-viral-main">
+              <div class="bot-viral-title-row">
+                <span class="bot-mult-badge" style="background: rgba(2,132,199,0.12); color: #0284c7;">
+                  #${r.stt} · ${escapeHtml(r.group)}
+                </span>
+                <strong>${escapeHtml(r.name)}</strong>
+                <span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(r.handle)}</span>
+                <strong style="margin-left: auto; color: #059669;">$${Number(r.yearlyRevenueUsd || 0).toLocaleString('vi-VN')}</strong>
+              </div>
+              <div class="bot-viral-meta">
+                👤 ${escapeHtml(r.manager)} · 👥 ${Number(r.subscribers || 0).toLocaleString('vi-VN')} sub ·
+                👁️ ${Number(r.totalViews || 0).toLocaleString('vi-VN')} views · 💰 ${escapeHtml(r.monetization)} ·
+                ⏰ ${escapeHtml(r.scheduleStatus)}
+              </div>
+            </div>
+          </div>
+        `
+        )
+        .join('');
+    }
+  }
+
   // --- NHẬT KÝ HOẠT ĐỘNG ---
   setText(
     'bot-last-scan-time',
@@ -6241,6 +6505,10 @@ function collectBotConfigFromDom() {
     deadChannelDays: Number(document.getElementById('input-bot3-dead-days')?.value) || 5,
     autoTelegramScheduleDaily: Boolean(document.getElementById('chk-bot3-auto-tg')?.checked),
     competitorMinOutlier: Number(document.getElementById('input-bot5-min-outlier')?.value) || 1.3,
+    defaultTrendMarket: String(document.getElementById('select-bot7-market')?.value || 'vi'),
+    maxChannelsPerGa: Number(document.getElementById('input-bot11-max-ga')?.value) || 3,
+    bktAlertThresholdPct: Number(document.getElementById('input-bot11-bkt-pct')?.value) || 70,
+    cloudReportWebhookUrl: String(document.getElementById('input-bot12-webhook')?.value || '').trim(),
     autoBackupEnabled: Boolean(document.getElementById('chk-bot4-auto-backup')?.checked),
     cloudBackupWebhookUrl: String(document.getElementById('input-bot4-webhook-url')?.value || '').trim(),
   };
@@ -6279,7 +6547,7 @@ function initBotsCenterEvents() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Lưu cấu hình 6 Bot
+  // Lưu cấu hình 9 Bot
   document.getElementById('btn-bot-save-config')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget;
     const orig = btn.textContent;
@@ -6295,7 +6563,7 @@ function initBotsCenterEvents() {
       const inpTok = document.getElementById('input-bot1-token');
       if (inpTok) inpTok.value = '';
       renderBotsCenterTab();
-      showBanner('✅ Đã lưu cấu hình Trung tâm 6 Bot thành công!');
+      showBanner('✅ Đã lưu cấu hình Trung tâm 9 Bot thành công!');
     } catch (err) {
       showBanner(err.message, true);
     } finally {
@@ -6371,7 +6639,7 @@ function initBotsCenterEvents() {
     }
   });
 
-  // Delegated click trên #panel-bots: Khôi phục Snapshot, Mở kênh Bot 3, Copy Prompt Bot 6, Clone Thumb & Lưu Key Bot 5
+  // Delegated click trên #panel-bots: Khôi phục Snapshot, Mở kênh Bot 3, Copy Prompt Bot 6, Clone Thumb & Lưu Key Bot 5/7
   document.getElementById('panel-bots')?.addEventListener('click', async (e) => {
     const openChBtn = e.target.closest('[data-open-schedule-channel]');
     if (openChBtn) {
@@ -6428,10 +6696,10 @@ function initBotsCenterEvents() {
           method: 'POST',
           body: JSON.stringify({
             title,
-            type: 'idea',
+            type: 'seo',
             resourceUrl: referenceUrl,
             body: notes,
-            tags: 'bot5-spy, outlier, thumbnail-prompt',
+            tags: 'bot-hunter, outlier, trend-keyword',
           }),
         });
         await loadOverview();
@@ -6741,6 +7009,178 @@ function initBotsCenterEvents() {
   document.getElementById('btn-bot6-generate-and-tg')?.addEventListener('click', (e) =>
     runThumbnailCloneAction(true, e.currentTarget)
   );
+
+  // Bot 7 (Bot 9): Săn Từ Khóa Ngách & Trend Tìm Kiếm Thực Tế (/trend)
+  const runTrendHunterAction = async (notifyTelegram, btn) => {
+    const seedKeyword = String(document.getElementById('input-bot7-seed')?.value || '').trim();
+    if (!seedKeyword) {
+      showBanner('Vui lòng nhập từ khóa gốc cần săn xu hướng YouTube (VD: tiểu sử tỷ phú, AI story)!', true);
+      document.getElementById('input-bot7-seed')?.focus();
+      return;
+    }
+    const market = String(document.getElementById('select-bot7-market')?.value || 'vi');
+    const orig = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '🔍 Đang săn Trend...';
+    }
+    try {
+      const res = await apiRequest('/api/bots/trends/scan', {
+        method: 'POST',
+        body: JSON.stringify({
+          seedKeyword,
+          market,
+          notifyTelegram: Boolean(notifyTelegram),
+        }),
+      });
+      if (res.status) state.botCenter = res.status;
+      renderBotsCenterTab();
+      const t = res.trendScan || {};
+      showBanner(
+        notifyTelegram
+          ? `🔍 Đã quét ${t.totalKeywords || 0} từ khóa Trend cho "${seedKeyword}" & bắn về Telegram @acb9xbot!`
+          : `🔍 Đã tìm thấy ${t.totalKeywords || 0} từ khóa người xem đang tìm (${t.microNicheCount || 0} ngách con) cho "${seedKeyword}"!`
+      );
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+  };
+
+  document.getElementById('btn-bot7-scan-only')?.addEventListener('click', (e) =>
+    runTrendHunterAction(false, e.currentTarget)
+  );
+  document.getElementById('btn-bot7-scan-and-tg')?.addEventListener('click', (e) =>
+    runTrendHunterAction(true, e.currentTarget)
+  );
+
+  // Bot 11: Cảnh Báo Bật Kiếm Tiền & Bảo Vệ Gà AdSense (/ga & /revenue)
+  const runMonetizationShieldAction = async (notifyTelegram, btn) => {
+    const maxChannelsPerGa = Number(document.getElementById('input-bot11-max-ga')?.value) || 3;
+    const bktAlertThresholdPct = Number(document.getElementById('input-bot11-bkt-pct')?.value) || 70;
+    const orig = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '🛡️ Đang quét Khiên Gà...';
+    }
+    try {
+      await apiRequest('/api/bots/config', {
+        method: 'POST',
+        body: JSON.stringify({ maxChannelsPerGa, bktAlertThresholdPct }),
+      });
+      const res = await apiRequest('/api/bots/monetization/scan', {
+        method: 'POST',
+        body: JSON.stringify({
+          maxChannelsPerGa,
+          bktAlertThresholdPct,
+          notifyTelegram: Boolean(notifyTelegram),
+        }),
+      });
+      if (res.status) state.botCenter = res.status;
+      renderBotsCenterTab();
+      const s = res.monetizationShield?.summary || {};
+      showBanner(
+        notifyTelegram
+          ? `💰 Đã bắn Báo cáo Khiên Gà AdSense, Tiến độ BKT & Doanh thu ($${Number(
+              s.totalYearlyRevenue || 0
+            ).toLocaleString('vi-VN')}) về Telegram!`
+          : `🛡️ Đã quét Khiên Gà: ${s.monetizedCount || 0} kênh đã BKT, ${
+              s.readyOrAlmostBktCount || 0
+            } kênh sắp BKT, Tổng doanh thu $${Number(s.totalYearlyRevenue || 0).toLocaleString('vi-VN')}!`
+      );
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+  };
+
+  document.getElementById('btn-bot11-scan-only')?.addEventListener('click', (e) =>
+    runMonetizationShieldAction(false, e.currentTarget)
+  );
+  document.getElementById('btn-bot11-scan-and-tg')?.addEventListener('click', (e) =>
+    runMonetizationShieldAction(true, e.currentTarget)
+  );
+
+  // Bot 12: Đồng Bộ Báo Cáo Đám Mây Tự Động (Notion / Google Sheets / CSV)
+  document.getElementById('btn-bot12-copy-sheets')?.addEventListener('click', async () => {
+    const tsv = state.botCenter?.cloudReport?.sheetsTsv || '';
+    if (!tsv) {
+      showBanner('Chưa có dữ liệu bảng để Copy!', true);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(tsv);
+      showBanner('📋 Đã Copy Bảng Google Sheets! Anh mở Google Sheets hoặc Excel bấm Ctrl+V là ra nguyên bảng!');
+    } catch {
+      showBanner('Không thể truy cập Clipboard trên trình duyệt này.', true);
+    }
+  });
+
+  document.getElementById('btn-bot12-copy-notion')?.addEventListener('click', async () => {
+    const md = state.botCenter?.cloudReport?.notionMarkdown || '';
+    if (!md) {
+      showBanner('Chưa có dữ liệu Notion Markdown để Copy!', true);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(md);
+      showBanner('📝 Đã Copy Báo cáo Notion (Markdown)! Anh mở trang Notion bấm Ctrl+V là tạo bảng đẹp ngay!');
+    } catch {
+      showBanner('Không thể truy cập Clipboard trên trình duyệt này.', true);
+    }
+  });
+
+  document.getElementById('btn-bot12-download-csv')?.addEventListener('click', () => {
+    const csv = state.botCenter?.cloudReport?.csvContent || '';
+    if (!csv) {
+      showBanner('Chưa có dữ liệu CSV để tải!', true);
+      return;
+    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `ACB9x-GoogleSheets-Report-${dateStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showBanner('⬇️ Đã tải file Báo cáo Excel / Google Sheets (.CSV chuẩn tiếng Việt) thành công!');
+  });
+
+  document.getElementById('btn-bot12-send-tg')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const orig = btn.textContent;
+    const cloudReportWebhookUrl = String(document.getElementById('input-bot12-webhook')?.value || '').trim();
+    btn.disabled = true;
+    btn.textContent = '☁️ Đang đồng bộ...';
+    try {
+      const res = await apiRequest('/api/bots/cloud/sync', {
+        method: 'POST',
+        body: JSON.stringify({
+          cloudReportWebhookUrl,
+          notifyTelegram: true,
+        }),
+      });
+      if (res.status) state.botCenter = res.status;
+      renderBotsCenterTab();
+      showBanner('☁️ Đã gửi file Báo cáo Excel/Google Sheets (.CSV) sang Telegram @acb9xbot & đồng bộ Cloud!');
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  });
 }
 
 // Đăng ký Service Worker cho Mobile App (PWA) & dọn cache cũ tránh lỗi hiển thị CSS
@@ -6752,7 +7192,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=63', { updateViaCache: 'none' })
+      .register('/sw.js?v=64', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

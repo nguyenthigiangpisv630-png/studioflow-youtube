@@ -10,6 +10,10 @@ import {
   scanUploadScheduleAndDeadChannels,
   huntCompetitorChannelOutliers,
   analyzeAndGenerateThumbnailPrompts,
+  huntYouTubeSearchTrends,
+  scanMonetizationAndAdSenseShield,
+  generateCloudSyncReport,
+  syncCloudReportNow,
   buildBackupPayload,
   createImmortalSnapshot,
   notifyTelegramNewUser,
@@ -163,7 +167,12 @@ function normalizeMonthlyRevenue(raw = {}) {
   const out = {};
   for (let m = 1; m <= 12; m += 1) {
     const key = String(m);
-    const val = raw && typeof raw === 'object' ? raw[key] ?? raw[m] : 0;
+    const val =
+      raw && typeof raw === 'object'
+        ? raw[`m${m}`] !== undefined
+          ? raw[`m${m}`]
+          : raw[key] ?? raw[m]
+        : 0;
     const cleaned = typeof val === 'number' ? val : parseFloat(String(val ?? '0').replace(/,/g, '').trim());
     out[key] = Number.isFinite(cleaned) && cleaned >= 0 ? Math.round(cleaned * 100) / 100 : 0;
   }
@@ -2940,6 +2949,8 @@ export class StudioStore {
     const center = ensureBotCenterState(this.state.meta);
     const watchdog = scanViralAndChannelHealth(this);
     const scheduleRadar = scanUploadScheduleAndDeadChannels(this);
+    const monetizationShield = scanMonetizationAndAdSenseShield(this);
+    const cloudReport = generateCloudSyncReport(this);
     const snapshots = (center.snapshots || []).map((snap) => ({
       id: snap.id,
       label: snap.label,
@@ -2962,9 +2973,12 @@ export class StudioStore {
       },
       watchdog,
       scheduleRadar,
+      monetizationShield,
+      cloudReport,
       snapshots,
       competitorScans: Array.isArray(center.competitorScans) ? center.competitorScans : [],
       thumbnailClones: Array.isArray(center.thumbnailClones) ? center.thumbnailClones : [],
+      trendScans: Array.isArray(center.trendScans) ? center.trendScans : [],
       activityLogs: (center.activityLogs || []).slice(0, 30),
     };
   }
@@ -3017,12 +3031,27 @@ export class StudioStore {
       prev.autoTelegramScheduleDaily = Boolean(patch.autoTelegramScheduleDaily);
     }
 
-    // Bot 5 & Bot 6
+    // Bot 5 & Bot 6 & Bot 7 & Bot 11 & Bot 12
     if (patch.competitorMinOutlier !== undefined) {
       prev.competitorMinOutlier = Math.max(1.0, Number(patch.competitorMinOutlier) || 1.3);
     }
     if (patch.defaultThumbnailStyle !== undefined) {
       prev.defaultThumbnailStyle = String(patch.defaultThumbnailStyle || 'viral_3d').trim();
+    }
+    if (patch.defaultTrendMarket !== undefined) {
+      prev.defaultTrendMarket = String(patch.defaultTrendMarket || 'vi').trim();
+    }
+    if (patch.maxChannelsPerGa !== undefined) {
+      prev.maxChannelsPerGa = Math.max(1, Number(patch.maxChannelsPerGa) || 3);
+    }
+    if (patch.bktAlertThresholdPct !== undefined) {
+      prev.bktAlertThresholdPct = Math.max(20, Number(patch.bktAlertThresholdPct) || 70);
+    }
+    if (patch.cloudReportWebhookUrl !== undefined) {
+      prev.cloudReportWebhookUrl = String(patch.cloudReportWebhookUrl).trim();
+    }
+    if (patch.autoCloudReportDaily !== undefined) {
+      prev.autoCloudReportDaily = Boolean(patch.autoCloudReportDaily);
     }
 
     if (patch.autoBackupEnabled !== undefined) prev.autoBackupEnabled = Boolean(patch.autoBackupEnabled);
@@ -3033,7 +3062,7 @@ export class StudioStore {
     appendBotLog(
       this.state.meta,
       'Bot Center',
-      'Đã lưu cấu hình Trung tâm 6 Bot tự động hóa (Bot 1-6).',
+      'Đã lưu cấu hình Trung tâm 9 Bot tự động hóa.',
       'success'
     );
     this.#save();
@@ -3078,6 +3107,33 @@ export class StudioStore {
     const cloneEntry = await analyzeAndGenerateThumbnailPrompts(this, input);
     this.#save();
     return cloneEntry;
+  }
+
+  async runTrendHunterScan(options = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const trendEntry = await huntYouTubeSearchTrends(this, options);
+    this.#save();
+    return trendEntry;
+  }
+
+  runMonetizationShieldScan(options = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const shield = scanMonetizationAndAdSenseShield(this, options);
+    appendBotLog(
+      this.state.meta,
+      'Bot 11 (BKT & Khiên Gà)',
+      `Đã quét Khiên Gà & BKT: ${shield.summary.monetizedCount} kênh đã BKT, ${shield.summary.readyOrAlmostBktCount} kênh sắp đủ BKT, ${shield.summary.riskyGaCount} cảnh báo Gà, tổng doanh thu $${shield.summary.totalYearlyRevenue}.`,
+      shield.summary.riskyGaCount > 0 ? 'warning' : 'success'
+    );
+    this.#save();
+    return shield;
+  }
+
+  async runCloudReportSync(options = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const report = await syncCloudReportNow(this, options);
+    this.#save();
+    return report;
   }
 
   async createBackupSnapshot(options = {}) {

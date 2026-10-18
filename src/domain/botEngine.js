@@ -6,6 +6,7 @@ import { fetchYouTubeChannelProfile, inferChannelCategory } from './youtubeFetch
 const MAX_SAVED_SNAPSHOTS = 10;
 const MAX_COMPETITOR_SCANS = 12;
 const MAX_THUMBNAIL_CLONES = 15;
+const MAX_TREND_SCANS = 12;
 
 export function getDefaultBotConfig() {
   return {
@@ -47,6 +48,21 @@ export function getDefaultBotConfig() {
     // Bot 6: Thumbnail Clone & Prompt Generator Bot
     defaultThumbnailStyle: 'viral_3d',
     lastThumbnailCloneAt: null,
+
+    // Bot 7 (Bot 9): YouTube Search Trend Hunter Bot (/trend)
+    defaultTrendMarket: 'vi',
+    lastTrendScanAt: null,
+
+    // Bot 11: Monetization & AdSense Shield Bot (/ga & /revenue)
+    maxChannelsPerGa: 3, // Cảnh báo khi 1 Gà AdSense gánh từ 3 kênh trở lên
+    bktAlertThresholdPct: 70, // Báo tin vui khi kênh đạt >= 70% điều kiện BKT (1000 sub & 4000h)
+    lastAdSenseScanAt: null,
+
+    // Bot 12: Cloud Report Sync Bot (Notion / Google Sheets / Cloud CSV)
+    cloudReportWebhookUrl: '',
+    autoCloudReportDaily: true,
+    lastCloudReportSyncAt: null,
+    lastCloudReportStatus: '',
   };
 }
 
@@ -58,6 +74,7 @@ export function ensureBotCenterState(meta = {}) {
       snapshots: [],
       competitorScans: [],
       thumbnailClones: [],
+      trendScans: [],
       notifiedViralVideoIds: [],
       activityLogs: [],
     };
@@ -81,6 +98,9 @@ export function ensureBotCenterState(meta = {}) {
   }
   if (!Array.isArray(meta.botCenter.thumbnailClones)) {
     meta.botCenter.thumbnailClones = [];
+  }
+  if (!Array.isArray(meta.botCenter.trendScans)) {
+    meta.botCenter.trendScans = [];
   }
   if (!Array.isArray(meta.botCenter.notifiedViralVideoIds)) {
     meta.botCenter.notifiedViralVideoIds = [];
@@ -817,14 +837,17 @@ export async function pollTelegramBotUpdates(store) {
           chat_id: chatId,
           parse_mode: 'HTML',
           text: [
-            `👑 <b>TRUNG TÂM 6 BOT QUẢN TRỊ ACB9X STUDIOFLOW</b>`,
+            `👑 <b>TRUNG TÂM 9 BOT QUẢN TRỊ ACB9X STUDIOFLOW</b>`,
             `Xin chào Admin <b>timhanhphuc</b>! Các lệnh điều khiển nhanh:`,
-            `• /report — Báo cáo tổng hợp Kênh, Views & Doanh thu (Bot 1)`,
+            `• /report — Báo cáo tổng hợp Kênh, Views &amp; Doanh thu (Bot 1)`,
             `• /top — Danh sách Video đang nổ đề xuất (Bot 2)`,
-            `• /schedule — Kiểm tra Lịch đăng video & Kênh bỏ quên (Bot 3)`,
+            `• /schedule — Kiểm tra Lịch đăng video &amp; Kênh bỏ quên (Bot 3)`,
             `• /backup — Nhận ngay file Sao lưu dữ liệu bất tử .json (Bot 4)`,
-            `• /spy <code>@TenKenh</code> — Săn ngách & Dò video nổ của đối thủ (Bot 5)`,
-            `• /thumb <code>Link_Video</code> — Bóc tách & Sinh Prompt Thumbnail AI (Bot 6)`,
+            `• /spy <code>@TenKenh</code> — Săn ngách &amp; Dò video nổ của đối thủ (Bot 5)`,
+            `• /thumb <code>Link_Video</code> — Bóc tách &amp; Sinh Prompt Thumbnail AI (Bot 6)`,
+            `• /trend <code>Từ_khóa</code> — Săn từ khóa ngách &amp; Trend tìm kiếm YouTube (Bot 7)`,
+            `• /ga hoặc /revenue — Cảnh báo Bật kiếm tiền, Bảo vệ Gà AdSense &amp; Doanh thu (Bot 11)`,
+            `• /cloud — Xuất &amp; Đồng bộ Báo cáo Đám mây Google Sheets / Notion (Bot 12)`,
             `• /users — Duyệt thành viên mới đăng ký`,
           ].join('\n'),
         });
@@ -874,6 +897,37 @@ export async function pollTelegramBotUpdates(store) {
           });
           await sendTelegramThumbnailClone(store, cloneItem, cfg.telegramBotToken, chatId);
         }
+      } else if (text.startsWith('/trend') || text.startsWith('/tukhoa')) {
+        const arg = text.replace(/^\/(trend|tukhoa)(@\S+)?/i, '').trim();
+        if (!arg) {
+          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+            chat_id: chatId,
+            parse_mode: 'HTML',
+            text: `🔍 <b>Cú pháp Bot 7 (Săn Từ Khóa Ngách &amp; Trend Tìm Kiếm Thực Tế):</b>\nGõ <code>/trend Từ_khóa_gốc</code> để quét từ khóa người xem đang tìm thật trên YouTube.\n<i>Ví dụ:</i> <code>/trend tiểu sử tỷ phú</code> hoặc <code>/trend AI story</code>`,
+          });
+        } else {
+          const trendScan = await huntYouTubeSearchTrends(store, { seedKeyword: arg });
+          const html = formatTelegramTrendReport(trendScan);
+          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+            chat_id: chatId,
+            parse_mode: 'HTML',
+            text: html,
+          });
+        }
+      } else if (
+        text.startsWith('/ga') ||
+        text.startsWith('/bkt') ||
+        text.startsWith('/revenue') ||
+        text.startsWith('/doanhthu')
+      ) {
+        const shieldHtml = formatTelegramMonetizationReport(store);
+        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+          chat_id: chatId,
+          parse_mode: 'HTML',
+          text: shieldHtml,
+        });
+      } else if (text.startsWith('/cloud') || text.startsWith('/sheets') || text.startsWith('/notion')) {
+        await sendTelegramCloudReportDocument(store, cfg.telegramBotToken, chatId);
       } else if (text.startsWith('/top') || text.startsWith('/no')) {
         const scan = scanViralAndChannelHealth(store);
         const topList = (scan.viralVideos || []).slice(0, 8);
@@ -1303,5 +1357,718 @@ export async function sendTelegramThumbnailClone(store, cloneItem, customToken =
     parse_mode: 'HTML',
   });
   return { ok: true };
+}
+
+// ============================================================================
+// BOT 7 (BOT 9): YOUTUBE SEARCH TREND HUNTER BOT (SĂN TỪ KHÓA NGÁCH & TREND /trend)
+// ============================================================================
+async function fetchYouTubeAutocompleteSuggestions(query, hl = 'vi', gl = 'VN') {
+  const url = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&hl=${encodeURIComponent(
+    hl
+  )}&gl=${encodeURIComponent(gl)}&q=${encodeURIComponent(query)}`;
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    },
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data?.[1]) ? data[1].map((s) => String(s || '').trim()).filter(Boolean) : [];
+}
+
+function classifyTrendKeyword(keyword = '', market = 'vi') {
+  const lower = String(keyword || '').toLowerCase();
+  const isEn = market === 'en';
+  if (/^(how|why|what|cách|tại sao|làm sao|hướng dẫn|bí quyết)/i.test(lower)) {
+    return {
+      intentTag: '🎯 Hướng dẫn / Giải pháp',
+      suggestedTitle: isEn
+        ? `How "${keyword}" Actually Works (Step-by-Step Guide 2026)`
+        : `Sự Thật Về "${keyword}" Ít Ai Tiết Lộ (Hướng Dẫn Chi Tiết)`,
+    };
+  }
+  if (/(2026|2025|mới nhất|trend|ai|automation|full|review|top|best)/i.test(lower)) {
+    return {
+      intentTag: '🔥 Xu hướng đang lên (Rising Trend)',
+      suggestedTitle: isEn
+        ? `Why Everyone Is Switching To "${keyword}" Right Now!`
+        : `Tại Sao "${keyword}" Đang Bùng Nổ Mạnh Mẽ Năm 2026?`,
+    };
+  }
+  if (lower.split(/\s+/).length >= 4) {
+    return {
+      intentTag: '💎 Ngách con ít cạnh tranh (Micro-Niche)',
+      suggestedTitle: isEn
+        ? `The Untold Story of ${keyword} (99% Miss This)`
+        : `Bí Mật Đằng Sau "${keyword}" Khiến Hàng Triệu Người Kinh Ngạc`,
+    };
+  }
+  return {
+    intentTag: '⚡ Từ khóa gốc lưu lượng cao',
+    suggestedTitle: isEn
+      ? `${keyword}: 7 Secrets Nobody Tells You`
+      : `Top 5 Sự Thật Về "${keyword}" Bạn Cần Biết Ngay Hôm Nay`,
+  };
+}
+
+export async function huntYouTubeSearchTrends(store, options = {}) {
+  const center = ensureBotCenterState(store.state.meta);
+  const seedKeyword = String(options.seedKeyword || options.query || '').trim();
+  if (!seedKeyword) {
+    throw new Error('Vui lòng nhập Từ khóa gốc cần săn Trend (VD: tiểu sử tỷ phú, AI story, nhạc thư giãn)!');
+  }
+
+  const market = String(options.market || center.config.defaultTrendMarket || 'vi').toLowerCase();
+  const hl = market === 'en' ? 'en' : 'vi';
+  const gl = market === 'en' ? 'US' : 'VN';
+
+  const queryVariations =
+    market === 'en'
+      ? [
+          seedKeyword,
+          `${seedKeyword} 2026`,
+          `how to ${seedKeyword}`,
+          `why ${seedKeyword}`,
+          `best ${seedKeyword}`,
+        ]
+      : [
+          seedKeyword,
+          `${seedKeyword} mới nhất`,
+          `cách ${seedKeyword}`,
+          `bí mật ${seedKeyword}`,
+          `tại sao ${seedKeyword}`,
+        ];
+
+  const fetcher = options.suggestFetcher || fetchYouTubeAutocompleteSuggestions;
+  const collected = new Set();
+
+  try {
+    const settled = await Promise.allSettled(
+      queryVariations.map((q) => fetcher(q, hl, gl))
+    );
+    for (const r of settled) {
+      if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+        for (const item of r.value) {
+          const clean = String(item || '').trim();
+          if (clean) collected.add(clean);
+        }
+      }
+    }
+  } catch {}
+
+  // Nếu mạng bị chặn hoặc từ khóa quá mới, bổ sung bộ mở rộng ngách thông minh
+  if (collected.size < 6) {
+    const fallbackSuffixes =
+      market === 'en'
+        ? [
+            `${seedKeyword} full documentary`,
+            `${seedKeyword} untold story`,
+            `how ${seedKeyword} changed everything`,
+            `${seedKeyword} step by step 2026`,
+            `${seedKeyword} explained simply`,
+            `best ${seedKeyword} for beginners`,
+          ]
+        : [
+            `${seedKeyword} mới nhất 2026`,
+            `bí mật ${seedKeyword} ít người biết`,
+            `hướng dẫn ${seedKeyword} từ A đến Z`,
+            `tóm tắt ${seedKeyword} dễ hiểu nhất`,
+            `sự thật về ${seedKeyword}`,
+            `câu chuyện ${seedKeyword} truyền cảm hứng`,
+          ];
+    for (const fb of fallbackSuffixes) collected.add(fb);
+  }
+
+  const keywords = [...collected].slice(0, 24).map((kw, idx) => {
+    const meta = classifyTrendKeyword(kw, market);
+    return {
+      rank: idx + 1,
+      keyword: kw,
+      intentTag: meta.intentTag,
+      suggestedTitle: meta.suggestedTitle,
+      youtubeSearchUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(kw)}`,
+    };
+  });
+
+  const microNicheCount = keywords.filter((k) => k.intentTag.includes('Ngách con')).length;
+  const risingCount = keywords.filter((k) => k.intentTag.includes('Xu hướng')).length;
+
+  const trendEntry = {
+    id: `trend-${crypto.randomUUID().slice(0, 8)}`,
+    scannedAt: new Date().toISOString(),
+    seedKeyword,
+    market,
+    totalKeywords: keywords.length,
+    microNicheCount,
+    risingCount,
+    keywords,
+  };
+
+  center.trendScans = [
+    trendEntry,
+    ...(center.trendScans || []).filter(
+      (it) => String(it.seedKeyword || '').toLowerCase() !== seedKeyword.toLowerCase()
+    ),
+  ].slice(0, MAX_TREND_SCANS);
+  center.config.lastTrendScanAt = trendEntry.scannedAt;
+
+  appendBotLog(
+    store.state.meta,
+    'Bot 7 (Săn Từ Khóa Trend)',
+    `Đã quét YouTube Search Autocomplete cho "${seedKeyword}" (${market.toUpperCase()}): thu về ${keywords.length} từ khóa tìm kiếm thực tế (${microNicheCount} ngách con)!`,
+    'success'
+  );
+
+  return trendEntry;
+}
+
+export function formatTelegramTrendReport(trendScan) {
+  const topKw = (trendScan.keywords || []).slice(0, 12);
+  const rows = topKw
+    .map(
+      (k) =>
+        `${k.rank}. 🔑 <code>${escapeTgHtml(k.keyword)}</code>\n   🏷️ ${escapeTgHtml(
+          k.intentTag
+        )}\n   🎬 <i>Gợi ý tiêu đề:</i> ${escapeTgHtml(k.suggestedTitle)}`
+    )
+    .join('\n\n');
+
+  return [
+    `🔍 <b>BÁO CÁO SĂN TỪ KHÓA NGÁCH &amp; TREND TÌM KIẾM YOUTUBE (BOT 7)</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `🎯 Từ khóa gốc: <b>${escapeTgHtml(trendScan.seedKeyword)}</b> (${escapeTgHtml(
+      String(trendScan.market || 'vi').toUpperCase()
+    )})`,
+    `📊 Tổng từ khóa khán giả đang gõ tìm: <b>${trendScan.totalKeywords} từ khóa</b>`,
+    `💎 Ngách con ít cạnh tranh (Micro-Niche): <b>${trendScan.microNicheCount} ngách</b>`,
+    `🔥 Xu hướng đang lên: <b>${trendScan.risingCount} từ khóa</b>`,
+    ``,
+    `🏆 <b>TOP TỪ KHÓA &amp; TIÊU ĐỀ GỢI Ý LÀM VIDEO NGAY:</b>`,
+    rows,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `💡 <i>Chạm vào từ khóa để Copy hoặc mở Web bấm 1-Click <b>+ Lưu Key</b> vào Kho nội dung!</i>`,
+  ].join('\n');
+}
+
+// ============================================================================
+// BOT 11: MONETIZATION & ADSENSE SHIELD BOT (CẢNH BÁO BKT, BẢO VỆ GÀ & DOANH THU /ga, /revenue)
+// ============================================================================
+function maskAdSenseName(raw = '') {
+  const str = String(raw || '').trim();
+  if (!str) return '';
+  if (str.length <= 6) return str;
+  return `${str.slice(0, 4)}***${str.slice(-3)}`;
+}
+
+export function scanMonetizationAndAdSenseShield(store, customOptions = {}) {
+  const center = ensureBotCenterState(store.state.meta);
+  const cfg = center.config;
+  const maxChannelsPerGa = Math.max(
+    1,
+    Number(customOptions.maxChannelsPerGa ?? cfg.maxChannelsPerGa) || 3
+  );
+  const bktAlertThresholdPct = Math.max(
+    20,
+    Number(customOptions.bktAlertThresholdPct ?? cfg.bktAlertThresholdPct) || 70
+  );
+
+  const channels = store.state.channels || [];
+  const monetizedChannels = [];
+  const bktCandidates = [];
+  const unlinkedMonetizedChannels = [];
+  const gaMap = new Map();
+
+  const monthlyTotals = Array.from({ length: 12 }, (_, idx) => ({
+    month: idx + 1,
+    label: `Tháng ${idx + 1}`,
+    revenue: 0,
+  }));
+  let totalYearlyRevenue = 0;
+
+  for (const ch of channels) {
+    const subs = Math.max(0, Number(ch.subscribers) || 0);
+    const watchHours = Math.max(0, Number(ch.watchHours) || 0);
+    const monNorm = String(ch.monetization || '').trim().toLowerCase();
+    const statusNorm = String(ch.status || '').trim().toLowerCase();
+    const isMonetized = monNorm === 'enabled' || monNorm === 'đã bật';
+    const isDemonetized =
+      monNorm === 'disabled' || monNorm === 'tắt kiếm tiền' || statusNorm === 'demonetized';
+    const isHealthy =
+      !['warning', 'demonetized', 'cảnh báo', 'tắt kiếm tiền'].includes(statusNorm) &&
+      (Number(ch.strikeCount) || 0) === 0;
+    const rawGa = String(ch.adsenseAccount || '').trim();
+
+    // Cộng doanh thu 12 tháng
+    let chYearRev = 0;
+    const mRev = ch.monthlyRevenue && typeof ch.monthlyRevenue === 'object' ? ch.monthlyRevenue : {};
+    for (let m = 1; m <= 12; m++) {
+      const val = Math.max(0, Number(mRev[String(m)] ?? mRev[m] ?? mRev[`m${m}`] ?? 0) || 0);
+      monthlyTotals[m - 1].revenue += val;
+      chYearRev += val;
+    }
+    if (chYearRev === 0 && Number(ch.totalYearlyRevenue) > 0) {
+      chYearRev = Number(ch.totalYearlyRevenue);
+    }
+    totalYearlyRevenue += chYearRev;
+
+    if (isMonetized) {
+      monetizedChannels.push({
+        channelId: ch.id,
+        channelName: ch.name || 'Kênh YouTube',
+        handle: ch.handle || '',
+        group: ch.group || 'Chưa phân nhóm',
+        manager: ch.manager || 'Chưa gán',
+        subscribers: subs,
+        watchHours,
+        totalYearlyRevenue: Math.round(chYearRev * 100) / 100,
+        hasGaLinked: Boolean(rawGa),
+        maskedGa: rawGa ? maskAdSenseName(rawGa) : 'Chưa gắn Gà',
+        status: ch.status || 'Kênh tốt',
+      });
+      if (!rawGa) {
+        unlinkedMonetizedChannels.push({
+          channelId: ch.id,
+          channelName: ch.name || 'Kênh YouTube',
+          handle: ch.handle || '',
+          group: ch.group || 'Chưa phân nhóm',
+          manager: ch.manager || 'Chưa gán',
+        });
+      }
+    } else {
+      // Tính tiến độ Bật kiếm tiền (1.000 Sub & 4.000 Giờ xem)
+      const subPct = Math.min(100, Math.round((subs / 1000) * 100));
+      const watchPct = Math.min(100, Math.round((watchHours / 4000) * 100));
+      const overallPct = Math.round(subPct * 0.5 + watchPct * 0.5);
+      const bktStage =
+        subPct >= 100 && watchPct >= 100
+          ? 'READY_NOW'
+          : overallPct >= bktAlertThresholdPct
+          ? 'ALMOST_THERE'
+          : 'GROWING';
+
+      bktCandidates.push({
+        channelId: ch.id,
+        channelName: ch.name || 'Kênh YouTube',
+        handle: ch.handle || '',
+        group: ch.group || 'Chưa phân nhóm',
+        manager: ch.manager || 'Chưa gán',
+        subscribers: subs,
+        watchHours,
+        subPct,
+        watchPct,
+        overallPct,
+        bktStage,
+        missingSubs: Math.max(0, 1000 - subs),
+        missingHours: Math.max(0, Math.round(4000 - watchHours)),
+      });
+    }
+
+    // Gom nhóm theo tài khoản Gà AdSense để kiểm tra rủi ro chết chùm
+    if (rawGa) {
+      const key = rawGa.toLowerCase();
+      if (!gaMap.has(key)) {
+        gaMap.set(key, {
+          maskedGa: maskAdSenseName(rawGa),
+          channelCount: 0,
+          totalRevenueUsd: 0,
+          hasRiskyChannel: false,
+          channels: [],
+        });
+      }
+      const entry = gaMap.get(key);
+      entry.channelCount += 1;
+      entry.totalRevenueUsd = Math.round((entry.totalRevenueUsd + chYearRev) * 100) / 100;
+      if (!isHealthy || isDemonetized) {
+        entry.hasRiskyChannel = true;
+      }
+      entry.channels.push({
+        channelId: ch.id,
+        channelName: ch.name || 'Kênh YouTube',
+        handle: ch.handle || '',
+        status: ch.status || 'Kênh tốt',
+        monetization: isMonetized ? 'Đã bật' : isDemonetized ? 'Tắt kiếm tiền' : 'Chưa bật',
+      });
+    }
+  }
+
+  bktCandidates.sort((a, b) => b.overallPct - a.overallPct || b.subscribers - a.subscribers);
+  monetizedChannels.sort((a, b) => b.totalYearlyRevenue - a.totalYearlyRevenue || b.subscribers - a.subscribers);
+
+  const adsenseGroups = [...gaMap.values()]
+    .map((g) => {
+      let riskLevel = 'SAFE';
+      let riskMessage = '✅ An toàn (Số lượng kênh hợp lý & sức khỏe kênh tốt)';
+      if (g.hasRiskyChannel && g.channelCount > 1) {
+        riskLevel = 'DANGER';
+        riskMessage = `🚨 NGUY HIỂM CHẾT CHÙM: Có kênh đang bị Cảnh báo/Tắt kiếm tiền nằm chung Gà với ${
+          g.channelCount - 1
+        } kênh khác!`;
+      } else if (g.channelCount >= maxChannelsPerGa) {
+        riskLevel = 'WARNING';
+        riskMessage = `⚠️ Rủi ro tập trung: 1 Gà đang gánh ${g.channelCount} kênh (Vượt ngưỡng khuyến nghị ${maxChannelsPerGa} kênh/Gà).`;
+      }
+      return {
+        ...g,
+        riskLevel,
+        riskMessage,
+      };
+    })
+    .sort((a, b) => {
+      const order = { DANGER: 0, WARNING: 1, SAFE: 2 };
+      return (order[a.riskLevel] ?? 9) - (order[b.riskLevel] ?? 9) || b.channelCount - a.channelCount;
+    });
+
+  const bestMonthObj = [...monthlyTotals].sort((a, b) => b.revenue - a.revenue)[0] || {
+    label: 'Tháng 1',
+    revenue: 0,
+  };
+
+  const readyOrAlmostBkt = bktCandidates.filter(
+    (c) => c.bktStage === 'READY_NOW' || c.bktStage === 'ALMOST_THERE'
+  );
+  const riskyGaCount = adsenseGroups.filter((g) => g.riskLevel !== 'SAFE').length;
+
+  const result = {
+    scannedAt: new Date().toISOString(),
+    summary: {
+      totalChannels: channels.length,
+      monetizedCount: monetizedChannels.length,
+      readyOrAlmostBktCount: readyOrAlmostBkt.length,
+      unlinkedMonetizedCount: unlinkedMonetizedChannels.length,
+      totalGaAccounts: adsenseGroups.length,
+      riskyGaCount,
+      totalYearlyRevenue: Math.round(totalYearlyRevenue * 100) / 100,
+      bestMonthLabel: bestMonthObj.label,
+      bestMonthRevenue: Math.round(bestMonthObj.revenue * 100) / 100,
+    },
+    bktCandidates,
+    adsenseGroups,
+    unlinkedMonetizedChannels,
+    topEarningChannels: monetizedChannels.slice(0, 8),
+    monthlyTotals,
+  };
+
+  cfg.lastAdSenseScanAt = result.scannedAt;
+  return result;
+}
+
+export function formatTelegramMonetizationReport(store) {
+  const shield = scanMonetizationAndAdSenseShield(store);
+  const s = shield.summary;
+
+  const bktLines =
+    shield.bktCandidates.length > 0
+      ? shield.bktCandidates
+          .slice(0, 5)
+          .map((c) => {
+            const badge =
+              c.bktStage === 'READY_NOW'
+                ? '🎉 <b>ĐỦ ĐIỀU KIỆN BKT NGAY!</b>'
+                : c.bktStage === 'ALMOST_THERE'
+                ? `🔥 <b>Đạt ${c.overallPct}% điều kiện BKT</b>`
+                : `🌱 Đạt ${c.overallPct}%`;
+            return `• <b>${escapeTgHtml(c.channelName)}</b> (${escapeTgHtml(
+              c.group
+            )}) — ${badge}\n  └ 👥 ${c.subscribers.toLocaleString('vi-VN')}/1.000 sub · ⏱️ ${c.watchHours.toLocaleString(
+              'vi-VN'
+            )}/4.000 giờ`;
+          })
+          .join('\n')
+      : '✅ Tất cả kênh đều đã Bật kiếm tiền!';
+
+  const gaLines =
+    shield.adsenseGroups.length > 0
+      ? shield.adsenseGroups
+          .slice(0, 6)
+          .map(
+            (g) =>
+              `• Gà <code>${escapeTgHtml(g.maskedGa)}</code> (${g.channelCount} kênh · $${g.totalRevenueUsd.toLocaleString(
+                'vi-VN'
+              )})\n  └ ${escapeTgHtml(g.riskMessage)}`
+          )
+          .join('\n')
+      : '⚪ Chưa có kênh nào khai báo mã Gà kết nối.';
+
+  const topRevLines =
+    shield.topEarningChannels.length > 0
+      ? shield.topEarningChannels
+          .slice(0, 5)
+          .map(
+            (ch, idx) =>
+              `${idx + 1}. 💵 <b>$${ch.totalYearlyRevenue.toLocaleString('vi-VN')}</b> — <b>${escapeTgHtml(
+                ch.channelName
+              )}</b> (${escapeTgHtml(ch.group)})`
+          )
+          .join('\n')
+      : 'Chưa có dữ liệu doanh thu.';
+
+  return [
+    `💰 <b>BÁO CÁO BẬT KIẾM TIỀN, KHIÊN BẢO VỆ GÀ &amp; DOANH THU (BOT 11)</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `📺 Kênh Đã Bật Kiếm Tiền: <b>${s.monetizedCount} / ${s.totalChannels} kênh</b>`,
+    `🎯 Kênh Sắp/Đủ điều kiện BKT: <b>${s.readyOrAlmostBktCount} kênh</b>`,
+    `🛡️ Số tài khoản Gà AdSense: <b>${s.totalGaAccounts} Gà</b> (Cảnh báo rủi ro: <b>${s.riskyGaCount}</b>)`,
+    `💵 Tổng Doanh Thu Năm: <b>$${s.totalYearlyRevenue.toLocaleString('vi-VN')}</b> (${escapeTgHtml(
+      s.bestMonthLabel
+    )} đỉnh nhất: <b>$${s.bestMonthRevenue.toLocaleString('vi-VN')}</b>)`,
+    ``,
+    `🎯 <b>1. RADAR KÊNH SẮP BẬT KIẾM TIỀN (1.000 SUB &amp; 4.000 GIỜ):</b>`,
+    bktLines,
+    ``,
+    `🛡️ <b>2. KHIÊN BẢO VỆ GÀ ADSENSE (CHỐNG CHẾT CHÙM):</b>`,
+    gaLines,
+    s.unlinkedMonetizedCount > 0
+      ? `⚠️ <i>Lưu ý: Có <b>${s.unlinkedMonetizedCount} kênh</b> đã Bật kiếm tiền nhưng chưa điền thông tin Gà kết nối!</i>`
+      : '',
+    ``,
+    `🏆 <b>3. TOP KÊNH DOANH THU CAO NHẤT:</b>`,
+    topRevLines,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+// ============================================================================
+// BOT 12: CLOUD REPORT AUTO-SYNC BOT (ĐỒNG BỘ BÁO CÁO ĐÁM MÂY NOTION / GOOGLE SHEETS / CSV)
+// ============================================================================
+export function generateCloudSyncReport(store) {
+  const channels = store.state.channels || [];
+  const videos = store.state.videos || [];
+  const watchdog = scanViralAndChannelHealth(store);
+  const schedule = scanUploadScheduleAndDeadChannels(store);
+  const shield = scanMonetizationAndAdSenseShield(store);
+
+  const scheduleMap = new Map((schedule.scheduleItems || []).map((it) => [it.channelId, it]));
+
+  const rows = channels.map((ch, idx) => {
+    const mRev = ch.monthlyRevenue && typeof ch.monthlyRevenue === 'object' ? ch.monthlyRevenue : {};
+    let yearRev = 0;
+    for (let m = 1; m <= 12; m++) {
+      yearRev += Math.max(0, Number(mRev[String(m)] ?? mRev[m] ?? mRev[`m${m}`] ?? 0) || 0);
+    }
+    if (yearRev === 0 && Number(ch.totalYearlyRevenue) > 0) {
+      yearRev = Number(ch.totalYearlyRevenue);
+    }
+    const schedItem = scheduleMap.get(ch.id);
+    const monNorm = String(ch.monetization || '').trim().toLowerCase();
+    const monLabel =
+      monNorm === 'enabled' || monNorm === 'đã bật'
+        ? 'Đã bật'
+        : monNorm === 'disabled' || monNorm === 'tắt kiếm tiền'
+        ? 'Tắt kiếm tiền'
+        : 'Chưa bật';
+    return {
+      stt: idx + 1,
+      name: ch.name || 'Kênh YouTube',
+      handle: ch.handle || '',
+      group: ch.group || 'Chưa phân nhóm',
+      category: ch.category || 'Chung',
+      manager: ch.manager || 'Chưa gán',
+      subscribers: Number(ch.subscribers) || 0,
+      totalViews: Number(ch.totalViews) || 0,
+      watchHours: Number(ch.watchHours) || 0,
+      monetization: monLabel,
+      status: ch.status || 'Kênh tốt',
+      yearlyRevenueUsd: Math.round(yearRev * 100) / 100,
+      scheduleStatus: schedItem ? schedItem.statusLabel : 'Đúng lịch',
+      channelUrl: ch.channelUrl || '',
+    };
+  });
+
+  // 1. Chuỗi TSV (Tab-Separated Values) để bấm 1-Click Copy trên Web rồi Ctrl+V thẳng vào Google Sheets / Excel
+  const headers = [
+    'STT',
+    'Tên Kênh',
+    'Handle',
+    'Group',
+    'Ngách',
+    'Quản Lý',
+    'Subscribers',
+    'Tổng Views',
+    'Giờ Xem',
+    'Kiếm Tiền',
+    'Doanh Thu Năm ($)',
+    'Lịch Đăng',
+    'Tình Trạng',
+    'Link Kênh',
+  ];
+  const tsvLines = [
+    headers.join('\t'),
+    ...rows.map((r) =>
+      [
+        r.stt,
+        r.name,
+        r.handle,
+        r.group,
+        r.category,
+        r.manager,
+        r.subscribers,
+        r.totalViews,
+        r.watchHours,
+        r.monetization,
+        r.yearlyRevenueUsd,
+        r.scheduleStatus,
+        r.status,
+        r.channelUrl,
+      ]
+        .map((cell) => String(cell ?? '').replace(/[\t\r\n]+/g, ' '))
+        .join('\t')
+    ),
+  ];
+  const sheetsTsv = tsvLines.join('\n');
+
+  // 2. Chuỗi CSV chuẩn UTF-8 BOM (mở trực tiếp bằng Excel hoặc Google Sheets không lỗi font tiếng Việt)
+  const csvEscape = (val) => {
+    const s = String(val ?? '');
+    if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+  };
+  const csvContent =
+    '\uFEFF' +
+    [
+      headers.map(csvEscape).join(','),
+      ...rows.map((r) =>
+        [
+          r.stt,
+          r.name,
+          r.handle,
+          r.group,
+          r.category,
+          r.manager,
+          r.subscribers,
+          r.totalViews,
+          r.watchHours,
+          r.monetization,
+          r.yearlyRevenueUsd,
+          r.scheduleStatus,
+          r.status,
+          r.channelUrl,
+        ]
+          .map(csvEscape)
+          .join(',')
+      ),
+    ].join('\r\n');
+
+  // 3. Chuỗi Markdown chuẩn Notion (1-Click Copy dán thẳng vào trang Notion tạo bảng tự động)
+  const notionMarkdown = [
+    `# 📊 BÁO CÁO ĐÁM MÂY HỆ THỐNG KÊNH ACB9X (${new Date().toLocaleDateString('vi-VN')})`,
+    ``,
+    `> **Tổng quan:** **${channels.length}** Kênh · **${videos.length}** Video · **${shield.summary.monetizedCount}** Kênh đã BKT · Tổng Doanh thu Năm: **$${shield.summary.totalYearlyRevenue.toLocaleString('vi-VN')}** · Video đang nổ view: **${watchdog.summary.viralCount}**`,
+    ``,
+    `| STT | Tên Kênh | Group | Quản Lý | Subscribers | Tổng Views | Kiếm Tiền | Doanh Thu ($) | Tiến Độ Đăng |`,
+    `| --- | --- | --- | --- | --- | --- | --- | --- | --- |`,
+    ...rows.map(
+      (r) =>
+        `| ${r.stt} | **${r.name}** (${r.handle}) | ${r.group} | ${r.manager} | ${r.subscribers.toLocaleString(
+          'vi-VN'
+        )} | ${r.totalViews.toLocaleString('vi-VN')} | ${r.monetization} | $${r.yearlyRevenueUsd.toLocaleString(
+          'vi-VN'
+        )} | ${r.scheduleStatus} |`
+    ),
+  ].join('\n');
+
+  return {
+    generatedAt: new Date().toISOString(),
+    summary: {
+      totalChannels: channels.length,
+      totalVideos: videos.length,
+      monetizedCount: shield.summary.monetizedCount,
+      totalYearlyRevenue: shield.summary.totalYearlyRevenue,
+      viralVideoCount: watchdog.summary.viralCount,
+      needUploadCount: schedule.summary.needActionCount,
+    },
+    rows,
+    sheetsTsv,
+    csvContent,
+    notionMarkdown,
+  };
+}
+
+export async function syncCloudReportNow(store, options = {}) {
+  const center = ensureBotCenterState(store.state.meta);
+  const cfg = center.config;
+  const webhookUrl = String(options.cloudReportWebhookUrl ?? cfg.cloudReportWebhookUrl ?? '').trim();
+  const report = generateCloudSyncReport(store);
+
+  let webhookDelivered = false;
+  let webhookMessage = 'Đã tạo bảng báo cáo Google Sheets (.CSV / TSV) & Notion Markdown.';
+
+  if (webhookUrl && /^https?:\/\//i.test(webhookUrl)) {
+    try {
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source: 'ACB9x StudioFlow Bot 12 Cloud Sync',
+          generatedAt: report.generatedAt,
+          summary: report.summary,
+          channels: report.rows,
+          notionMarkdown: report.notionMarkdown,
+        }),
+      });
+      webhookDelivered = res.ok;
+      webhookMessage = res.ok
+        ? `✅ Đã đồng bộ tự động lên Cloud Webhook (${res.status}) lúc ${new Date().toLocaleTimeString('vi-VN')}`
+        : `⚠️ Cloud Webhook trả về mã ${res.status}`;
+    } catch (err) {
+      webhookMessage = `⚠️ Lỗi gửi Cloud Webhook: ${err.message}`;
+    }
+  }
+
+  cfg.lastCloudReportSyncAt = report.generatedAt;
+  cfg.lastCloudReportStatus = webhookMessage;
+
+  appendBotLog(
+    store.state.meta,
+    'Bot 12 (Đồng bộ Đám mây)',
+    `Đã xuất Báo cáo Đám mây (${report.summary.totalChannels} kênh, tổng doanh thu $${report.summary.totalYearlyRevenue}). ${webhookMessage}`,
+    'success'
+  );
+
+  return {
+    ...report,
+    webhookDelivered,
+    webhookMessage,
+  };
+}
+
+export async function sendTelegramCloudReportDocument(store, customToken = '', customChatId = '') {
+  const center = ensureBotCenterState(store.state.meta);
+  const token = String(customToken || center.config.telegramBotToken || '').trim();
+  const chatId = String(customChatId || center.config.telegramChatId || '').trim();
+  if (!token || !chatId) {
+    throw new Error('Vui lòng cấu hình Telegram Bot Token và Chat ID trước khi gửi báo cáo Đám mây!');
+  }
+
+  const report = await syncCloudReportNow(store);
+  const dateTag = new Date().toISOString().slice(0, 10);
+  const filename = `ACB9x-GoogleSheets-Report-${dateTag}.csv`;
+
+  const form = new FormData();
+  form.append('chat_id', chatId);
+  form.append(
+    'caption',
+    [
+      `☁️ <b>BÁO CÁO ĐỒNG BỘ GOOGLE SHEETS / EXCEL &amp; NOTION (BOT 12)</b>`,
+      `📅 Ngày xuất: <b>${dateTag}</b>`,
+      `📺 Tổng số kênh: <b>${report.summary.totalChannels} kênh</b> (Đã BKT: <b>${report.summary.monetizedCount}</b>)`,
+      `💵 Tổng Doanh Thu Năm: <b>$${report.summary.totalYearlyRevenue.toLocaleString('vi-VN')}</b>`,
+      `💡 <i>Anh tải file .CSV đính kèm này về mở trực tiếp bằng Excel hoặc import vào Google Sheets / Notion (đã chuẩn hóa tiếng Việt UTF-8)!</i>`,
+    ].join('\n')
+  );
+  form.append('parse_mode', 'HTML');
+  form.append('document', new Blob([report.csvContent], { type: 'text/csv;charset=utf-8' }), filename);
+
+  const url = `https://api.telegram.org/bot${token}/sendDocument`;
+  const res = await fetch(url, {
+    method: 'POST',
+    body: form,
+  });
+  const data = await res.json();
+  if (!data.ok) {
+    throw new Error(data.description || 'Không thể gửi file CSV sang Telegram');
+  }
+  return { ok: true, filename, report };
 }
 

@@ -11,6 +11,9 @@ import {
   formatTelegramScheduleReport,
   formatTelegramCompetitorReport,
   sendTelegramThumbnailClone,
+  formatTelegramTrendReport,
+  formatTelegramMonetizationReport,
+  sendTelegramCloudReportDocument,
   pollTelegramBotUpdates,
   appendBotLog,
 } from './domain/botEngine.js';
@@ -790,6 +793,79 @@ export function createAppServer({
             ok: true,
             thumbnailClone: cloneResult,
             cloneItem: cloneResult,
+            status: store.getBotCenterStatus(),
+          });
+        }
+
+        if (pathname === '/api/bots/trends/scan' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const trendScan = await store.runTrendHunterScan(body);
+          const cfg = store.state?.meta?.botCenter?.config || {};
+          if (body.notifyTelegram && cfg.telegramBotToken && cfg.telegramChatId) {
+            const trendHtml = formatTelegramTrendReport(trendScan);
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: cfg.telegramChatId,
+              text: trendHtml,
+              parse_mode: 'HTML',
+            });
+            appendBotLog(
+              store.state.meta,
+              'Bot 7 -> Telegram',
+              `Đã bắn Báo cáo Săn Từ Khóa Trend "${trendScan.seedKeyword}" (${trendScan.totalKeywords} từ khóa) về Telegram.`,
+              'success'
+            );
+            store.saveState();
+          }
+          return sendJson(res, 200, {
+            ok: true,
+            trendScan,
+            status: store.getBotCenterStatus(),
+          });
+        }
+
+        if (pathname === '/api/bots/monetization/scan' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const monetizationShield = store.runMonetizationShieldScan(body);
+          const cfg = store.state?.meta?.botCenter?.config || {};
+          if (body.notifyTelegram && cfg.telegramBotToken && cfg.telegramChatId) {
+            const shieldHtml = formatTelegramMonetizationReport(store);
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: cfg.telegramChatId,
+              text: shieldHtml,
+              parse_mode: 'HTML',
+            });
+            appendBotLog(
+              store.state.meta,
+              'Bot 11 -> Telegram',
+              `Đã bắn Báo cáo Khiên Gà AdSense & BKT ($${monetizationShield.summary.totalYearlyRevenue}) về Telegram.`,
+              'success'
+            );
+            store.saveState();
+          }
+          return sendJson(res, 200, {
+            ok: true,
+            monetizationShield,
+            status: store.getBotCenterStatus(),
+          });
+        }
+
+        if (pathname === '/api/bots/cloud/sync' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const cloudReport = await store.runCloudReportSync(body);
+          const cfg = store.state?.meta?.botCenter?.config || {};
+          if (body.notifyTelegram && cfg.telegramBotToken && cfg.telegramChatId) {
+            await sendTelegramCloudReportDocument(store, cfg.telegramBotToken, cfg.telegramChatId);
+            appendBotLog(
+              store.state.meta,
+              'Bot 12 -> Telegram',
+              `Đã bắn file Báo cáo Google Sheets (.CSV) sang Telegram @acb9xbot.`,
+              'success'
+            );
+            store.saveState();
+          }
+          return sendJson(res, 200, {
+            ok: true,
+            cloudReport,
             status: store.getBotCenterStatus(),
           });
         }

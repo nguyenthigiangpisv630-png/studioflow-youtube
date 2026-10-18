@@ -756,6 +756,51 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(thumbData.cloneItem.prompts.midjourney.includes('--ar 16:9'));
     assert.ok(thumbData.cloneItem.prompts.fluxIdeogram.length > 20);
     assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
+
+    // 8. Bot 7 (Bot 9) — Săn Từ Khóa Ngách & Trend Tìm Kiếm Thực Tế (/trend)
+    const trendScan = await store.runTrendHunterScan({
+      seedKeyword: 'tiểu sử tỷ phú',
+      market: 'vi',
+      suggestFetcher: async (q) => [
+        `${q} tự thân làm giàu`,
+        `${q} bí mật thành công 2026`,
+        `cách ${q} đầu tư bất động sản`,
+      ],
+    });
+    assert.equal(trendScan.seedKeyword, 'tiểu sử tỷ phú');
+    assert.ok(trendScan.totalKeywords >= 6);
+    assert.ok(trendScan.keywords.some((k) => k.keyword.includes('tự thân làm giàu')));
+
+    // 9. Bot 11 — Cảnh Báo Bật Kiếm Tiền & Bảo Vệ Gà AdSense (/ga & /revenue)
+    store.updateChannel(ch.id, {
+      subscribers: 920,
+      watchHours: 3800,
+      adsenseAccount: 'PUB-GA-88889999',
+      monthlyRevenue: { m1: 1200, m2: 1850 },
+    });
+    const shieldRes = await fetch(`${baseUrl}/api/bots/monetization/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ maxChannelsPerGa: 2, bktAlertThresholdPct: 70 }),
+    });
+    assert.equal(shieldRes.status, 200);
+    const shieldData = await shieldRes.json();
+    assert.equal(shieldData.ok, true);
+    assert.ok(shieldData.monetizationShield.summary.totalYearlyRevenue >= 3050);
+    assert.ok(shieldData.monetizationShield.bktCandidates.some((c) => c.channelId === ch.id && c.overallPct >= 90));
+
+    // 10. Bot 12 — Đồng Bộ Báo Cáo Đám Mây Tự Động (Notion / Google Sheets / CSV)
+    const cloudRes = await fetch(`${baseUrl}/api/bots/cloud/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notifyTelegram: false }),
+    });
+    assert.equal(cloudRes.status, 200);
+    const cloudData = await cloudRes.json();
+    assert.equal(cloudData.ok, true);
+    assert.ok(cloudData.cloudReport.sheetsTsv.includes('Kênh Test Bot Nổ View'));
+    assert.ok(cloudData.cloudReport.notionMarkdown.includes('BÁO CÁO ĐÁM MÂY HỆ THỐNG KÊNH ACB9X'));
+    assert.ok(cloudData.cloudReport.csvContent.includes('Kênh Test Bot Nổ View'));
   });
 });
 
