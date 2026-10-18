@@ -407,5 +407,58 @@ test('Đăng ký Gmail mới ở trạng thái pending phải được Admin ch�
   });
 });
 
+test('Bảo mật Web (Security Headers, Thu hồi Token khi Logout, và Chống dò mật khẩu Brute-Force 429)', async () => {
+  await withTestServer(async ({ baseUrl }) => {
+    // 1. Kiểm tra HTTP Security Headers
+    const healthRes = await fetch(`${baseUrl}/api/health`);
+    assert.equal(healthRes.headers.get('x-frame-options'), 'DENY');
+    assert.equal(healthRes.headers.get('x-content-type-options'), 'nosniff');
+    assert.ok(healthRes.headers.get('content-security-policy')?.includes("default-src 'self'"));
 
+    // 2. Đặt mật khẩu Admin -> lấy session token -> Logout thu hồi token ngay trên server
+    const setPassRes = await fetch(`${baseUrl}/api/auth/password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newPassword: '999888' }),
+    });
+    const { token } = await setPassRes.json();
+    assert.ok(token);
 
+    const logoutRes = await fetch(`${baseUrl}/api/auth/logout`, {
+      method: 'POST',
+      headers: { 'X-Studio-Token': token },
+    });
+    assert.equal(logoutRes.status, 200);
+    const logoutBody = await logoutRes.json();
+    assert.equal(logoutBody.revoked, true);
+
+    // Token cũ đã bị thu hồi -> gọi /api/overview bị chặn 401
+    const afterLogoutRes = await fetch(`${baseUrl}/api/overview`, {
+      headers: { 'X-Studio-Token': token },
+    });
+    assert.equal(afterLogoutRes.status, 401);
+
+    // 3. Thử dò mật khẩu sai 8 lần liên tiếp từ 1 IP -> lần thứ 9 bị khóa 429
+    for (let i = 0; i < 8; i += 1) {
+      const failRes = await fetch(`${baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Forwarded-For': '203.0.113.99',
+        },
+        body: JSON.stringify({ password: `wrong-${i}` }),
+      });
+      assert.equal(failRes.status, 400);
+    }
+
+    const lockedRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Forwarded-For': '203.0.113.99',
+      },
+      body: JSON.stringify({ password: '999888' }),
+    });
+    assert.equal(lockedRes.status, 429);
+  });
+});

@@ -19,8 +19,30 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon',
 };
 
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'Content-Security-Policy':
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+};
+
+const MAX_BODY_BYTES = 2 * 1024 * 1024; // Giới hạn gói tin tối đa 2MB chống tấn công tràn bộ nhớ (DoS)
+
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.socket?.remoteAddress || 'unknown';
+}
+
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
   res.writeHead(statusCode, {
+    ...SECURITY_HEADERS,
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
     'Access-Control-Allow-Origin': '*',
@@ -41,7 +63,14 @@ function extractAuthToken(req) {
 
 async function readJsonBody(req) {
   const chunks = [];
+  let totalBytes = 0;
   for await (const chunk of req) {
+    totalBytes += chunk.length;
+    if (totalBytes > MAX_BODY_BYTES) {
+      const err = new Error('🛡️ Dữ liệu gửi lên vượt quá giới hạn bảo mật (tối đa 2MB)!');
+      err.statusCode = 413;
+      throw err;
+    }
     chunks.push(chunk);
   }
   if (chunks.length === 0) return {};
@@ -59,6 +88,44 @@ export function createAppServer({
   enableAutoSyncTimer = true,
 } = {}) {
   let dailyTimer = null;
+  const loginFailuresByIp = new Map();
+  const LOGIN_MAX_FAILURES = 8;
+  const LOGIN_WINDOW_MS = 10 * 60 * 1000; // 10 phút
+  const LOGIN_LOCKOUT_MS = 5 * 60 * 1000; // Khóa 5 phút khi nhập sai quá 8 lần
+
+  function checkBruteForceLockout(ip) {
+    const rec = loginFailuresByIp.get(ip);
+    if (!rec) return;
+    const now = Date.now();
+    if (rec.lockedUntil && now < rec.lockedUntil) {
+      const remainSec = Math.ceil((rec.lockedUntil - now) / 1000);
+      const err = new Error(
+        `🛡️ Bảo mật hệ thống: Phát hiện nhập sai mật khẩu quá nhiều lần. Tạm khóa đăng nhập trong ${remainSec} giây để chống dò mật khẩu!`
+      );
+      err.statusCode = 429;
+      throw err;
+    }
+    if (now - rec.firstFailedAt > LOGIN_WINDOW_MS) {
+      loginFailuresByIp.delete(ip);
+    }
+  }
+
+  function recordBruteForceFailure(ip) {
+    const now = Date.now();
+    const rec = loginFailuresByIp.get(ip);
+    if (!rec || now - rec.firstFailedAt > LOGIN_WINDOW_MS) {
+      loginFailuresByIp.set(ip, { count: 1, firstFailedAt: now, lockedUntil: 0 });
+      return;
+    }
+    rec.count += 1;
+    if (rec.count >= LOGIN_MAX_FAILURES) {
+      rec.lockedUntil = now + LOGIN_LOCKOUT_MS;
+    }
+  }
+
+  function clearBruteForceFailures(ip) {
+    loginFailuresByIp.delete(ip);
+  }
 
   if (enableAutoSyncTimer) {
     const HOURLY_INTERVAL_MS = 60 * 60 * 1000; // 1 tiếng (60 phút) 1 lần
@@ -148,18 +215,33 @@ export function createAppServer({
       // AUTHENTICATION & PASSWORD LOCK ROUTES
       // =======================================================================
       const clientToken = extractAuthToken(req);
+      const clientIp = getClientIp(req);
 
       if (pathname === '/api/auth/status' && method === 'GET') {
         return sendJson(res, 200, store.getAuthStatus(clientToken));
       }
 
-      if (pathname === '/api/auth/login' && method === 'POST') {
-        const body = await readJsonBody(req);
-        const result = store.verifyPassword(body.password || '', body.email || body.username || '', {
-          directGmailLogin: Boolean(body.directGmailLogin),
-          name: body.name || '',
-        });
+      if (pathname === '/api/auth/logout' && method === 'POST') {
+        const result = store.revokeSessionToken(clientToken);
         return sendJson(res, 200, result);
+      }
+
+      if (pathname === '/api/auth/login' && method === 'POST') {
+        checkBruteForceLockout(clientIp);
+        const body = await readJsonBody(req);
+        try {
+          const result = store.verifyPassword(body.password || '', body.email || body.username || '', {
+            directGmailLogin: Boolean(body.directGmailLogin),
+            name: body.name || '',
+          });
+          clearBruteForceFailures(clientIp);
+          return sendJson(res, 200, result);
+        } catch (loginErr) {
+          if (loginErr.statusCode !== 403) {
+            recordBruteForceFailure(clientIp);
+          }
+          throw loginErr;
+        }
       }
 
       if (pathname === '/api/auth/register' && method === 'POST') {
@@ -169,15 +251,29 @@ export function createAppServer({
       }
 
       if (pathname === '/api/auth/password' && method === 'POST') {
+        checkBruteForceLockout(clientIp);
         const body = await readJsonBody(req);
-        const result = store.updatePassword(body, clientToken);
-        return sendJson(res, 200, result);
+        try {
+          const result = store.updatePassword(body, clientToken);
+          clearBruteForceFailures(clientIp);
+          return sendJson(res, 200, result);
+        } catch (passErr) {
+          recordBruteForceFailure(clientIp);
+          throw passErr;
+        }
       }
 
       if (pathname === '/api/auth/verify-ga' && method === 'POST') {
+        checkBruteForceLockout(clientIp);
         const body = await readJsonBody(req);
-        const result = store.verifyGaPassword(body.password || '');
-        return sendJson(res, 200, result);
+        try {
+          const result = store.verifyGaPassword(body.password || '');
+          clearBruteForceFailures(clientIp);
+          return sendJson(res, 200, result);
+        } catch (gaErr) {
+          recordBruteForceFailure(clientIp);
+          throw gaErr;
+        }
       }
 
       const authStatus = store.getAuthStatus(clientToken);
@@ -521,12 +617,18 @@ export function createAppServer({
           ? 'index.html'
           : pathname.replace(/^\/+/, '');
       const safePath = path.normalize(relativePath).replace(/^(\.\.(\/|\\|$))+/, '');
-      const fullPath = path.join(PUBLIC_DIR, safePath);
+      const fullPath = path.resolve(PUBLIC_DIR, safePath);
 
-      if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+      if (
+        fullPath.startsWith(PUBLIC_DIR) &&
+        !path.basename(fullPath).startsWith('.') &&
+        fs.existsSync(fullPath) &&
+        fs.statSync(fullPath).isFile()
+      ) {
         const ext = path.extname(fullPath).toLowerCase();
         const contentType = MIME_TYPES[ext] || 'application/octet-stream';
         res.writeHead(200, {
+          ...SECURITY_HEADERS,
           'Content-Type': contentType,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           Pragma: 'no-cache',

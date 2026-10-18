@@ -30,6 +30,16 @@ export function hashPassword(rawPassword = '') {
   return crypto.createHash('sha256').update(`studioflow-salt:${clean}`).digest('hex');
 }
 
+export function safeCompareStrings(a = '', b = '') {
+  const strA = String(a || '');
+  const strB = String(b || '');
+  if (!strA || !strB) return false;
+  const bufA = Buffer.from(strA, 'utf8');
+  const bufB = Buffer.from(strB, 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 function parseCompactVnNumber(raw = '') {
   const s = String(raw || '')
     .trim()
@@ -1033,12 +1043,46 @@ export class StudioStore {
     };
   }
 
+  getAdminSessionToken() {
+    if (!this.state.meta) this.state.meta = {};
+    if (!this.state.meta.adminSessionToken) {
+      this.state.meta.adminSessionToken = `adm_tok_${crypto.randomUUID().replace(/-/g, '')}`;
+      this.#save();
+    }
+    return this.state.meta.adminSessionToken;
+  }
+
+  revokeSessionToken(token = '') {
+    const cleanToken = String(token || '').trim();
+    if (!cleanToken) return { ok: true, revoked: false };
+    const matchedUser = (this.state.users || []).find(
+      (u) => u.sessionToken && safeCompareStrings(u.sessionToken, cleanToken)
+    );
+    if (matchedUser) {
+      matchedUser.sessionToken = `usr_tok_${crypto.randomUUID().replace(/-/g, '')}`;
+      this.#save();
+      return { ok: true, revoked: true };
+    }
+    const adminSessionToken = String(this.state.meta?.adminSessionToken || '').trim();
+    const requiredHash = this.getRequiredPasswordHash();
+    if (
+      (adminSessionToken && safeCompareStrings(cleanToken, adminSessionToken)) ||
+      (requiredHash && safeCompareStrings(cleanToken, requiredHash))
+    ) {
+      if (!this.state.meta) this.state.meta = {};
+      this.state.meta.adminSessionToken = `adm_tok_${crypto.randomUUID().replace(/-/g, '')}`;
+      this.#save();
+      return { ok: true, revoked: true };
+    }
+    return { ok: true, revoked: false };
+  }
+
   resolveUserFromToken(token = '') {
     const cleanToken = String(token || '').trim();
     const requiredHash = this.getRequiredPasswordHash();
     if (cleanToken) {
       const matchedUser = (this.state.users || []).find(
-        (u) => u.sessionToken && u.sessionToken === cleanToken
+        (u) => u.sessionToken && safeCompareStrings(u.sessionToken, cleanToken)
       );
       if (matchedUser) {
         if (matchedUser.status !== 'approved') {
@@ -1050,7 +1094,12 @@ export class StudioStore {
           user: sanitizeUser(matchedUser),
         };
       }
-      if (requiredHash && cleanToken === requiredHash) {
+      const adminToken = String(this.state.meta?.adminSessionToken || '').trim();
+      if (
+        requiredHash &&
+        (safeCompareStrings(cleanToken, requiredHash) ||
+          (adminToken && safeCompareStrings(cleanToken, adminToken)))
+      ) {
         return {
           valid: true,
           isAdmin: true,
@@ -1100,7 +1149,7 @@ export class StudioStore {
         return uEmail === rawId || uEmail === normalizedGmail;
       });
       if (foundUser) {
-        if (!candidateHash || candidateHash !== foundUser.passwordHash) {
+        if (!candidateHash || !safeCompareStrings(candidateHash, foundUser.passwordHash)) {
           throw new Error('Mật khẩu của tài khoản Gmail này không chính xác. Vui lòng kiểm tra lại!');
         }
         if (foundUser.status === 'suspended') {
@@ -1128,14 +1177,14 @@ export class StudioStore {
       }
 
       // Nếu nhập Gmail của Admin kèm đúng mật khẩu Admin gốc -> lưu làm Gmail Admin & cho vào
-      if (requiredHash && candidateHash === requiredHash && rawId.includes('@')) {
+      if (requiredHash && safeCompareStrings(candidateHash, requiredHash) && rawId.includes('@')) {
         if (!this.state.meta) this.state.meta = {};
         this.state.meta.adminEmail = rawId;
         this.#save();
         return {
           ok: true,
           passwordEnabled: true,
-          token: requiredHash,
+          token: this.getAdminSessionToken(),
           user: this.getAdminUserProfile(),
         };
       }
@@ -1154,13 +1203,13 @@ export class StudioStore {
         user: this.getAdminUserProfile(),
       };
     }
-    if (!candidateHash || candidateHash !== requiredHash) {
+    if (!candidateHash || !safeCompareStrings(candidateHash, requiredHash)) {
       throw new Error('Mật khẩu Admin không chính xác. Vui lòng kiểm tra lại!');
     }
     return {
       ok: true,
       passwordEnabled: true,
-      token: requiredHash,
+      token: this.getAdminSessionToken(),
       user: this.getAdminUserProfile(),
     };
   }
@@ -1384,8 +1433,8 @@ export class StudioStore {
     const webHash = this.getRequiredPasswordHash();
 
     if (gaHash || webHash) {
-      const matchedGa = Boolean(gaHash && candidateHash === gaHash);
-      const matchedWeb = Boolean(webHash && candidateHash === webHash);
+      const matchedGa = Boolean(gaHash && safeCompareStrings(candidateHash, gaHash));
+      const matchedWeb = Boolean(webHash && safeCompareStrings(candidateHash, webHash));
       if (!matchedGa && !matchedWeb) {
         throw new Error('Mật khẩu không chính xác. Không thể mở xem Gà kết nối!');
       }
@@ -1426,11 +1475,16 @@ export class StudioStore {
     }
 
     const requiredHash = this.getRequiredPasswordHash();
+    const adminToken = String(this.state.meta?.adminSessionToken || '').trim();
     const providedCurrentPass = String(input.currentPassword || '').trim();
-    const isAlreadyAuthed = Boolean(requiredHash && currentAuthToken === requiredHash);
+    const isAlreadyAuthed = Boolean(
+      requiredHash &&
+        (safeCompareStrings(currentAuthToken, requiredHash) ||
+          (adminToken && safeCompareStrings(currentAuthToken, adminToken)))
+    );
 
     if (requiredHash && !isAlreadyAuthed) {
-      if (hashPassword(providedCurrentPass) !== requiredHash) {
+      if (!safeCompareStrings(hashPassword(providedCurrentPass), requiredHash)) {
         throw new Error('Mật khẩu hiện tại không đúng!');
       }
     }
@@ -1439,6 +1493,7 @@ export class StudioStore {
     const newPassword = String(input.newPassword || '').trim();
     if (disableLock) {
       this.state.meta.authPasswordHash = '';
+      this.state.meta.adminSessionToken = '';
       this.#save();
       return {
         passwordEnabled: false,
@@ -1452,10 +1507,11 @@ export class StudioStore {
 
     const nextHash = hashPassword(newPassword);
     this.state.meta.authPasswordHash = nextHash;
+    this.state.meta.adminSessionToken = `adm_tok_${crypto.randomUUID().replace(/-/g, '')}`;
     this.#save();
     return {
       passwordEnabled: true,
-      token: nextHash,
+      token: this.state.meta.adminSessionToken,
     };
   }
 

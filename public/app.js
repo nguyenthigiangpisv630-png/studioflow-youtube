@@ -4604,8 +4604,18 @@ function setupEventListeners() {
     if (passwordModal) passwordModal.hidden = true;
   });
 
-  function lockAndLogout() {
+  async function lockAndLogout(reasonMsg = '') {
     closeSidebarSettingsMenu();
+    const currentTok = getStoredAuthToken();
+    if (currentTok) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Studio-Token': currentTok,
+        },
+      }).catch(() => {});
+    }
     setStoredAuthToken('');
     state.currentUser = null;
     document.cookie = 'studioflow_auth=; Path=/; Max-Age=0';
@@ -4613,10 +4623,30 @@ function setupEventListeners() {
     if (passwordModal) passwordModal.hidden = true;
     if (gaUnlockModal) gaUnlockModal.hidden = true;
     showAuthLockOverlay(true);
+    if (reasonMsg && typeof reasonMsg === 'string') {
+      showBanner(reasonMsg, true);
+    }
   }
 
-  document.getElementById('btn-lock-now')?.addEventListener('click', lockAndLogout);
-  document.getElementById('btn-logout-header')?.addEventListener('click', lockAndLogout);
+  document.getElementById('btn-lock-now')?.addEventListener('click', () => lockAndLogout());
+  document.getElementById('btn-logout-header')?.addEventListener('click', () => lockAndLogout());
+
+  // Tự động khóa bảo mật khi treo máy không thao tác sau 30 phút
+  let lastActivityAt = Date.now();
+  const markUserActivity = () => {
+    lastActivityAt = Date.now();
+  };
+  ['mousemove', 'keydown', 'click', 'touchstart'].forEach((evtName) => {
+    window.addEventListener(evtName, markUserActivity, { passive: true });
+  });
+  setInterval(() => {
+    if (!state.passwordEnabled) return;
+    const overlay = document.getElementById('auth-lock-overlay');
+    if (overlay && !overlay.hidden) return;
+    if (Date.now() - lastActivityAt > 30 * 60 * 1000) {
+      lockAndLogout('🛡️ Đã tự động khóa màn hình bảo mật sau 30 phút không thao tác!');
+    }
+  }, 60 * 1000);
 
   document.getElementById('btn-disable-password')?.addEventListener('click', async () => {
     try {
@@ -5508,7 +5538,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=53', { updateViaCache: 'none' })
+      .register('/sw.js?v=54', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
