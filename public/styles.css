@@ -5013,6 +5013,69 @@ select:focus-visible {
   display: none !important;
 }
 
+.claude-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #F4F3EE;
+  border: 1px solid #E5E3DC;
+  margin-bottom: 16px;
+}
+
+.claude-mode-tab {
+  height: 36px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #6B6860;
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.claude-mode-tab:hover {
+  color: #141413;
+}
+
+.claude-mode-tab.active {
+  background: #FFFFFF;
+  color: #141413;
+  box-shadow: 0 2px 6px rgba(20, 20, 19, 0.08);
+}
+
+.claude-bottom-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid #F0EEE6;
+  font-size: 0.82rem;
+  color: #6B6860;
+}
+
+.claude-switch-link-btn {
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #141413;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.claude-switch-link-btn:hover {
+  color: #EA4335;
+}
+
 .claude-auth-form {
   display: flex;
   flex-direction: column;

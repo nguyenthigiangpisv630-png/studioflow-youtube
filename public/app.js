@@ -213,7 +213,12 @@ function isAdminPortalRoute() {
 
 function switchAuthOverlayTab(tabName = '') {
   const effectiveTab = tabName || (isAdminPortalRoute() ? 'admin' : 'login');
+  const isRegister = effectiveTab === 'register';
   const isAdminTab = effectiveTab === 'admin';
+  const loginForm = document.getElementById('form-auth-login');
+  const regForm = document.getElementById('form-auth-register');
+  const modeTabsEl = document.getElementById('auth-mode-tabs');
+  const switchRowEl = document.getElementById('auth-login-switch-row');
   const userInp = document.getElementById('input-auth-username');
   const passStep = document.getElementById('auth-password-step');
   const passInp = document.getElementById('input-auth-login-pass');
@@ -224,7 +229,18 @@ function switchAuthOverlayTab(tabName = '') {
   const subEl = document.getElementById('login-brand-sub');
   const footerEl = document.getElementById('auth-footer-terms');
   const errEl = document.getElementById('auth-login-error');
+  const errRegEl = document.getElementById('auth-register-error');
   if (errEl) errEl.hidden = true;
+  if (errRegEl) errRegEl.hidden = true;
+
+  if (loginForm) loginForm.hidden = isRegister;
+  if (regForm) regForm.hidden = !isRegister;
+  if (modeTabsEl) modeTabsEl.hidden = isAdminTab;
+  if (switchRowEl) switchRowEl.hidden = isAdminTab;
+
+  document.querySelectorAll('[data-auth-tab]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.authTab === effectiveTab);
+  });
 
   renderSavedGmailsBox(false);
 
@@ -274,22 +290,28 @@ function switchAuthOverlayTab(tabName = '') {
       if (userInp.value.trim().toLowerCase() === 'admin') {
         userInp.value = '';
       }
-      userInp.placeholder = 'Enter your email';
+      userInp.placeholder = 'Nhập địa chỉ Gmail của bạn...';
     }
-    if (passStep) passStep.hidden = true;
-    if (passInp) passInp.value = '';
-    if (submitBtn) submitBtn.textContent = 'Continue with email';
+    if (passStep) passStep.hidden = false;
+    if (passInp) passInp.placeholder = 'Nhập mật khẩu đăng nhập...';
+    if (submitBtn) submitBtn.textContent = 'Đăng nhập';
     if (footerEl) {
       footerEl.innerHTML = `
         By continuing, you agree to ACB9x StudioFlow's
-        <a href="/admin" data-fill-admin-login="true">Commercial Terms</a>
+        <a href="#terms" data-switch-auth-tab="register">Commercial Terms</a>
         and
         <a href="#isolated" data-focus-gmail-login="true">Usage Policy</a>,
         and acknowledge our
         <a href="#privacy" data-focus-gmail-login="true">Privacy Policy</a>.
       `;
     }
-    setTimeout(() => userInp?.focus(), 40);
+    setTimeout(() => {
+      if (isRegister) {
+        document.getElementById('input-reg-name')?.focus();
+      } else {
+        userInp?.focus();
+      }
+    }, 40);
   }
 }
 
@@ -4040,14 +4062,10 @@ function setupEventListeners() {
       const isAdmin = String(e.target.value || '').trim().toLowerCase() === 'admin';
       const passStep = document.getElementById('auth-password-step');
       const submitBtn = document.getElementById('btn-auth-login-submit');
-      const adminBtn = document.getElementById('btn-switch-admin-login');
-      const gmailBtn = document.getElementById('btn-switch-gmail-login');
-      if (passStep) passStep.hidden = !isAdmin;
+      if (passStep) passStep.hidden = false;
       if (submitBtn) {
-        submitBtn.textContent = isAdmin ? '👑 Đăng nhập Admin' : 'Continue with email';
+        submitBtn.textContent = isAdmin ? '👑 Đăng nhập Quản trị viên (Admin)' : 'Đăng nhập';
       }
-      if (adminBtn) adminBtn.hidden = isAdmin;
-      if (gmailBtn) gmailBtn.hidden = !isAdmin;
       return;
     }
 
@@ -5501,7 +5519,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=51', { updateViaCache: 'none' })
+      .register('/sw.js?v=52', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
