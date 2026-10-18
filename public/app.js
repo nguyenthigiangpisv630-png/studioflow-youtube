@@ -253,7 +253,7 @@ function switchAuthOverlayTab(tabName = '') {
     if (titleEl) titleEl.textContent = '👑 ACB9x StudioFlow — Admin';
     if (subEl) {
       subEl.innerHTML =
-        'Cổng đăng nhập Quản trị viên toàn hệ thống<br />Quản lý kênh, doanh thu và phân quyền tài khoản Gmail.';
+        'Cổng đăng nhập Quản trị viên toàn hệ thống<br />Quản lý kênh, doanh thu và phân quyền tài khoản User.';
     }
     if (googleBtn) googleBtn.hidden = true;
     if (orDivider) orDivider.hidden = true;
@@ -268,7 +268,7 @@ function switchAuthOverlayTab(tabName = '') {
     if (footerEl) {
       footerEl.innerHTML = `
         Đang ở cổng quản trị <b>/admin</b> ·
-        <a href="/" data-focus-gmail-login="true">Chuyển về trang đăng nhập Gmail (/)</a>
+        <a href="/" data-focus-gmail-login="true">Chuyển về trang đăng nhập User (/)</a>
       `;
     }
     setTimeout(() => passInp?.focus(), 40);
@@ -281,16 +281,16 @@ function switchAuthOverlayTab(tabName = '') {
     if (titleEl) titleEl.textContent = 'ACB9x StudioFlow';
     if (subEl) {
       subEl.innerHTML =
-        'Create and manage YouTube channels with frontier<br />StudioFlow analytics and isolated Gmail workspace infrastructure.';
+        'Create and manage YouTube channels with frontier<br />StudioFlow analytics and isolated workspace infrastructure.';
     }
-    if (googleBtn) googleBtn.hidden = false;
-    if (orDivider) orDivider.hidden = false;
+    if (googleBtn) googleBtn.hidden = true;
+    if (orDivider) orDivider.hidden = true;
     if (userInp) {
       userInp.readOnly = false;
       if (userInp.value.trim().toLowerCase() === 'admin') {
         userInp.value = '';
       }
-      userInp.placeholder = 'Nhập địa chỉ Gmail của bạn...';
+      userInp.placeholder = 'Nhập Username đăng nhập (trên 3 chữ cái)...';
     }
     if (passStep) passStep.hidden = false;
     if (passInp) passInp.placeholder = 'Nhập mật khẩu đăng nhập...';
@@ -4804,7 +4804,7 @@ function setupEventListeners() {
         const roleLabel =
           res.user?.role === 'admin'
             ? 'Toàn quyền Admin'
-            : `Gmail Tách riêng (${res.user?.email || rawEmail})`;
+            : `Tài khoản Tách riêng (${res.user?.email || rawEmail})`;
         showBanner(`Xin chào ${res.user?.name || 'Admin'} — Đã đăng nhập (${roleLabel})!`);
       } catch (err) {
         if (passStep && passStep.hidden) {
@@ -4853,7 +4853,7 @@ function setupEventListeners() {
         if (okEl) {
           okEl.innerHTML = `
             ⏳ <b>Đăng ký tài khoản mới thành công!</b><br />
-            Tài khoản Gmail <b>${escapeHtml(registeredEmail)}</b> đã được gửi tới Admin và đang ở trạng thái <b>Chờ Admin chấp nhận</b>.<br />
+            Username <b>${escapeHtml(registeredEmail)}</b> đã được gửi tới Admin và đang ở trạng thái <b>Chờ Admin chấp nhận</b>.<br />
             Sau khi Admin bấm <b>"✅ Duyệt"</b> trong trang Quản lý User, bạn hãy bấm sang tab <b>Đăng nhập</b> để vào hệ thống!
           `;
           okEl.hidden = false;
@@ -5538,7 +5538,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=54', { updateViaCache: 'none' })
+      .register('/sw.js?v=55', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

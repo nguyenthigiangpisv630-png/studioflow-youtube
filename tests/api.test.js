@@ -462,3 +462,54 @@ test('Bảo mật Web (Security Headers, Thu hồi Token khi Logout, và Chống
     assert.equal(lockedRes.status, 429);
   });
 });
+
+test('Đăng ký & Đăng nhập bằng Username (không cần @gmail.com), bắt buộc trên 3 chữ cái', async () => {
+  await withTestServer(async ({ baseUrl }) => {
+    // 1. Username chỉ có 3 chữ cái ('abc') -> bị từ chối 400
+    const shortRes = await fetch(`${baseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Ngắn',
+        email: 'abc',
+        password: '123456',
+      }),
+    });
+    assert.equal(shortRes.status, 400);
+
+    // 2. Username có trên 3 chữ cái ('minhquan99') -> đăng ký thành công (pending)
+    const validRes = await fetch(`${baseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Minh Quân',
+        email: 'minhquan99',
+        password: '123456',
+      }),
+    });
+    assert.equal(validRes.status, 201);
+    const validBody = await validRes.json();
+    assert.equal(validBody.user.email, 'minhquan99');
+    assert.equal(validBody.user.status, 'pending');
+
+    // 3. Admin duyệt -> đăng nhập bằng Username 'minhquan99' thành công
+    await fetch(`${baseUrl}/api/users/${validBody.user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved' }),
+    });
+
+    const loginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'minhquan99',
+        password: '123456',
+      }),
+    });
+    assert.equal(loginRes.status, 200);
+    const loginBody = await loginRes.json();
+    assert.equal(loginBody.ok, true);
+    assert.equal(loginBody.user.email, 'minhquan99');
+  });
+});

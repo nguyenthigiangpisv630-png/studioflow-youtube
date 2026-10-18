@@ -40,6 +40,13 @@ export function safeCompareStrings(a = '', b = '') {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
+export function isValidUsernameOrEmail(raw = '') {
+  const clean = String(raw || '').trim();
+  if (clean.length <= 3 || /\s/.test(clean)) return false;
+  const letterCount = (clean.match(/[a-zA-ZÀ-ỹ]/g) || []).length;
+  return letterCount > 3;
+}
+
 function parseCompactVnNumber(raw = '') {
   const s = String(raw || '')
     .trim()
@@ -1141,25 +1148,30 @@ export class StudioStore {
     const candidateHash = hashPassword(password);
     const directGmailLogin = Boolean(options?.directGmailLogin);
 
-    // 1. Kiểm tra nếu người dùng đăng nhập bằng Gmail ở màn hình ngoài
+    // 1. Kiểm tra nếu người dùng đăng nhập bằng Username hoặc Gmail ở màn hình ngoài
     if (rawId && rawId !== 'admin' && (!adminEmail || rawId !== adminEmail || directGmailLogin)) {
+      if (!isValidUsernameOrEmail(rawId)) {
+        throw new Error('Username đăng nhập bắt buộc phải có trên 3 chữ cái (tối thiểu 4 chữ cái)!');
+      }
       const normalizedGmail = rawId.includes('@') ? rawId : `${rawId}@gmail.com`;
+      const rawLocal = rawId.includes('@') ? rawId.split('@')[0] : rawId;
       const foundUser = (this.state.users || []).find((u) => {
         const uEmail = String(u.email || '').trim().toLowerCase();
-        return uEmail === rawId || uEmail === normalizedGmail;
+        const uLocal = uEmail.includes('@') ? uEmail.split('@')[0] : uEmail;
+        return uEmail === rawId || uEmail === normalizedGmail || uLocal === rawLocal;
       });
       if (foundUser) {
         if (!candidateHash || !safeCompareStrings(candidateHash, foundUser.passwordHash)) {
-          throw new Error('Mật khẩu của tài khoản Gmail này không chính xác. Vui lòng kiểm tra lại!');
+          throw new Error('Mật khẩu của tài khoản này không chính xác. Vui lòng kiểm tra lại!');
         }
         if (foundUser.status === 'suspended') {
-          const err = new Error('Tài khoản Gmail này hiện đang tạm khóa. Vui lòng liên hệ Admin!');
+          const err = new Error('Tài khoản này hiện đang tạm khóa. Vui lòng liên hệ Admin!');
           err.statusCode = 403;
           throw err;
         }
         if (foundUser.status !== 'approved') {
           const err = new Error(
-            '⏳ Tài khoản Gmail của bạn đã đăng ký thành công nhưng đang chờ Admin chấp nhận (phê duyệt)!'
+            '⏳ Tài khoản của bạn đã đăng ký thành công nhưng đang chờ Admin chấp nhận (phê duyệt)!'
           );
           err.statusCode = 403;
           throw err;
@@ -1176,7 +1188,7 @@ export class StudioStore {
         };
       }
 
-      // Nếu nhập Gmail của Admin kèm đúng mật khẩu Admin gốc -> lưu làm Gmail Admin & cho vào
+      // Nếu nhập tài khoản của Admin kèm đúng mật khẩu Admin gốc -> lưu & cho vào
       if (requiredHash && safeCompareStrings(candidateHash, requiredHash) && rawId.includes('@')) {
         if (!this.state.meta) this.state.meta = {};
         this.state.meta.adminEmail = rawId;
@@ -1190,7 +1202,7 @@ export class StudioStore {
       }
 
       throw new Error(
-        'Tài khoản Gmail này chưa được đăng ký. Vui lòng bấm sang tab "Đăng ký tài khoản" để đăng ký và chờ Admin chấp nhận!'
+        'Username này chưa được đăng ký. Vui lòng bấm sang tab "Đăng ký tài khoản" để đăng ký và chờ Admin chấp nhận!'
       );
     }
 
@@ -1218,22 +1230,27 @@ export class StudioStore {
     if (!Array.isArray(this.state.users)) {
       this.state.users = [];
     }
-    const rawEmail = String(input.email || '').trim().toLowerCase();
+    const rawEmail = String(input.username || input.email || '').trim().toLowerCase();
     const rawName = String(input.name || '').trim();
     const rawPassword = String(input.password || '').trim();
     const rawNote = String(input.note || '').trim();
 
-    if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
-      throw new Error('Vui lòng nhập địa chỉ Gmail hợp lệ (ví dụ: tenban@gmail.com)!');
+    if (!isValidUsernameOrEmail(rawEmail)) {
+      throw new Error(
+        'Username đăng ký bắt buộc phải có trên 3 chữ cái (tối thiểu 4 chữ cái, không chứa khoảng trắng, ví dụ: minhquan)!'
+      );
     }
     if (!rawPassword || rawPassword.length < 3) {
       throw new Error('Mật khẩu đăng ký phải có ít nhất 3 ký tự!');
     }
-    const existing = this.state.users.find(
-      (u) => String(u.email || '').trim().toLowerCase() === rawEmail
-    );
+    const rawLocal = rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail;
+    const existing = this.state.users.find((u) => {
+      const uEmail = String(u.email || '').trim().toLowerCase();
+      const uLocal = uEmail.includes('@') ? uEmail.split('@')[0] : uEmail;
+      return uEmail === rawEmail || uLocal === rawLocal;
+    });
     if (existing) {
-      throw new Error('Địa chỉ Gmail này đã được đăng ký! Vui lòng đăng nhập hoặc chờ Admin cấp quyền.');
+      throw new Error('Username / Tài khoản này đã được đăng ký! Vui lòng đăng nhập hoặc chờ Admin cấp quyền.');
     }
 
     const autoApprove = Boolean(input.autoApprove);
@@ -1277,8 +1294,8 @@ export class StudioStore {
       ok: true,
       status: newUser.status,
       message: autoApprove
-        ? `Đã tạo và cấp quyền cho tài khoản Gmail ${newUser.email}!`
-        : 'Đăng ký Gmail thành công! Tài khoản đang chờ Admin phê duyệt và cấp quyền sử dụng riêng.',
+        ? `Đã tạo và cấp quyền cho tài khoản ${newUser.email}!`
+        : 'Đăng ký tài khoản thành công! Tài khoản đang chờ Admin phê duyệt và cấp quyền sử dụng riêng.',
       user: sanitizeUser(newUser),
     };
   }
@@ -1310,7 +1327,7 @@ export class StudioStore {
     }
     if (patch.email !== undefined) {
       const nextEmail = String(patch.email).trim().toLowerCase();
-      if (nextEmail && nextEmail.includes('@')) {
+      if (isValidUsernameOrEmail(nextEmail)) {
         user.email = nextEmail;
       }
     }
