@@ -346,7 +346,7 @@ export function createAppServer({
         if (!store.state.meta.botCenter) store.state.meta.botCenter = {};
         if (!store.state.meta.botCenter.easycutConfig) {
           store.state.meta.botCenter.easycutConfig = {
-            tunnelUrl: 'https://extra-ali-compete-equilibrium.trycloudflare.com',
+            tunnelUrl: 'https://insulation-philadelphia-political-photo.trycloudflare.com',
             localUrl: 'http://127.0.0.1:8787',
             updatedAt: new Date().toISOString(),
           };
@@ -356,7 +356,7 @@ export function createAppServer({
         if (method === 'GET') {
           return sendJson(res, 200, {
             ok: true,
-            tunnelUrl: ecCfg.tunnelUrl || 'https://extra-ali-compete-equilibrium.trycloudflare.com',
+            tunnelUrl: ecCfg.tunnelUrl || 'https://insulation-philadelphia-political-photo.trycloudflare.com',
             localUrl: ecCfg.localUrl || 'http://127.0.0.1:8787',
             updatedAt: ecCfg.updatedAt || '',
           });

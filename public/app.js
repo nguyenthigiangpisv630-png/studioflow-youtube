@@ -88,9 +88,9 @@ const TAB_TITLES = {
       'Săn Footage không bản quyền (Video .MP4 tải trực tiếp · YouTube 4K CC-BY · Pexels · Pixabay · Douyin 抖音 · Bilibili · Archive.org) & Xuất gói tải tự động (.BAT / .TXT / .CSV)',
   },
   easycut: {
-    title: '✂️ Bàn Dựng Video Đa Track EasyCut Studio & Agent Bot 8 (/easycut)',
+    title: '✂️ Bàn Dựng Đa Tầng 6 Track EasyCut + 💬 Chat Antigravity Trực Tiếp (/easycut)',
     subtitle:
-      'Giao diện chính là Timeline Đa Track EasyCut (/app/) kết hợp hộp cài đặt gọn ⚙️ Bot 8 & QC (Kịch bản + MP3 · Bot 10 Footage · Dán nhãn 🟢🟡🔴 · QC 25/25 · Duyệt & Render MP4)',
+      'Nạp gọn .MP3/.SRT/.TXT · 6 Track (V1..A2) · Inspector 2 chiều · Khay Kho 3 cột (🟢🟡📰) · 💬 Chat Antigravity trực tiếp trên Timeline & 🪄 Auto-Heal 21 Mục',
   },
   bots: {
     title: 'Trung tâm 10 Bot Tự động hóa 24/7',
@@ -9882,6 +9882,15 @@ function renderFootageStudioTab() {
 
 let _easycutLoadedUrl = '';
 
+function getActiveEasyCutBaseUrl() {
+  const inputEl = document.getElementById('input-easycut-tunnel-url');
+  const raw =
+    String(inputEl?.value || '').trim() ||
+    localStorage.getItem('studioflow_easycut_url') ||
+    'https://insulation-philadelphia-political-photo.trycloudflare.com';
+  return raw.replace(/\/+$/, '').replace(/\/app$/, '');
+}
+
 async function renderEasyCutStudioTab({ forceReload = false, customUrl = '' } = {}) {
   const iframe = document.getElementById('iframe-easycut-studio');
   const inputEl = document.getElementById('input-easycut-tunnel-url');
@@ -9896,31 +9905,75 @@ async function renderEasyCutStudioTab({ forceReload = false, customUrl = '' } = 
       const cfg = await apiRequest('/api/bots/easycut/config');
       const isLocalBrowser =
         window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      targetUrl =
-        (isLocalBrowser ? cfg.localUrl : cfg.tunnelUrl) ||
-        savedLocal ||
-        'https://extra-ali-compete-equilibrium.trycloudflare.com';
+      if (isLocalBrowser && savedLocal.includes('127.0.0.1')) {
+        targetUrl = savedLocal;
+      } else if (cfg && cfg.tunnelUrl) {
+        targetUrl = isLocalBrowser ? cfg.localUrl || cfg.tunnelUrl : cfg.tunnelUrl;
+        try {
+          localStorage.setItem('studioflow_easycut_url', targetUrl);
+        } catch {}
+      } else {
+        targetUrl =
+          savedLocal || 'https://insulation-philadelphia-political-photo.trycloudflare.com';
+      }
     } catch {
       targetUrl =
         localStorage.getItem('studioflow_easycut_url') ||
-        'https://extra-ali-compete-equilibrium.trycloudflare.com';
+        'https://insulation-philadelphia-political-photo.trycloudflare.com';
     }
   }
-  targetUrl = targetUrl.replace(/\/+$/, '');
-  const fullAppUrl = targetUrl.endsWith('/app') ? `${targetUrl}/` : `${targetUrl}/app/`;
+  targetUrl = targetUrl.replace(/\/+$/, '').replace(/\/app$/, '');
+  const fullAppUrl = `${targetUrl}/app/`;
 
   if (inputEl) inputEl.value = targetUrl;
   if (newTabLink) newTabLink.href = fullAppUrl;
   if (badgeEl) {
     const isLocal = targetUrl.includes('127.0.0.1') || targetUrl.includes('localhost');
     badgeEl.textContent = isLocal
-      ? '🟢 EasyCut Local (:8787) + ⚙️ Bot 8'
-      : '🟢 EasyCut Tunnel + ⚙️ Bot 8';
+      ? '🟢 EasyCut 6-Track Local (:8787) + 💬 Chat Antigravity'
+      : '🟢 EasyCut 6-Track Tunnel + 💬 Chat Antigravity';
   }
 
   if (forceReload || _easycutLoadedUrl !== fullAppUrl || !iframe.src) {
     _easycutLoadedUrl = fullAppUrl;
-    iframe.src = fullAppUrl;
+    iframe.src = `${fullAppUrl}?v=${Date.now()}`;
+  }
+}
+
+async function sendEasyCutQuickCommand(messageText) {
+  const msg = String(messageText || '').trim();
+  if (!msg) {
+    showBanner('Vui lòng nhập lệnh gửi cho Antigravity!', true);
+    return;
+  }
+  const baseUrl = getActiveEasyCutBaseUrl();
+  const replyEl = document.getElementById('easycut-quick-chat-reply');
+  if (replyEl) {
+    replyEl.style.color = '#fbbf24';
+    replyEl.textContent = '⏳ Antigravity đang thực thi trên Timeline...';
+  }
+  try {
+    const res = await fetch(`${baseUrl}/api/easycut/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      throw new Error(data.error || 'Lỗi thực thi lệnh');
+    }
+    const cleanReply = String(data.reply || 'Đã thực thi thành công!').replace(/\*\*/g, '').replace(/`/g, '');
+    if (replyEl) {
+      replyEl.style.color = '#34d399';
+      replyEl.textContent = cleanReply;
+    }
+    showBanner(`🤖 Antigravity: ${cleanReply}`);
+  } catch (err) {
+    if (replyEl) {
+      replyEl.style.color = '#f87171';
+      replyEl.textContent = `❌ ${err.message}`;
+    }
+    showBanner(`Lỗi kết nối Bot 8 (${baseUrl}): ${err.message}`, true);
   }
 }
 
@@ -9958,7 +10011,7 @@ function initEasyCutStudioEvents() {
     const inputEl = document.getElementById('input-easycut-tunnel-url');
     const cur = String(inputEl?.value || '').trim();
     renderEasyCutStudioTab({ forceReload: true, customUrl: cur });
-    showBanner('🔄 Đã tải lại Bàn Dựng Đa Track EasyCut Studio!');
+    showBanner('🔄 Đã làm mới Bàn Dựng Đa Tầng 6 Track EasyCut Studio!');
   });
 
   document.getElementById('btn-easycut-fullscreen')?.addEventListener('click', () => {
@@ -9968,6 +10021,54 @@ function initEasyCutStudioEvents() {
     if (target?.requestFullscreen) {
       target.requestFullscreen().catch(() => {});
     }
+  });
+
+  document.getElementById('btn-easycut-quick-chat')?.addEventListener('click', async () => {
+    const inp = document.getElementById('input-easycut-quick-chat');
+    const msg = String(inp?.value || '').trim();
+    if (!msg) {
+      showBanner('Hãy nhập lệnh gửi Antigravity (VD: Đổi cảnh này sang ảnh khác, Chèn báo vào đây...)', true);
+      return;
+    }
+    if (inp) inp.value = '';
+    await sendEasyCutQuickCommand(msg);
+  });
+
+  document.getElementById('input-easycut-quick-chat')?.addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('btn-easycut-quick-chat')?.click();
+    }
+  });
+
+  document.getElementById('btn-easycut-quick-run15')?.addEventListener('click', async () => {
+    const baseUrl = getActiveEasyCutBaseUrl();
+    const replyEl = document.getElementById('easycut-quick-chat-reply');
+    if (replyEl) {
+      replyEl.style.color = '#fbbf24';
+      replyEl.textContent = '⚡ Đang kích hoạt Bước 1 → Bước 5...';
+    }
+    try {
+      const jobsRes = await fetch(`${baseUrl}/api/bot8/jobs`).then((r) => r.json());
+      const latestJob = (jobsRes.jobs || [])[0];
+      if (!latestJob) throw new Error('Chưa có Job nào, hãy nạp .MP3/.SRT/.TXT trước!');
+      await fetch(`${baseUrl}/api/bot8/jobs/${latestJob.id}/run-all-to-qc2`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (replyEl) {
+        replyEl.style.color = '#34d399';
+        replyEl.textContent = `✅ Đã chạy Bước 1→5 cho ${latestJob.timeline_id}!`;
+      }
+      showBanner(`⚡ Đã kích hoạt tự động Bước 1 → Bước 5 trên Timeline ${latestJob.timeline_id}!`);
+    } catch (err) {
+      showBanner(`Lỗi chạy Bước 1→5: ${err.message}`, true);
+    }
+  });
+
+  document.getElementById('btn-easycut-quick-heal')?.addEventListener('click', async () => {
+    await sendEasyCutQuickCommand('Sửa toàn bộ lỗi 21 mục QC');
   });
 }
 
@@ -9980,7 +10081,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=77', { updateViaCache: 'none' })
+      .register('/sw.js?v=78', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
