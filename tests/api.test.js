@@ -809,6 +809,9 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(thumbData.cloneItem.prompts.fluxIdeogram.length > 20);
     assert.ok(thumbData.cloneItem.prompts.reaReconstruction.includes('REA 1:1'));
     assert.ok(thumbData.cloneItem.reaDossier && thumbData.cloneItem.reaDossier.binaryEvidence);
+    assert.ok(thumbData.cloneItem.reaDossier.reaForensics && thumbData.cloneItem.reaDossier.reaForensics.step1_BinaryForensics);
+    assert.ok(thumbData.cloneItem.masterPrompt && thumbData.cloneItem.masterPrompt.includes('--ar 16:9'));
+    assert.ok(thumbData.cloneItem.masterPromptVi && thumbData.cloneItem.masterPromptVi.includes('16:9'));
     assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
     assert.ok(Array.isArray(thumbData.cloneItem.referenceGallery) && thumbData.cloneItem.referenceGallery.length >= 4);
     assert.ok(thumbData.cloneItem.proxiedBackdropUrl.includes('/api/bots/footage/download'));

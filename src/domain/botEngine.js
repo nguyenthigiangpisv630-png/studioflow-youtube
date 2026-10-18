@@ -2315,17 +2315,41 @@ function buildReaThumbnailDossier(
   const hookVariants = buildHookVariantsA_B_C(finalTitle, hookText, variationSeed);
   const palette = THUMBNAIL_PALETTES[Math.max(0, Number(variationSeed) || 0) % THUMBNAIL_PALETTES.length];
 
+  const visualLayers = {
+    layer1_Foreground: `Chủ thể chính của "${finalTitle}" đặt ở 55% khung hình bên phải, chụp góc cận (85mm f/1.4 Close-Up), biểu cảm/chi tiết kịch tính cực đại, tách khỏi nền bằng viền sáng Rim Light (${palette.primaryHex}).`,
+    layer2_MidgroundTypography: `Cụm chữ Giật Tít "${hookText}" (${
+      hookText.split(/\s+/).filter(Boolean).length
+    } từ) đặt ở 35% khung hình bên trái, chữ 3D nét dày màu ${
+      palette.primaryHex
+    } + #FFFFFF kèm viền đen 10px & mũi tên/vòng sáng dẫn hướng mắt màu ${palette.accentHex}.`,
+    layer3_BackgroundDepth: `Hậu cảnh làm mờ độ sâu trường ảnh (f/1.8 Bokeh), đối lập nhiệt độ màu Nóng (${palette.primaryHex} / ${palette.accentHex}) trên Chủ thể & Chữ so với tông Lạnh tối (${palette.bgHex}) ở nền.`,
+  };
+
   const visualAnatomy = [
-    `Lớp 1 (Tiền cảnh - 55% diện tích phải): Chủ thể chính của "${finalTitle}" phóng cận cảnh (Close-up), ánh mắt/biểu cảm cực đại, tách khỏi nền bằng viền sáng Rim Light sắc nét.`,
-    `Lớp 2 (Điểm neo thị giác - 35% diện tích trái): Cụm chữ Hook "${hookText}" đặt ở vùng tối/nhòe nhẹ, kèm 1 chi tiết dẫn hướng mắt (mũi tên phát sáng / vòng tròn đỏ / biểu tượng tương phản).`,
-    `Lớp 3 (Hậu cảnh & Phối màu): Nền làm mờ độ sâu trường ảnh (f/1.8 Bokeh), đối lập nhiệt độ màu Nóng (${palette.primaryHex} / ${palette.accentHex}) trên Chủ thể & Chữ so với Lạnh (${palette.bgHex}) ở hậu cảnh.`,
+    `Lớp 1 (Tiền cảnh - 55% diện tích phải): ${visualLayers.layer1_Foreground}`,
+    `Lớp 2 (Điểm neo thị giác - 35% diện tích trái): ${visualLayers.layer2_MidgroundTypography}`,
+    `Lớp 3 (Hậu cảnh & Phối màu): ${visualLayers.layer3_BackgroundDepth}`,
   ];
 
   const upgradeStrategy = `Giữ nguyên đòn bẩy tâm lý "${psychologicalFormula}", nhưng rút gọn chữ trên Thumbnail còn đúng ${
-    hookText.split(/\s+/).length
+    hookText.split(/\s+/).filter(Boolean).length
   } từ ("${hookText}"), tăng kích thước gương mặt/vật thể chính thêm 20% để nổi bật gấp đôi trên màn hình điện thoại!`;
 
+  const reaForensics = {
+    step1_BinaryForensics: `Phân giải gốc ${binaryArtifact.resolution} (${binaryArtifact.qualityTier}) · Dung lượng ${
+      binaryArtifact.sizeKb > 0 ? `${binaryArtifact.sizeKb} KB` : 'HD Stream'
+    } · Mã băm SHA-256: ${binaryArtifact.sha256Short} · Độ tương phản Entropy: ${
+      binaryArtifact.entropyScore
+    }/10 · Hệ màu: ${binaryArtifact.colorSpace}`,
+    step2_HeroSubject: visualLayers.layer1_Foreground,
+    step3_GridAndEyeFlow: `Luồng mắt Z-Pattern quét từ Chữ Giật Tít "${hookText}" (bên trái) -> Điểm nhấn màu ${palette.accentHex} ở trung tâm -> Chủ thể chính (bên phải). Né hoàn toàn góc chết đồng hồ 12:45 ở góc phải dưới.`,
+    step4_ColorAndLighting: visualLayers.layer3_BackgroundDepth,
+    step5_CuriosityTrigger: `${psychologicalFormula} — Kết hợp tiêu đề "${finalTitle}" với cụm chữ ngắn "${hookText}" tạo khoảng trống tò mò buộc người xem phải bấm vào ngay.`,
+  };
+
   const designStudioPack = {
+    ctrScore,
+    hookVariantsA_B_C: hookVariants,
     thumbsUpPreview: {
       timestampSafeZone: '✅ An toàn góc phải dưới (Không bị đồng hồ 12:45 YouTube che chữ)',
       mobileReadability: '🟢 Đọc rõ 100% trên màn hình Mobile 5-inch & Sidebar đề xuất',
@@ -2337,8 +2361,9 @@ function buildReaThumbnailDossier(
   };
 
   return {
-    engineVersion: 'REA-ThumbDecompiler v3.5 + ThumbsUp.tv + Live Canvas 1280x720',
+    engineVersion: 'REA-ThumbDecompiler v4.0 + 5-Step Forensics + 1 Master Prompt',
     ctrScore,
+    extractedHookText: hookText,
     hookVariants,
     designStudioPack,
     binaryEvidence: `${binaryArtifact.resolution} · ${
@@ -2349,7 +2374,9 @@ function buildReaThumbnailDossier(
     detectedViews: Number(videoMeta?.views) || 0,
     publishDate: videoMeta?.publishDate || '',
     psychologicalFormula,
+    visualLayers,
     visualAnatomy,
+    reaForensics,
     upgradeStrategy,
   };
 }
@@ -2386,22 +2413,34 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     } catch {}
   }
 
-  // Tìm kiếm bộ Thumbnail tham chiếu thực tế từ YouTube theo chủ đề (để ngay cả khi chỉ nhập Tiêu đề vẫn có ảnh 16:9 thật & bộ mẫu tham khảo)
+  // Tìm kiếm bộ Thumbnail tham chiếu thực tế từ YouTube theo chủ đề
   const searchTopic = resolvedTitle || explicitVideoId || 'viral youtube documentary';
   let refCandidates = [];
   try {
     const ytFound = await searchYouTubeVideosByKeyword(searchTopic, 'en');
     if (Array.isArray(ytFound) && ytFound.length > 0) {
-      refCandidates = ytFound.slice(0, 8).map((v, idx) => ({
-        videoId: v.videoId,
-        title: v.title || searchTopic,
-        channelName: v.channelName || v.handle || 'YouTube Reference',
-        views: Number(v.views) || 120000,
-        thumbnailUrl: `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
-        maxResUrl: `https://i.ytimg.com/vi/${v.videoId}/maxresdefault.jpg`,
-        videoUrl: `https://www.youtube.com/watch?v=${v.videoId}`,
-        qcScore: Math.max(91, 98 - idx),
-      }));
+      refCandidates = ytFound.slice(0, 8).map((v, idx) => {
+        const tUrl = `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`;
+        const mUrl = `https://i.ytimg.com/vi/${v.videoId}/maxresdefault.jpg`;
+        return {
+          rank: idx + 1,
+          videoId: v.videoId,
+          title: v.title || searchTopic,
+          channelName: v.channelName || v.handle || 'YouTube Reference',
+          views: Number(v.views) || 120000,
+          thumbnailUrl: tUrl,
+          maxResUrl: mUrl,
+          videoUrl: `https://www.youtube.com/watch?v=${v.videoId}`,
+          proxiedUrl: `/api/bots/footage/download?url=${encodeURIComponent(
+            tUrl
+          )}&filename=${encodeURIComponent(`thumb-ref-${v.videoId}.jpg`)}`,
+          downloadUrl: `/api/bots/footage/download?url=${encodeURIComponent(
+            mUrl
+          )}&filename=${encodeURIComponent(`ACB9x-Thumb-Ref-${v.videoId}.jpg`)}`,
+          qcScore: Math.max(91, 98 - idx),
+          ctrScore: Math.max(91, 98 - idx),
+        };
+      });
     }
   } catch {}
 
@@ -2409,15 +2448,25 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     const seenIds = new Set(refCandidates.map((r) => r.videoId));
     for (const fb of DEFAULT_QC_FALLBACK_VIDEOS) {
       if (seenIds.has(fb.videoId)) continue;
+      const tUrl = `https://i.ytimg.com/vi/${fb.videoId}/hqdefault.jpg`;
+      const mUrl = `https://i.ytimg.com/vi/${fb.videoId}/maxresdefault.jpg`;
       refCandidates.push({
+        rank: refCandidates.length + 1,
         videoId: fb.videoId,
         title: `${resolvedTitle || 'Viral Topic'} — ${fb.title}`,
         channelName: fb.channelName,
         views: fb.views,
-        thumbnailUrl: `https://i.ytimg.com/vi/${fb.videoId}/hqdefault.jpg`,
-        maxResUrl: `https://i.ytimg.com/vi/${fb.videoId}/maxresdefault.jpg`,
+        thumbnailUrl: tUrl,
+        maxResUrl: mUrl,
         videoUrl: `https://www.youtube.com/watch?v=${fb.videoId}`,
+        proxiedUrl: `/api/bots/footage/download?url=${encodeURIComponent(
+          tUrl
+        )}&filename=${encodeURIComponent(`thumb-ref-${fb.videoId}.jpg`)}`,
+        downloadUrl: `/api/bots/footage/download?url=${encodeURIComponent(
+          mUrl
+        )}&filename=${encodeURIComponent(`ACB9x-Thumb-Ref-${fb.videoId}.jpg`)}`,
         qcScore: 93,
+        ctrScore: 93,
       });
       if (refCandidates.length >= 6) break;
     }
@@ -2450,9 +2499,10 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     input.customStyle || input.stylePreset || center.config.defaultThumbnailStyle || 'viral_3d'
   ).trim();
 
-  const tempVariants = buildHookVariantsA_B_C(finalTitle, String(input.hookText || '').trim(), variationSeed);
+  const rawCustomHook = String(input.customHookText || input.hookText || '').trim();
+  const tempVariants = buildHookVariantsA_B_C(finalTitle, rawCustomHook, variationSeed);
   const hookText = String(
-    input.hookText || tempVariants[0]?.text || buildHookTextFromTitle(finalTitle)
+    rawCustomHook || tempVariants[0]?.text || buildHookTextFromTitle(finalTitle)
   ).trim();
 
   const videoUrl = explicitVideoId
@@ -2483,17 +2533,23 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
       'Classic Golden Era Hollywood & vintage television documentary YouTube thumbnail style, restored Kodachrome color grading, dramatic studio key light, archival cinema aesthetic, 8k',
   };
   const selectedStyleDesc = styleDescriptors[stylePreset] || styleDescriptors.viral_3d;
+  const pal = reaDossier.designStudioPack.canvaPhotoshopPack;
+
+  // 🏆 1 PROMPT CHUẨN ĐẦU RA DUY NHẤT (MASTER PROMPT 1:1) ĐÚC KẾT TỪ 5 BƯỚC MỔ XẺ /rea
+  const masterPrompt = `YouTube viral 16:9 thumbnail (1280x720) reverse-engineered via /rea from "${finalTitle}". [1. HERO SUBJECT - Right 55%]: Hyper-detailed close-up subject representing "${finalTitle}" with intense emotional expression, direct eye contact, shot on 85mm f/1.4 lens, separated from background by crisp ${pal.primaryHex} and ${pal.accentHex} rim lighting. [2. BOLD HOOK TEXT - Left 35%]: Massive 3D heavy impact typography reading "${hookText}" in glowing ${pal.primaryHex} and #FFFFFF white with thick 10px black stroke and deep drop shadow, placed in left safe-zone (strictly clear of bottom-right 12:45 timestamp). [3. ATMOSPHERE & COLOR GRADING]: ${selectedStyleDesc}, dark blurred bokeh background (${pal.bgHex}) for maximum warm-vs-cold contrast, photorealistic 8k --ar 16:9 --v 6.1 --style raw --stylize 250`;
+
+  const masterPromptVi = `Tạo ảnh Thumbnail YouTube chuẩn tỷ lệ 16:9 (1280x720) độ nét 8K đã dịch ngược /rea từ chủ đề "${finalTitle}". [1. Chủ thể chính - 55% bên phải]: Góc chụp cận cảnh 85mm f/1.4 nhân vật/vật thể trung tâm của "${finalTitle}" với biểu cảm kịch tính cực đại, ánh mắt nhìn thẳng, tách nền bằng viền sáng Rim Light màu ${pal.primaryHex} & ${pal.accentHex}. [2. Chữ Giật Tít 3D - 35% bên trái]: Chèn cụm chữ 3D cỡ lớn "${hookText}" font không chân nét dày màu ${pal.primaryHex} kết hợp Trắng #FFFFFF, viền đen dày 10px và đổ bóng sâu, đặt ở vùng an toàn bên trái (tuyệt đối né góc phải dưới chứa đồng hồ 12:45). [3. Hậu cảnh & Ánh sáng]: Nền tối điện ảnh (${pal.bgHex}) xóa phông Bokeh, độ tương phản nhiệt độ màu Nóng - Lạnh cực đại giúp nổi bật trên màn hình điện thoại.`;
 
   const midjourneyPrompt = `/imagine prompt: YouTube viral thumbnail for video titled "${finalTitle}", ${selectedStyleDesc}, strong rule-of-thirds focal point on the right, clean negative space on the left for bold typography, extreme curiosity gap emotion, ultra-detailed --ar 16:9 --v 6.1 --stylize 250`;
 
   const fluxIdeogramPrompt = `A high-CTR 16:9 widescreen YouTube thumbnail inspired by "${finalTitle}". ${selectedStyleDesc}. On the left side, bold 3D impact typography in glowing yellow and white with thick black stroke reading "${hookText}". High contrast, eye-catching composition.`;
 
-  const reaReconstructionPrompt = `[REA 1:1 VISUAL RECONSTRUCTION] Aspect Ratio 16:9 (${binaryArtifact.resolution}). Foreground Right (55%): Close-up hero subject representing "${finalTitle}" with intense facial/visual expression and crisp Rim Light separation. Midground Left (35%): High-impact 3D display text "${hookText}" in ${reaDossier.designStudioPack.canvaPhotoshopPack.primaryHex} + #FFFFFF white with deep black stroke and ${reaDossier.designStudioPack.canvaPhotoshopPack.accentHex} directional glow. Background: f/1.8 blurred dark cinematic environment (${reaDossier.designStudioPack.canvaPhotoshopPack.bgHex}) creating maximum color-temperature contrast.`;
+  const reaReconstructionPrompt = `[REA 1:1 VISUAL RECONSTRUCTION] Aspect Ratio 16:9 (${binaryArtifact.resolution}). Foreground Right (55%): Close-up hero subject representing "${finalTitle}" with intense facial/visual expression and crisp Rim Light separation. Midground Left (35%): High-impact 3D display text "${hookText}" in ${pal.primaryHex} + #FFFFFF white with deep black stroke and ${pal.accentHex} directional glow. Background: f/1.8 blurred dark cinematic environment (${pal.bgHex}) creating maximum color-temperature contrast.`;
 
   const vietnameseBrief = [
     `🔬 Bằng chứng Dịch ngược REA (/rea): ${reaDossier.binaryEvidence} · Điểm CTR dự đoán: ${reaDossier.ctrScore}/100`,
     `📱 Kiểm định ThumbsUp.tv: ${reaDossier.designStudioPack.thumbsUpPreview.timestampSafeZone} · ${reaDossier.designStudioPack.thumbsUpPreview.mobileReadability}`,
-    `🎨 Bảng mã màu HEX & Font (Canva/Photoshop): Chữ chính ${reaDossier.designStudioPack.canvaPhotoshopPack.primaryHex} · Điểm nhấn ${reaDossier.designStudioPack.canvaPhotoshopPack.accentHex} · Nền ${reaDossier.designStudioPack.canvaPhotoshopPack.bgHex} · Font: ${reaDossier.designStudioPack.canvaPhotoshopPack.recommendedFonts}`,
+    `🎨 Bảng mã màu HEX & Font (Canva/Photoshop): Chữ chính ${pal.primaryHex} · Điểm nhấn ${pal.accentHex} · Nền ${pal.bgHex} · Font: ${pal.recommendedFonts}`,
     `🧠 Công thức Tâm lý CTR: ${reaDossier.psychologicalFormula}`,
     `🔤 3 Phương án Chữ Hook A/B/C: ${reaDossier.hookVariants.map((h) => `[${h.code}] "${h.text}"`).join(' | ')}`,
     `🚀 Chiến thuật Vượt mặt 1:1: ${reaDossier.upgradeStrategy}`,
@@ -2506,6 +2562,7 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     ideogramUrl: `https://ideogram.ai/t/explore?q=${encodeURIComponent(finalTitle)}`,
     midjourneyUrl: 'https://www.midjourney.com/explore',
     thumbsUpUrl: 'https://thumbsup.tv/',
+    gettyUrl: edLinks.gettyPhotosUrl,
     gettyPhotosUrl: edLinks.gettyPhotosUrl,
     imdbUrl: edLinks.imdbUrl,
     alamyUrl: edLinks.alamyUrl,
@@ -2517,6 +2574,7 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     createdAt: new Date().toISOString(),
     variationSeed,
     youtubeVideoId: activeVideoId,
+    videoId: activeVideoId,
     explicitVideoId,
     videoUrl,
     title: finalTitle,
@@ -2525,6 +2583,7 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     views: Number(input.views) || videoMeta.views || pickedRef?.views || 0,
     outlierMultiplier: Number(input.outlierMultiplier) || 0,
     stylePreset,
+    customStyle: stylePreset,
     hookText,
     hookTextSuggestion: hookText,
     ctrScore: reaDossier.ctrScore,
@@ -2543,7 +2602,11 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
     referenceGallery: refCandidates.slice(0, 6),
     externalStudioLinks,
     reaDossier,
+    masterPrompt,
+    masterPromptVi,
     prompts: {
+      masterPrompt,
+      masterPromptVi,
       midjourney: midjourneyPrompt,
       fluxIdeogram: fluxIdeogramPrompt,
       reaReconstruction: reaReconstructionPrompt,
@@ -2560,7 +2623,7 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
   appendBotLog(
     store.state.meta,
     'Bot 6 (Studio Thumbnail AI /rea)',
-    `Đã Dịch ngược REA (${reaDossier.binaryEvidence} · CTR ${reaDossier.ctrScore}/100 · ThumbsUp.tv Safe-Zone) & tạo thiết kế Thumbnail 1280x720 cho "${finalTitle.slice(0, 55)}".`,
+    `Đã mổ xẻ REA (${reaDossier.binaryEvidence} · CTR ${reaDossier.ctrScore}/100) & xuất 1 Prompt Chuẩn đầu ra cho "${finalTitle.slice(0, 55)}".`,
     'success'
   );
 
@@ -2569,7 +2632,10 @@ export async function analyzeAndGenerateThumbnailPrompts(store, input = {}) {
 
 export function formatTelegramThumbnailReport(item) {
   const rea = item.reaDossier || {};
+  const forensics = rea.reaForensics || {};
   const dsp = item.designStudioPack || rea.designStudioPack || {};
+  const masterPrompt = item.masterPrompt || item.prompts?.masterPrompt || item.prompts?.reaReconstruction || '';
+  const masterPromptVi = item.masterPromptVi || item.prompts?.masterPromptVi || '';
   const tagsLine =
     Array.isArray(rea.hiddenVideoTags) && rea.hiddenVideoTags.length > 0
       ? `🏷️ <b>Thẻ Tags ẩn bóc từ Video đối thủ:</b> <code>${escapeTgHtml(
@@ -2584,44 +2650,31 @@ export function formatTelegramThumbnailReport(item) {
       : `<b>"${escapeTgHtml(item.hookText)}"</b>`;
 
   return [
-    `🔬🎨 <b>HỒ SƠ DỊCH NGƯỢC REA (<code>/rea</code>) + THUMBSUP.TV &amp; CANVA PACK (BOT 6)</b>`,
+    `🔬🎨 <b>BÁO CÁO MỔ XẺ THUMBNAIL ĐỐI THỦ BẰNG <code>/rea</code> &amp; 1 PROMPT CHUẨN (BOT 6)</b>`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `🎬 Tiêu đề gốc: <b>${escapeTgHtml(item.title)}</b>`,
-    item.channelName ? `📺 Kênh tham chiếu: <b>${escapeTgHtml(item.channelName)}</b>` : '',
+    `🎬 Tiêu đề đối thủ: <b>${escapeTgHtml(item.title)}</b>`,
+    item.channelName ? `📺 Kênh đối thủ: <b>${escapeTgHtml(item.channelName)}</b>` : '',
     item.views > 0 ? `👁️ Lượt xem thực tế: <b>${Number(item.views).toLocaleString('vi-VN')} views</b>` : '',
-    rea.binaryEvidence ? `🔬 <b>Bằng chứng Binary REA:</b> <code>${escapeTgHtml(rea.binaryEvidence)}</code>` : '',
-    rea.ctrScore ? `🎯 <b>Điểm CTR dự đoán:</b> <b>${rea.ctrScore}/100 điểm</b>` : '',
-    dsp.thumbsUpPreview
-      ? `📱 <b>ThumbsUp.tv Safe-Zone:</b> ${escapeTgHtml(dsp.thumbsUpPreview.timestampSafeZone)}`
-      : '',
-    dsp.tubebuddyAbWinner
-      ? `🧪 <b>TubeBuddy A/B Winner:</b> ${escapeTgHtml(dsp.tubebuddyAbWinner)}`
-      : '',
-    dsp.canvaPhotoshopPack
-      ? `🎨 <b>Palette HEX &amp; Font Canva/PS:</b> <code>${escapeTgHtml(
-          dsp.canvaPhotoshopPack.primaryHex
-        )}</code> · <code>${escapeTgHtml(dsp.canvaPhotoshopPack.accentHex)}</code> · <code>${escapeTgHtml(
-          dsp.canvaPhotoshopPack.bgHex
-        )}</code> (${escapeTgHtml(dsp.canvaPhotoshopPack.recommendedFonts)})`
-      : '',
-    rea.psychologicalFormula ? `🧠 <b>Công thức Tâm lý CTR:</b> ${escapeTgHtml(rea.psychologicalFormula)}` : '',
-    `🔤 <b>3 Phương án Chữ Hook A/B/C:</b> ${hooksLine}`,
+    ``,
+    `🔬 <b>PHẦN 1 — 5 BƯỚC MỔ XẺ THUMBNAIL ĐỐI THỦ BẰNG <code>/rea</code>:</b>`,
+    `1️⃣ <b>Binary &amp; Phân giải gốc:</b> <code>${escapeTgHtml(forensics.step1_BinaryForensics || rea.binaryEvidence || '')}</code>`,
+    `2️⃣ <b>Chủ thể &amp; Biểu cảm (55% Phải):</b> ${escapeTgHtml(forensics.step2_HeroSubject || '')}`,
+    `3️⃣ <b>Bố cục 1/3 &amp; Luồng mắt:</b> ${escapeTgHtml(forensics.step3_GridAndEyeFlow || '')}`,
+    `4️⃣ <b>Phối màu HEX &amp; Ánh sáng:</b> ${escapeTgHtml(forensics.step4_ColorAndLighting || '')}`,
+    `5️⃣ <b>Đòn bẩy Tâm lý CTR (${rea.ctrScore || 94}/100):</b> ${escapeTgHtml(forensics.step5_CuriosityTrigger || rea.psychologicalFormula || '')}`,
+    `🔤 <b>3 Phương án Chữ Giật Tít A/B/C:</b> ${hooksLine}`,
     tagsLine,
     item.maxResThumbnailUrl
       ? `🖼️ <a href="${escapeTgHtml(item.maxResThumbnailUrl)}">Mở tải Ảnh Thumbnail Gốc Full HD (1280x720)</a>`
       : '',
     ``,
-    `🔬 <b>1. PROMPT DỊCH NGƯỢC REA 1:1 (Tái tạo cấu trúc gốc):</b>`,
-    `<code>${escapeTgHtml(item.prompts?.reaReconstruction || '')}</code>`,
-    ``,
-    `🤖 <b>2. PROMPT MIDJOURNEY V6.1 (Copy dán ngay):</b>`,
-    `<code>${escapeTgHtml(item.prompts?.midjourney || '')}</code>`,
-    ``,
-    `⚡ <b>3. PROMPT FLUX.1 / IDEOGRAM (Tự chèn chữ chuẩn):</b>`,
-    `<code>${escapeTgHtml(item.prompts?.fluxIdeogram || '')}</code>`,
-    ``,
-    `📐 <b>4. GIẢI PHẪU BỐ CỤC &amp; CHIẾN THUẬT VƯỢT MẶT 1:1:</b>`,
-    escapeTgHtml(item.prompts?.vietnameseBrief || ''),
+    `🏆 <b>PHẦN 2 — 1 PROMPT CHUẨN ĐẦU RA DUY NHẤT (MASTER PROMPT 1:1 — COPY DÁN NGAY):</b>`,
+    `<code>${escapeTgHtml(masterPrompt)}</code>`,
+    masterPromptVi
+      ? `\n🇻🇳 <b>BẢN PROMPT CHUẨN TIẾNG VIỆT (Dùng cho ChatGPT / Gemini / Designer):</b>\n<code>${escapeTgHtml(
+          masterPromptVi
+        )}</code>`
+      : '',
   ]
     .filter(Boolean)
     .join('\n');

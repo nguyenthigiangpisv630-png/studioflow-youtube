@@ -6563,42 +6563,28 @@ function renderBotsCenterTab() {
                       : ''
                   }
                   <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-xs"
+                      style="background:linear-gradient(135deg,#db2777,#9333ea);border-color:#be185d;font-weight:900;"
+                      data-copy-prompt-text="${escapeHtml(item.masterPrompt || p.masterPrompt || p.reaReconstruction || '')}"
+                      title="Copy 1 Prompt Chuẩn duy nhất đúc kết từ /rea"
+                    >
+                      🏆 Copy 1 Prompt Chuẩn (/rea)
+                    </button>
                     ${
-                      p.reaReconstruction
+                      item.masterPromptVi || p.masterPromptVi
                         ? `<button
                             type="button"
-                            class="btn btn-primary btn-xs"
-                            data-copy-prompt-text="${escapeHtml(p.reaReconstruction)}"
-                            title="Copy Prompt Dịch Ngược REA 1:1"
+                            class="btn btn-secondary btn-xs"
+                            style="background:#fffbeb;color:#b45309;border-color:#f59e0b;font-weight:800;"
+                            data-copy-prompt-text="${escapeHtml(item.masterPromptVi || p.masterPromptVi)}"
+                            title="Copy 1 Prompt Chuẩn bằng Tiếng Việt"
                           >
-                            🔬 Copy REA 1:1
+                            🇻🇳 Copy Prompt Chuẩn (VN)
                           </button>`
                         : ''
                     }
-                    <button
-                      type="button"
-                      class="btn btn-secondary btn-xs"
-                      data-copy-prompt-text="${escapeHtml(p.midjourney || '')}"
-                      title="Copy Prompt Midjourney v6.1 (--ar 16:9)"
-                    >
-                      📋 Copy Midjourney
-                    </button>
-                    <button
-                      type="button"
-                      class="btn btn-secondary btn-xs"
-                      data-copy-prompt-text="${escapeHtml(p.fluxIdeogram || '')}"
-                      title="Copy Prompt Flux.1 / Ideogram (hỗ trợ chèn chữ)"
-                    >
-                      📋 Copy Flux/Ideogram
-                    </button>
-                    <button
-                      type="button"
-                      class="btn btn-secondary btn-xs"
-                      data-copy-prompt-text="${escapeHtml(p.vietnameseBrief || '')}"
-                      title="Copy Bố cục thiết kế Tiếng Việt"
-                    >
-                      📋 Copy Bố cục VN
-                    </button>
                     <button
                       type="button"
                       class="btn btn-secondary btn-xs"
@@ -6606,9 +6592,9 @@ function renderBotsCenterTab() {
                       data-save-spy-key-url="${escapeHtml(item.videoUrl || maxRes || '')}"
                       data-save-spy-key-notes="REA Binary: ${escapeHtml(
                         rea.binaryEvidence || ''
-                      )} | Hook Text: ${escapeHtml(hookTxt)} | REA 1:1: ${escapeHtml(
-                        p.reaReconstruction || ''
-                      )} | Midjourney: ${escapeHtml(p.midjourney || '')}"
+                      )} | Hook Text: ${escapeHtml(hookTxt)} | Master Prompt: ${escapeHtml(
+                        item.masterPrompt || p.masterPrompt || p.reaReconstruction || ''
+                      )}"
                       title="Lưu Hồ sơ Dịch ngược REA & Prompt Thumbnail này vào Kho Ý Tưởng & Key"
                     >
                       💾 Lưu vào Kho
@@ -6619,7 +6605,7 @@ function renderBotsCenterTab() {
                       data-goto-tab="thumbnail"
                       style="background:#fdf2f8;color:#be185d;border-color:#f9a8d4;font-weight:800;"
                     >
-                      🎨 Mở Bàn Thiết Kế 1280×720 →
+                      🎨 Mở Trang Riêng Thumbnail →
                     </button>
                   </div>
                 </div>
@@ -6633,8 +6619,9 @@ function renderBotsCenterTab() {
                     </div>`
                   : ''
               }
-              <div style="font-size: 11px; color: #1e293b; background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 8px; border-radius: 6px; font-family: monospace; word-break: break-word;">
-                <strong>REA 1:1 / Midjourney:</strong> ${escapeHtml(p.reaReconstruction || p.midjourney || '')}
+              <div style="font-size: 11.5px; color: #0f172a; background: linear-gradient(90deg,#fdf2f8,#fffbeb); border: 1.5px solid #f472b6; padding: 8px 10px; border-radius: 8px; font-family: monospace; word-break: break-word;">
+                <strong style="color:#be185d;">🏆 1 PROMPT CHUẨN ĐẦU RA (SAU KHI MỔ XẺ /rea):</strong><br/>
+                ${escapeHtml(item.masterPrompt || p.masterPrompt || p.reaReconstruction || p.midjourney || '')}
               </div>
             </div>
           `;
@@ -11096,84 +11083,156 @@ function renderThumbnailStudioTab() {
     `
       : '';
 
-  // MỤC 2: HỒ SƠ DỊCH NGƯỢC REA (/rea) + GIẢI PHẪU 3 LỚP THỊ GIÁC + 4 PROMPT AI TÁI TẠO 1:1
+  // BƯỚC 1 & BƯỚC 2: MỔ XẺ THUMBNAIL ĐỐI THỦ BẰNG /rea (5 BƯỚC GIẢI PHẪU) -> XUẤT 1 PROMPT CHUẨN ĐẦU RA DUY NHẤT (MASTER PROMPT 1:1)
   const layers = rea.visualLayers || {};
-  const reaDossierHtml = `
-    <div class="panel-box" style="padding:16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+  const forensics = rea.reaForensics || {};
+  const masterPromptEn =
+    active.masterPrompt || p.masterPrompt || p.reaReconstruction || p.midjourney || '';
+  const masterPromptVi =
+    active.masterPromptVi || p.masterPromptVi || p.vietnameseBrief || '';
+  const origThumbImg = active.maxResThumbnailUrl || active.hqThumbnailUrl || '';
+
+  const reaDissectionAndMasterPromptHtml = `
+    <div class="panel-box" style="padding:18px;margin-bottom:16px;border:2.5px solid #db2777;background:linear-gradient(180deg,#fff1f2 0%,#ffffff 45%,#fffbeb 100%);box-shadow:0 10px 26px rgba(219,39,119,0.10);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
         <div>
-          <h3 style="margin:0;font-size:1rem;font-weight:800;color:#0f172a;">
-            🔬 2. Hồ Sơ Dịch Ngược REA (<code>/rea</code>) · Giải Phẫu 3 Lớp Thị Giác &amp; 4 Prompt AI Tái Tạo 1:1 (Midjourney v6.1 / Flux.1 / Ideogram)
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <span style="background:#be185d;color:#ffffff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:999px;">
+              🔬 BƯỚC 1: MỔ XẺ THUMBNAIL ĐỐI THỦ BẰNG /rea (5 LỚP GIẢI PHẪU)
+            </span>
+            <span style="background:#b45309;color:#ffffff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:999px;">
+              🏆 BƯỚC 2: ĐÚC KẾT RA 1 PROMPT CHUẨN DUY NHẤT (MASTER PROMPT 1:1)
+            </span>
+          </div>
+          <h3 style="margin:4px 0 2px 0;font-size:1.08rem;font-weight:900;color:#0f172a;">
+            🎯 Hồ Sơ Giải Phẫu Thumbnail Đối Thủ: "${escapeHtml(active.title)}"
           </h3>
-          <p style="margin:3px 0 0 0;font-size:12px;color:#64748b;">
-            Bấm 1 nút để Copy Prompt dán thẳng vào <strong>Midjourney v6.1</strong>, <strong>Ideogram 2.0</strong> hoặc <strong>Flux.1</strong> để sinh ảnh AI 16:9 mới hoàn toàn theo đúng bố cục triệu view!
+          <p style="margin:0;font-size:12px;color:#475569;">
+            Kênh tham chiếu: <strong>${escapeHtml(active.channelName || 'YouTube Reference')}</strong>
+            ${active.views ? ` · 👁️ <strong>${formatNumber(active.views)} views</strong>` : ''}
+            · Điểm CTR dự báo: <strong style="color:#be185d;">${ctrScore}/100</strong>
           </p>
         </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:12px;">
-        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #e2e8f0;font-size:11.5px;">
-          <div style="font-weight:800;color:#0369a1;margin-bottom:4px;">🔬 Chữ ký Binary &amp; Tỷ lệ Khung Hình:</div>
-          <div><code>${escapeHtml(rea.binaryEvidence || 'JPEG/WebP 1280×720 (16:9)')}</code></div>
-          <div style="margin-top:4px;color:#047857;font-weight:700;">
-            📱 ${escapeHtml(dsp.thumbsUpPreview?.timestampSafeZone || 'An toàn góc phải dưới 12:45')}
-          </div>
-        </div>
-
-        <div style="padding:10px 12px;border-radius:9px;background:#fffbeb;border:1px solid #fde68a;font-size:11.5px;">
-          <div style="font-weight:800;color:#b45309;margin-bottom:4px;">🧠 Công Thức Tâm Lý Học Thị Giác (CTR):</div>
-          <div style="color:#78350f;">${escapeHtml(rea.psychologicalFormula || '')}</div>
-        </div>
-
-        <div style="padding:10px 12px;border-radius:9px;background:#fdf2f8;border:1px solid #fbcfe8;font-size:11.5px;">
-          <div style="font-weight:800;color:#9d174d;margin-bottom:4px;">🎨 Thông Số Canva / Photoshop Pack:</div>
-          <div>Mã màu HEX: <code>${escapeHtml(pack.primaryHex || '#FFD700')}</code> · <code>${escapeHtml(
-            pack.accentHex || '#EF4444'
-          )}</code> · <code>${escapeHtml(pack.bgHex || '#0F172A')}</code></div>
-          <div style="margin-top:3px;">Font khuyến nghị: <strong>${escapeHtml(
-            pack.recommendedFonts || 'Montserrat ExtraBold / Impact'
-          )}</strong></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            style="background:linear-gradient(135deg,#db2777,#9333ea);border-color:#be185d;font-weight:900;padding:9px 16px;box-shadow:0 4px 12px rgba(219,39,119,0.3);"
+            data-copy-prompt-text="${escapeHtml(masterPromptEn)}"
+          >
+            📋 COPY 1 PROMPT CHUẨN (TIẾNG ANH QUỐC TẾ)
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            style="background:#fffbeb;color:#b45309;border-color:#f59e0b;font-weight:900;padding:9px 14px;"
+            data-copy-prompt-text="${escapeHtml(masterPromptVi)}"
+          >
+            🇻🇳 COPY 1 PROMPT CHUẨN (TIẾNG VIỆT)
+          </button>
         </div>
       </div>
 
-      <div style="padding:10px 12px;border-radius:9px;background:#f0fdf4;border:1px solid #bbf7d0;margin-bottom:12px;font-size:11.5px;color:#065f46;display:flex;flex-direction:column;gap:4px;">
-        <div style="font-weight:800;color:#047857;">📐 Giải Phẫu 3 Lớp Thị Giác (3-Layer Visual Anatomy):</div>
-        <div>• <strong>Lớp 1 (Tiền cảnh - Chủ thể chính):</strong> ${escapeHtml(layers.layer1_Foreground || '')}</div>
-        <div>• <strong>Lớp 2 (Trung cảnh - Chữ Giật Tít):</strong> ${escapeHtml(layers.layer2_MidgroundTypography || '')}</div>
-        <div>• <strong>Lớp 3 (Hậu cảnh - Bối cảnh &amp; Ánh sáng):</strong> ${escapeHtml(layers.layer3_BackgroundDepth || '')}</div>
+      <!-- PHẦN 1: ẢNH GỐC ĐỐI THỦ + 5 BƯỚC MỔ XẺ THUMBNAIL BẰNG /rea -->
+      <div style="display:grid;grid-template-columns:340px 1fr;gap:14px;align-items:stretch;margin-bottom:14px;">
+        <div style="border:2px solid #fbcfe8;border-radius:10px;padding:10px;background:#0f172a;color:#ffffff;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:11px;font-weight:800;color:#f472b6;display:flex;justify-content:space-between;align-items:center;">
+            <span>🖼️ ẢNH THUMBNAIL ĐỐI THỦ ĐANG MỔ XẺ:</span>
+            <span style="color:#34d399;">CTR ${ctrScore}/100</span>
+          </div>
+          <div style="position:relative;border-radius:8px;overflow:hidden;aspect-ratio:16/9;background:#090d16;">
+            <img
+              src="${escapeHtml(origThumbImg)}"
+              alt="${escapeHtml(active.title)}"
+              style="width:100%;height:100%;object-fit:cover;display:block;"
+            />
+          </div>
+          <div style="font-size:11px;color:#cbd5e1;line-height:1.4;">
+            🔬 <strong>Binary:</strong> <code>${escapeHtml(rea.binaryEvidence || '1280×720 HD · 16:9')}</code>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:auto;">
+            <button
+              type="button"
+              class="btn btn-secondary btn-xs"
+              style="flex:1;background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.25);"
+              data-thumb-action="download-raw-jpg"
+            >
+              ⬇️ Tải Ảnh Gốc Đối Thủ (.JPG)
+            </button>
+            <a
+              href="${escapeHtml(active.videoUrl || '#')}"
+              target="_blank"
+              rel="noopener"
+              class="btn btn-secondary btn-xs"
+              style="text-decoration:none;background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.25);"
+            >
+              Xem Video ↗
+            </a>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:7px;justify-content:space-between;">
+          <div style="padding:8px 12px;border-radius:8px;background:#f8fafc;border-left:4px solid #0284c7;font-size:12px;color:#1e293b;">
+            <strong style="color:#0369a1;">1️⃣ Giải phẫu Binary &amp; Thông số gốc (/rea):</strong>
+            ${escapeHtml(forensics.step1_BinaryForensics || rea.binaryEvidence || '')}
+          </div>
+          <div style="padding:8px 12px;border-radius:8px;background:#fdf2f8;border-left:4px solid #db2777;font-size:12px;color:#1e293b;">
+            <strong style="color:#be185d;">2️⃣ Mổ xẻ Chủ thể &amp; Biểu cảm (55% Khung Phải):</strong>
+            ${escapeHtml(forensics.step2_HeroSubject || layers.layer1_Foreground || '')}
+          </div>
+          <div style="padding:8px 12px;border-radius:8px;background:#fffbeb;border-left:4px solid #d97706;font-size:12px;color:#1e293b;">
+            <strong style="color:#b45309;">3️⃣ Bố cục 1/3, Chữ Giật Tít &amp; Luồng mắt Z-Pattern:</strong>
+            ${escapeHtml(forensics.step3_GridAndEyeFlow || layers.layer2_MidgroundTypography || '')}
+          </div>
+          <div style="padding:8px 12px;border-radius:8px;background:#f0fdf4;border-left:4px solid #059669;font-size:12px;color:#1e293b;">
+            <strong style="color:#047857;">4️⃣ Phối màu HEX &amp; Tương phản Nhiệt độ màu:</strong>
+            ${escapeHtml(forensics.step4_ColorAndLighting || layers.layer3_BackgroundDepth || '')}
+          </div>
+          <div style="padding:8px 12px;border-radius:8px;background:#f5f3ff;border-left:4px solid #7c3aed;font-size:12px;color:#1e293b;">
+            <strong style="color:#6d28d9;">5️⃣ Đòn bẩy Tâm lý học Kích thích Click (Curiosity Gap):</strong>
+            ${escapeHtml(forensics.step5_CuriosityTrigger || rea.psychologicalFormula || '')}
+          </div>
+        </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:10px;">
-        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong style="font-size:12px;color:#be185d;">🔬 1. Prompt Dịch Ngược REA 1:1 (Full Spec)</strong>
-            <button type="button" class="btn btn-primary btn-xs" style="background:#db2777;border-color:#be185d;" data-copy-prompt-text="${escapeHtml(p.reaReconstruction || '')}">📋 Copy REA 1:1</button>
+      <!-- PHẦN 2: 🏆 1 PROMPT CHUẨN ĐẦU RA DUY NHẤT (MASTER PROMPT 1:1) -->
+      <div style="padding:14px 16px;border-radius:12px;background:linear-gradient(135deg,#0f172a 0%,#3b0764 100%);border:2px solid #f472b6;color:#ffffff;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+          <div>
+            <span style="background:#f59e0b;color:#0f172a;font-size:11px;font-weight:900;padding:2px 9px;border-radius:999px;">
+              🏆 1 PROMPT CHUẨN ĐẦU RA DUY NHẤT (MASTER PROMPT 1:1)
+            </span>
+            <strong style="font-size:13px;color:#fde047;margin-left:6px;">
+              Đúc kết toàn bộ 5 bước mổ xẻ /rea — Dán thẳng vào Midjourney v6.1, Flux.1, Ideogram hoặc ChatGPT/DALL-E 3:
+            </strong>
           </div>
-          <code style="font-size:11px;color:#1e293b;word-break:break-word;line-height:1.45;">${escapeHtml(p.reaReconstruction || '')}</code>
+          <button
+            type="button"
+            class="btn btn-primary btn-xs"
+            style="background:#db2777;border-color:#f472b6;font-weight:900;padding:6px 14px;"
+            data-copy-prompt-text="${escapeHtml(masterPromptEn)}"
+          >
+            📋 Copy 1 Prompt Chuẩn Ngay
+          </button>
         </div>
 
-        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong style="font-size:12px;color:#1d4ed8;">🎨 2. Prompt Midjourney v6.1 (--ar 16:9)</strong>
-            <button type="button" class="btn btn-secondary btn-xs" data-copy-prompt-text="${escapeHtml(p.midjourney || '')}">📋 Copy Midjourney</button>
-          </div>
-          <code style="font-size:11px;color:#1e293b;word-break:break-word;line-height:1.45;">${escapeHtml(p.midjourney || '')}</code>
+        <div style="padding:12px;border-radius:8px;background:rgba(9,13,22,0.88);border:1px solid rgba(244,114,182,0.45);font-family:monospace;font-size:12.5px;color:#fef08a;line-height:1.55;word-break:break-word;margin-bottom:10px;">
+          ${escapeHtml(masterPromptEn)}
         </div>
 
-        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong style="font-size:12px;color:#7c3aed;">✨ 3. Prompt Flux.1 / Ideogram 2.0 (Chèn Chữ)</strong>
-            <button type="button" class="btn btn-secondary btn-xs" data-copy-prompt-text="${escapeHtml(p.fluxIdeogram || '')}">📋 Copy Flux/Ideogram</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.08);border:1px dashed rgba(255,255,255,0.22);">
+          <div style="flex:1;min-width:240px;font-size:11.5px;color:#e2e8f0;line-height:1.45;">
+            🇻🇳 <strong style="color:#86efac;">Bản Tiếng Việt chuẩn (Dành cho ChatGPT / Gemini / Designer):</strong>
+            ${escapeHtml(masterPromptVi)}
           </div>
-          <code style="font-size:11px;color:#1e293b;word-break:break-word;line-height:1.45;">${escapeHtml(p.fluxIdeogram || '')}</code>
-        </div>
-
-        <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong style="font-size:12px;color:#047857;">🇻🇳 4. Chỉ Dẫn Bố Cục Thiết Kế Tiếng Việt</strong>
-            <button type="button" class="btn btn-secondary btn-xs" data-copy-prompt-text="${escapeHtml(p.vietnameseBrief || '')}">📋 Copy Bố cục VN</button>
-          </div>
-          <div style="font-size:11px;color:#1e293b;white-space:pre-line;line-height:1.45;">${escapeHtml(p.vietnameseBrief || '')}</div>
+          <button
+            type="button"
+            class="btn btn-secondary btn-xs"
+            style="background:#059669;color:#ffffff;border-color:#10b981;font-weight:800;flex-shrink:0;"
+            data-copy-prompt-text="${escapeHtml(masterPromptVi)}"
+          >
+            📋 Copy Bản Tiếng Việt
+          </button>
         </div>
       </div>
     </div>
@@ -11181,9 +11240,9 @@ function renderThumbnailStudioTab() {
 
   container.innerHTML = `
     ${historyChipsHtml}
+    ${reaDissectionAndMasterPromptHtml}
     ${canvasStudioHtml}
     ${referenceGalleryHtml}
-    ${reaDossierHtml}
   `;
 
   drawThumbnailStudioCanvas(true);
