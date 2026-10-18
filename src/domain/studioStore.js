@@ -11,6 +11,7 @@ import {
   huntCompetitorChannelOutliers,
   analyzeAndGenerateThumbnailPrompts,
   huntYouTubeSearchTrends,
+  huntMultiPlatformFootage,
   scanMonetizationAndAdSenseShield,
   generateCloudSyncReport,
   syncCloudReportNow,
@@ -2999,6 +3000,7 @@ export class StudioStore {
       competitorScans: Array.isArray(center.competitorScans) ? center.competitorScans : [],
       thumbnailClones: Array.isArray(center.thumbnailClones) ? center.thumbnailClones : [],
       trendScans: Array.isArray(center.trendScans) ? center.trendScans : [],
+      footageScans: Array.isArray(center.footageScans) ? center.footageScans : [],
       activityLogs: (center.activityLogs || []).slice(0, 30),
     };
   }
@@ -3051,7 +3053,7 @@ export class StudioStore {
       prev.autoTelegramScheduleDaily = Boolean(patch.autoTelegramScheduleDaily);
     }
 
-    // Bot 5 & Bot 6 & Bot 7 & Bot 11 & Bot 12
+    // Bot 5 & Bot 6 & Bot 7 & Bot 10 & Bot 11 & Bot 12
     if (patch.competitorMinOutlier !== undefined) {
       prev.competitorMinOutlier = Math.max(1.0, Number(patch.competitorMinOutlier) || 1.3);
     }
@@ -3060,6 +3062,9 @@ export class StudioStore {
     }
     if (patch.defaultTrendMarket !== undefined) {
       prev.defaultTrendMarket = String(patch.defaultTrendMarket || 'vi').trim();
+    }
+    if (patch.defaultFootageCategory !== undefined) {
+      prev.defaultFootageCategory = String(patch.defaultFootageCategory || 'all').trim();
     }
     if (patch.maxChannelsPerGa !== undefined) {
       prev.maxChannelsPerGa = Math.max(1, Number(patch.maxChannelsPerGa) || 3);
@@ -3082,7 +3087,7 @@ export class StudioStore {
     appendBotLog(
       this.state.meta,
       'Bot Center',
-      'Đã lưu cấu hình Trung tâm 9 Bot tự động hóa.',
+      'Đã lưu cấu hình Trung tâm 10 Bot tự động hóa.',
       'success'
     );
     this.#save();
@@ -3134,6 +3139,13 @@ export class StudioStore {
     const trendEntry = await huntYouTubeSearchTrends(this, options);
     this.#save();
     return trendEntry;
+  }
+
+  async runFootageHunterScan(options = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const footageEntry = await huntMultiPlatformFootage(this, options);
+    this.#save();
+    return footageEntry;
   }
 
   runMonetizationShieldScan(options = {}) {

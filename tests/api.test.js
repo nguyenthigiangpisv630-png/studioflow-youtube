@@ -897,6 +897,50 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(cloudData.cloudReport.sheetsTsv.includes('Kênh Test Bot Nổ View'));
     assert.ok(cloudData.cloudReport.notionMarkdown.includes('BÁO CÁO ĐÁM MÂY HỆ THỐNG KÊNH ACB9X'));
     assert.ok(cloudData.cloudReport.csvContent.includes('Kênh Test Bot Nổ View'));
+
+    // 11. Bot 10 — Kho Săn & Tải Footage Đa Nền Tảng 4K (/footage)
+    const footageRes = await fetch(`${baseUrl}/api/bots/footage/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: 'sức khỏe người già',
+        category: 'health_elderly',
+        notifyTelegram: false,
+      }),
+    });
+    assert.equal(footageRes.status, 200);
+    const footageData = await footageRes.json();
+    assert.equal(footageData.ok, true);
+    assert.ok(footageData.footageScan);
+    assert.equal(footageData.footageScan.category, 'health_elderly');
+    assert.ok(footageData.footageScan.queryPack.englishCinematicQuery.includes('elderly'));
+    assert.ok(footageData.footageScan.queryPack.chineseDouyinQuery.length > 0);
+    assert.ok(
+      Array.isArray(footageData.footageScan.directDownloadClips) &&
+        footageData.footageScan.directDownloadClips.length >= 6
+    );
+    assert.ok(
+      footageData.footageScan.directDownloadClips[0].downloadApiUrl.includes(
+        '/api/bots/footage/download?'
+      )
+    );
+    assert.ok(
+      Array.isArray(footageData.footageScan.platformHubs) &&
+        footageData.footageScan.platformHubs.length >= 10
+    );
+    assert.ok(
+      Array.isArray(footageData.footageScan.shotlist5Scenes) &&
+        footageData.footageScan.shotlist5Scenes.length === 5
+    );
+    assert.ok(
+      footageData.footageScan.downloadPackages.batchDownloaderBat.includes('yt-dlp')
+    );
+    assert.ok(
+      footageData.footageScan.downloadPackages.shotlistTxt.includes('SHOTLIST 5 ĐẠI CẢNH')
+    );
+    assert.ok(
+      footageData.footageScan.downloadPackages.footageCsv.includes('Direct MP4 Clip')
+    );
   });
 });
 

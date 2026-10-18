@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=70" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=70" />
+  <link rel="icon" href="/icon.svg?v=71" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=71" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -91,6 +91,17 @@
               <span class="nav-count" id="nav-count-users">0</span>
             </button>
 
+            <button type="button" class="nav-btn" data-tab="footage" id="nav-btn-footage">
+              <span class="nav-btn-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <polygon points="10 9 15 12 10 15 10 9" />
+                </svg>
+                <span class="nav-btn-label">Săn &amp; Tải Footage</span>
+              </span>
+              <span class="nav-count" id="nav-count-footage">4K</span>
+            </button>
+
             <button type="button" class="nav-btn" data-tab="bots" id="nav-btn-bots">
               <span class="nav-btn-left">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -101,7 +112,7 @@
                 </svg>
                 <span class="nav-btn-label">Trung tâm Bot</span>
               </span>
-              <span class="nav-count" id="nav-count-bots">6</span>
+              <span class="nav-count" id="nav-count-bots">10</span>
             </button>
           </nav>
         </div>
@@ -1077,16 +1088,133 @@
                 </div>
                 <div id="bot12-cloud-preview" class="bot-viral-list" style="max-height:330px;"></div>
               </div>
+
+              <!-- ==================== BOT 10: SĂN KHO FOOTAGE ĐA NỀN TẢNG & TẢI VIDEO 4K (/footage) ==================== -->
+              <div class="bot-card panel-box" style="grid-column: 1 / -1; border: 1.5px solid rgba(14,165,233,0.4);">
+                <div class="bot-card-header">
+                  <div class="bot-card-title-wrap">
+                    <span class="bot-icon-badge bot-badge-blue" style="background:#e0f2fe;border-color:#7dd3fc;">🎬</span>
+                    <div>
+                      <h3 class="bot-card-title">Bot 10 — Săn Kho Footage Đa Nền Tảng, Tải Video .MP4 4K &amp; Shotlist B-Roll (<code>/footage</code>)</h3>
+                      <p class="bot-card-sub">Tự động dịch từ khóa sang Tiếng Anh &amp; Tiếng Trung, săn Video .MP4 tải trực tiếp (Archive.org · Wikimedia · CC0), YouTube 4K CC-BY, Pexels, Pixabay, Douyin (抖音), Bilibili &amp; 5 phân cảnh Shotlist AI</p>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-sm" data-goto-tab="footage">
+                    🎬 Mở Trang Riêng Săn &amp; Tải Footage 4K →
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <!-- NHẬT KÝ HOẠT ĐỘNG TỰ ĐỘNG CỦA 9 BOT -->
+            <!-- NHẬT KÝ HOẠT ĐỘNG TỰ ĐỘNG CỦA 10 BOT -->
             <div class="panel-box" style="margin-top:16px;padding:16px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <h3 style="font-size:0.95rem;font-weight:800;margin:0;">📜 Nhật ký hoạt động trực tiếp của 9 Bot</h3>
+                <h3 style="font-size:0.95rem;font-weight:800;margin:0;">📜 Nhật ký hoạt động trực tiếp của 10 Bot</h3>
                 <span style="font-size:0.75rem;color:#64748b;" id="bot-last-scan-time">Cập nhật tự động</span>
               </div>
               <div id="bot-activity-logs" class="bot-activity-logs"></div>
             </div>
+          </div>
+        </section>
+
+        <!-- ==================== TRANG RIÊNG CHẠY BOT 10: SĂN KHO FOOTAGE ĐA NỀN TẢNG & TẢI VIDEO 4K (/footage) ==================== -->
+        <section class="tab-panel" id="panel-footage">
+          <div class="bots-center-shell">
+            <!-- BANNER ĐẦU TRANG RIÊNG BOT 10 FOOTAGE STUDIO -->
+            <div class="bots-hero-banner" style="background: linear-gradient(135deg, #0f172a 0%, #0369a1 55%, #047857 100%);">
+              <div class="bots-hero-left">
+                <div class="bots-hero-badge">🎬 BOT 10 FOOTAGE STUDIO · 10 NỀN TẢNG · TẢI VIDEO .MP4 TRỰC TIẾP</div>
+                <h2 class="bots-hero-title">Trang Riêng Bot 10 — Săn Kho Footage Đa Nền Tảng &amp; Tải Video 4K Không Bản Quyền</h2>
+                <p class="bots-hero-sub">
+                  Nhập bất kỳ <strong>Chủ đề, Từ khóa hoặc Kịch bản</strong>: Bot tự động dịch sang <strong>Tiếng Anh Điện Ảnh</strong> &amp; <strong>Tiếng Trung (Douyin 抖音 / Bilibili)</strong>, trích xuất <strong>Video .MP4 Xem &amp; Tải Trực Tiếp (Public Domain / CC0)</strong>, lọc <strong>YouTube 4K B-Roll Creative Commons</strong>, mở <strong>10 Kho Stock Quốc Tế</strong> và xuất <strong>Bộ Công Cụ Tự Động Tải Video (.BAT / .TXT / .CSV)</strong>.
+                </p>
+              </div>
+              <div class="bots-hero-actions">
+                <button type="button" class="btn btn-primary" id="btn-footage-download-bat" title="Tải file .BAT tự động kéo toàn bộ Video .MP4 Public Domain & YouTube 4K B-Roll về thư mục máy tính">
+                  ⬇️ Tải Auto-Downloader (.BAT)
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-footage-download-txt" title="Tải toàn bộ Hồ sơ Shotlist 5 cảnh + Link 10 nền tảng + Prompt AI (.TXT)">
+                  ⬇️ Tải Hồ Sơ Shotlist (.TXT)
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-footage-download-csv" title="Tải bảng Excel .CSV tổng hợp toàn bộ link video & nền tảng">
+                  ⬇️ Tải Bảng Link (.CSV)
+                </button>
+              </div>
+            </div>
+
+            <!-- DẢI KPI THỐNG KÊ KHO FOOTAGE -->
+            <div class="bot-kpi-strip" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-top: 12px;">
+              <div class="bot-kpi-box">
+                <span class="bot-kpi-label">Chủ đề đã săn Footage</span>
+                <strong class="bot-kpi-val num" id="footage-kpi-scans" style="color:#0284c7;">0 chủ đề</strong>
+              </div>
+              <div class="bot-kpi-box">
+                <span class="bot-kpi-label">🟢 Video .MP4 Tải Trực Tiếp</span>
+                <strong class="bot-kpi-val num" id="footage-kpi-direct" style="color:#059669;">6 clip MP4/chủ đề</strong>
+              </div>
+              <div class="bot-kpi-box">
+                <span class="bot-kpi-label">🔵 YouTube 4K B-Roll / CC-BY</span>
+                <strong class="bot-kpi-val num" id="footage-kpi-yt" style="color:#4f46e5;">8 video 4K</strong>
+              </div>
+              <div class="bot-kpi-box">
+                <span class="bot-kpi-label">🌍 Kho Đa Nền Tảng Kết Nối</span>
+                <strong class="bot-kpi-val num" style="color:#d97706;">10 Nền tảng (Mỹ · Trung · Âu)</strong>
+              </div>
+            </div>
+
+            <!-- BẢNG ĐIỀU KHIỂN TÌM KIẾM & TẢI FOOTAGE TRÊN WEB -->
+            <div class="panel-box" style="margin-top: 12px; padding: 16px;">
+              <div style="display: grid; grid-template-columns: 1fr 270px; gap: 10px; align-items: end;">
+                <label class="field" style="margin: 0;">
+                  <span>🔍 Nhập Chủ đề, Từ khóa ngách hoặc Tiêu đề video cần săn Footage &amp; Tải B-Roll 4K</span>
+                  <input
+                    type="text"
+                    id="input-footage-query"
+                    class="input-control"
+                    placeholder="VD: tiểu sử tỷ phú, siêu du thuyền luxury, lịch sử cổ đại, trí tuệ nhân tạo AI, vũ trụ NASA..."
+                  />
+                </label>
+                <label class="field" style="margin: 0;">
+                  <span>🎬 Chọn Phong cách / Nguồn cảnh quay ưu tiên</span>
+                  <select id="select-footage-category" class="input-control">
+                    <option value="all">🎬 Tất cả Nền tảng (4K Stock + YT + Douyin)</option>
+                    <option value="cinematic">✨ Điện ảnh 4K / Luxury (Pexels · Pixabay · Coverr)</option>
+                    <option value="documentary">📜 Tư liệu Lịch sử / Công cộng (Archive.org · Wiki)</option>
+                    <option value="tech_finance">💹 Công nghệ / AI / Tài chính / Phố Wall</option>
+                    <option value="health_elderly">🏥 Sức khỏe / Người cao tuổi / Y học 3D</option>
+                    <option value="viral_short">📱 Clip Ngắn Ngoại Quốc (Douyin 抖音 · Bilibili · TikTok)</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- HÀNG NÚT CHỌN NHANH CHỦ ĐỀ MẪU -->
+              <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 10px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: #64748b;">⚡ Gợi ý săn nhanh:</span>
+                <button type="button" class="btn btn-secondary btn-xs" data-quick-footage-topic="tiểu sử tỷ phú luxury">💎 Tiểu sử Tỷ phú &amp; Luxury</button>
+                <button type="button" class="btn btn-secondary btn-xs" data-quick-footage-topic="lịch sử đế chế cổ đại">📜 Lịch sử &amp; Cổ đại</button>
+                <button type="button" class="btn btn-secondary btn-xs" data-quick-footage-topic="trí tuệ nhân tạo AI robot">🤖 Công nghệ AI &amp; Robot</button>
+                <button type="button" class="btn btn-secondary btn-xs" data-quick-footage-topic="tài chính phố wall chứng khoán">💹 Tài chính &amp; Phố Wall</button>
+                <button type="button" class="btn btn-secondary btn-xs" data-quick-footage-topic="sức khỏe người cao tuổi sống thọ">🏥 Sức khỏe &amp; Sống thọ</button>
+                <button type="button" class="btn btn-secondary btn-xs" data-quick-footage-topic="bí ẩn vũ trụ không gian 4k">🌌 Vũ trụ &amp; Khoa học 4K</button>
+                <button type="button" class="btn btn-secondary btn-xs" data-quick-footage-topic="thiên nhiên đại dương hoang dã 4k">🌊 Thiên nhiên &amp; Đại dương 4K</button>
+              </div>
+
+              <!-- HÀNG NÚT HÀNH ĐỘNG CHÍNH -->
+              <div class="bot-actions-row" style="margin-top: 12px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary" id="btn-footage-hunt-only">
+                  🎬 Săn Kho Footage 10 Nền Tảng &amp; Lấy Link Tải .MP4 Ngay
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-footage-hunt-and-tg">
+                  📲 Săn &amp; Bắn Hồ Sơ Footage Về Telegram @acb9xbot
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-footage-save-current-vault">
+                  💎 Lưu Bộ Footage Này Vào Kho Nội Dung
+                </button>
+              </div>
+            </div>
+
+            <!-- KẾT QUẢ CHI TIẾT TRANG RIÊNG BOT 10 (VIDEO MP4 XEM THỬ & TẢI VỀ + YOUTUBE 4K + 10 NỀN TẢNG + SHOTLIST) -->
+            <div id="footage-studio-results" style="margin-top: 14px; display: flex; flex-direction: column; gap: 14px;"></div>
           </div>
         </section>
         </main>
@@ -1107,21 +1235,19 @@
           </svg>
           <span>Kênh YouTube</span>
         </button>
+        <button type="button" class="m-nav-btn" data-tab="footage" id="m-nav-btn-footage">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <polygon points="10 9 15 12 10 15 10 9" />
+          </svg>
+          <span>🎬 Footage</span>
+        </button>
         <button type="button" class="m-nav-btn" data-tab="contents">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
           </svg>
           <span>Kho nội dung</span>
-        </button>
-        <button type="button" class="m-nav-btn" data-tab="users" id="m-nav-btn-users">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          <span>Quản lý User</span>
         </button>
         <button type="button" class="m-nav-btn" data-tab="bots" id="m-nav-btn-bots">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -1130,7 +1256,7 @@
             <circle cx="9" cy="14" r="1.5" />
             <circle cx="15" cy="14" r="1.5" />
           </svg>
-          <span>9 Bot</span>
+          <span>10 Bot</span>
         </button>
       </nav>
     </div>
@@ -1485,7 +1611,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=70"></script>
+  <script type="module" src="/app.js?v=71"></script>
 </body>
 </html>
 

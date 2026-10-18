@@ -12,6 +12,7 @@ import {
   formatTelegramCompetitorReport,
   sendTelegramThumbnailClone,
   formatTelegramTrendReport,
+  formatTelegramFootageReport,
   formatTelegramMonetizationReport,
   sendTelegramCloudReportDocument,
   pollTelegramBotUpdates,
@@ -821,6 +822,50 @@ export function createAppServer({
             trendScan,
             status: store.getBotCenterStatus(),
           });
+        }
+
+        if ((pathname === '/api/bots/footage/scan' || pathname === '/api/bots/footage/hunt') && method === 'POST') {
+          const body = await readJsonBody(req);
+          const footageScan = await store.runFootageHunterScan(body);
+          return sendJson(res, 200, {
+            ok: true,
+            footageScan,
+            scanItem: footageScan,
+            status: store.getBotCenterStatus(),
+          });
+        }
+
+        if (pathname === '/api/bots/footage/download' && method === 'GET') {
+          const targetUrl = String(url.searchParams.get('url') || '').trim();
+          const rawFilename = String(url.searchParams.get('filename') || 'acb9x-footage.mp4').trim();
+          const safeFilename = rawFilename.replace(/[^a-zA-Z0-9._-]/g, '_') || 'acb9x-footage.mp4';
+          if (!/^https?:\/\//i.test(targetUrl)) {
+            return sendJson(res, 400, { error: 'URL tải xuống không hợp lệ!' });
+          }
+          try {
+            const upstream = await fetch(targetUrl, {
+              headers: {
+                'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+              },
+            });
+            if (!upstream.ok) {
+              return sendJson(res, 502, { error: `Nguồn video trả về HTTP ${upstream.status}` });
+            }
+            const contentType = upstream.headers.get('content-type') || 'video/mp4';
+            const arrayBuf = await upstream.arrayBuffer();
+            const buf = Buffer.from(arrayBuf);
+            res.writeHead(200, {
+              ...SECURITY_HEADERS,
+              'Content-Type': contentType,
+              'Content-Length': buf.length,
+              'Content-Disposition': `attachment; filename="${safeFilename}"`,
+            });
+            res.end(buf);
+            return;
+          } catch (dlErr) {
+            return sendJson(res, 502, { error: `Không thể tải file trực tiếp: ${dlErr.message}` });
+          }
         }
 
         if (pathname === '/api/bots/monetization/scan' && method === 'POST') {

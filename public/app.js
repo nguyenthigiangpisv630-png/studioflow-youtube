@@ -82,10 +82,15 @@ const TAB_TITLES = {
     title: 'Trang Quản Lý User Gmail & Cấp Quyền Tách Riêng',
     subtitle: 'Quản lý danh sách thành viên đăng nhập bằng Gmail, cấu hình Không gian làm việc tách riêng và phân quyền theo Group / Kênh',
   },
-  bots: {
-    title: 'Trung tâm 9 Bot Tự động hóa 24/7',
+  footage: {
+    title: '🎬 Trang Riêng Bot 10 — Săn Kho Footage Đa Nền Tảng & Tải Video 4K (/footage)',
     subtitle:
-      'Bot 4: Sao lưu bất tử · Bot 1: Telegram · Bot 2: Nổ view · Bot 3: Lịch đăng · Bot 5: Đối thủ · Bot 6: Prompt Thumb · Bot 7: Săn Trend · Bot 11: Khiên Gà & BKT · Bot 12: Đồng bộ Đám mây',
+      'Săn Footage không bản quyền (Video .MP4 tải trực tiếp · YouTube 4K CC-BY · Pexels · Pixabay · Douyin 抖音 · Bilibili · Archive.org) & Xuất gói tải tự động (.BAT / .TXT / .CSV)',
+  },
+  bots: {
+    title: 'Trung tâm 10 Bot Tự động hóa 24/7',
+    subtitle:
+      'Bot 4: Sao lưu · Bot 1: Telegram · Bot 2: Nổ view · Bot 3: Lịch đăng · Bot 5: Đối thủ · Bot 6: REA Thumb · Bot 7: Săn Ngách 12 Nước · Bot 10: Kho Footage 4K · Bot 11: Khiên Gà · Bot 12: Đám mây',
   },
   brand: {
     title: 'Bộ Nhận Diện Thương Hiệu & Thông Tin Thương Mại',
@@ -3333,6 +3338,23 @@ function switchTab(tabName) {
       .then((res) => {
         state.botCenter = res;
         renderBotsCenterTab();
+      })
+      .catch(() => {});
+  }
+
+  if (tabName === 'footage') {
+    renderFootageStudioTab();
+    apiRequest('/api/bots/status')
+      .then(async (res) => {
+        state.botCenter = res;
+        if (!Array.isArray(res.footageScans) || res.footageScans.length === 0) {
+          const autoRes = await apiRequest('/api/bots/footage/scan', {
+            method: 'POST',
+            body: JSON.stringify({ query: 'tiểu sử tỷ phú luxury', category: 'all' }),
+          });
+          if (autoRes.status) state.botCenter = autoRes.status;
+        }
+        renderFootageStudioTab();
       })
       .catch(() => {});
   }
@@ -6817,6 +6839,14 @@ function renderBotsCenterTab() {
                         <button
                           type="button"
                           class="btn btn-secondary btn-xs"
+                          data-open-footage-query="${escapeHtml(k.keyword)}"
+                          title="Mở Trang Riêng Bot 10 để săn Kho Footage 4K & tải Video .MP4 cho từ khóa này"
+                        >
+                          🎬 Tìm Footage
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-xs"
                           data-clone-thumb-url=""
                           data-clone-thumb-title="${escapeHtml(k.suggestedTitle || k.keyword)}"
                           title="Đưa sang Bot 6 (/rea) để tạo Prompt Thumbnail cho tiêu đề này"
@@ -7808,6 +7838,582 @@ function initBotsCenterEvents() {
       btn.textContent = orig;
     }
   });
+
+  // =========================================================================
+  // TRANG RIÊNG BOT 10: SĂN KHO FOOTAGE ĐA NỀN TẢNG & TẢI VIDEO 4K (/footage)
+  // =========================================================================
+  const runFootageHuntAction = async (notifyTelegram = false, btn = null, overrideQuery = '') => {
+    const inp = document.getElementById('input-footage-query');
+    const selCat = document.getElementById('select-footage-category');
+    const query = String(overrideQuery || inp?.value || '').trim();
+    const category = String(selCat?.value || 'all').trim();
+    if (!query) {
+      showBanner('Vui lòng nhập Chủ đề hoặc Từ khóa cần săn Footage (VD: tiểu sử tỷ phú, lịch sử cổ đại, AI robot)!', true);
+      inp?.focus();
+      return;
+    }
+    if (inp && overrideQuery) inp.value = overrideQuery;
+    const orig = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = notifyTelegram
+        ? '🎬 Đang săn 10 nền tảng & bắn Telegram...'
+        : '🎬 Đang săn Kho Footage 10 nền tảng...';
+    }
+    try {
+      const res = await apiRequest('/api/bots/footage/scan', {
+        method: 'POST',
+        body: JSON.stringify({ query, category, notifyTelegram }),
+      });
+      if (res.status) state.botCenter = res.status;
+      renderFootageStudioTab();
+      renderBotsCenterTab();
+      const s = res.scanItem || res.footageScan || {};
+      showBanner(
+        notifyTelegram
+          ? `📲 Đã săn Kho Footage cho "${s.query || query}" & bắn báo cáo về Telegram @acb9xbot!`
+          : `🎬 Đã săn xong Kho Footage cho "${s.query || query}": ${
+              (s.directDownloadClips || []).length
+            } file .MP4 tải trực tiếp + ${(s.youtubeBrollClips || []).length} video YouTube 4K + 10 kho nền tảng!`
+      );
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+  };
+
+  document.getElementById('btn-footage-hunt-only')?.addEventListener('click', (e) =>
+    runFootageHuntAction(false, e.currentTarget)
+  );
+  document.getElementById('btn-footage-hunt-and-tg')?.addEventListener('click', (e) =>
+    runFootageHuntAction(true, e.currentTarget)
+  );
+  document.getElementById('input-footage-query')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('btn-footage-hunt-only')?.click();
+    }
+  });
+
+  // Tải 3 gói công cụ trên Trang riêng Bot 10 (.BAT / .TXT / .CSV)
+  const triggerTextPackageDownload = (content, filename, mimeType, bannerMsg) => {
+    if (!content) {
+      showBanner('Hãy bấm "🎬 Săn Kho Footage" trước khi tải xuống!', true);
+      return;
+    }
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showBanner(bannerMsg);
+  };
+
+  document.getElementById('btn-footage-download-bat')?.addEventListener('click', () => {
+    const scan = state.botCenter?.footageScans?.[0];
+    const pkg = scan?.downloadPackages;
+    triggerTextPackageDownload(
+      pkg?.batchDownloaderBat,
+      pkg?.batchDownloaderFilename || 'ACB9x-Auto-Download-Footage.bat',
+      'application/x-bat;charset=utf-8',
+      '⬇️ Đã tải Bộ Công Cụ Tự Động Tải Video 4K (.BAT) về máy! Anh bấm đúp file .bat để tự động tải toàn bộ file .MP4!'
+    );
+  });
+
+  document.getElementById('btn-footage-download-txt')?.addEventListener('click', () => {
+    const scan = state.botCenter?.footageScans?.[0];
+    const pkg = scan?.downloadPackages;
+    triggerTextPackageDownload(
+      pkg?.shotlistTxt,
+      pkg?.shotlistFilename || 'ACB9x-Footage-Shotlist.txt',
+      'text/plain;charset=utf-8',
+      '⬇️ Đã tải Hồ sơ Shotlist 5 Phân cảnh + Link 10 Nền tảng + Prompt Video AI (.TXT) về máy!'
+    );
+  });
+
+  document.getElementById('btn-footage-download-csv')?.addEventListener('click', () => {
+    const scan = state.botCenter?.footageScans?.[0];
+    const pkg = scan?.downloadPackages;
+    triggerTextPackageDownload(
+      pkg?.footageCsv,
+      pkg?.csvFilename || 'ACB9x-Footage-Links.csv',
+      'text/csv;charset=utf-8',
+      '⬇️ Đã tải Bảng Excel Tổng Hợp Link Footage & Prompt AI (.CSV) về máy!'
+    );
+  });
+
+  document.getElementById('btn-footage-save-current-vault')?.addEventListener('click', async (e) => {
+    const scan = state.botCenter?.footageScans?.[0];
+    if (!scan) {
+      showBanner('Hãy quét 1 chủ đề Footage trước khi lưu vào Kho Nội Dung!', true);
+      return;
+    }
+    const btn = e.currentTarget;
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang lưu...';
+    try {
+      await apiRequest('/api/contents', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: `[Kho Footage 4K & Shotlist] ${scan.query}`,
+          type: 'footage',
+          assetUrl: scan.platformHubs?.[0]?.searchUrl || '',
+          tags: `footage-4k, b-roll, ${scan.query}`,
+          status: 'approved',
+          body: scan.downloadPackages?.shotlistTxt || '',
+        }),
+      });
+      await loadOverview();
+      showBanner(`💎 Đã lưu trọn bộ Kho Footage & Shotlist "${scan.query}" vào Nơi lưu nội dung!`);
+    } catch (err) {
+      showBanner(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  });
+
+  // Sự kiện click toàn cục cho nút "🎬 Tìm Footage" từ Bot 7 hoặc từ trong #panel-footage
+  document.body.addEventListener('click', async (e) => {
+    const openFootageBtn = e.target.closest('[data-open-footage-query]');
+    if (openFootageBtn) {
+      const q = openFootageBtn.dataset.openFootageQuery || '';
+      switchTab('footage');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (q) {
+        await runFootageHuntAction(false, document.getElementById('btn-footage-hunt-only'), q);
+      }
+      return;
+    }
+
+    const quickTopicBtn = e.target.closest('[data-quick-footage-topic]');
+    if (quickTopicBtn) {
+      const q = quickTopicBtn.dataset.quickFootageTopic || '';
+      if (q) {
+        await runFootageHuntAction(false, document.getElementById('btn-footage-hunt-only'), q);
+      }
+      return;
+    }
+
+    const selectHistoryScanBtn = e.target.closest('[data-select-footage-scan-id]');
+    if (selectHistoryScanBtn) {
+      const scanId = selectHistoryScanBtn.dataset.selectFootageScanId;
+      const scans = state.botCenter?.footageScans || [];
+      const idx = scans.findIndex((s) => s.id === scanId);
+      if (idx > 0) {
+        const [picked] = scans.splice(idx, 1);
+        scans.unshift(picked);
+        renderFootageStudioTab();
+      }
+      return;
+    }
+
+    const previewYtBtn = e.target.closest('[data-preview-yt-embed-id]');
+    if (previewYtBtn) {
+      const vid = previewYtBtn.dataset.previewYtEmbedId;
+      const box = document.getElementById(`footage-yt-embed-box-${vid}`);
+      if (box) {
+        if (box.hidden) {
+          box.hidden = false;
+          box.innerHTML = `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(
+            vid
+          )}?autoplay=1" style="width:100%;height:200px;border:0;border-radius:8px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+          previewYtBtn.textContent = '✖ Đóng Xem Thử';
+        } else {
+          box.hidden = true;
+          box.innerHTML = '';
+          previewYtBtn.textContent = '▶️ Xem Thử Trên Web';
+        }
+      }
+      return;
+    }
+
+    const dlMp4Btn = e.target.closest('[data-download-direct-mp4-url]');
+    if (dlMp4Btn) {
+      const apiUrl = dlMp4Btn.dataset.downloadDirectMp4Api || '';
+      const rawUrl = dlMp4Btn.dataset.downloadDirectMp4Url || '';
+      const filename = dlMp4Btn.dataset.downloadDirectMp4Name || 'acb9x-footage.mp4';
+      const orig = dlMp4Btn.textContent;
+      dlMp4Btn.disabled = true;
+      dlMp4Btn.textContent = '⏳ Đang tải .MP4...';
+      try {
+        const token = getStoredAuthToken();
+        const res = await fetch(apiUrl || `/api/bots/footage/download?url=${encodeURIComponent(rawUrl)}&filename=${encodeURIComponent(filename)}`, {
+          headers: token ? { 'X-Studio-Token': token } : {},
+        });
+        if (!res.ok) throw new Error('Chuyển sang mở nguồn tải trực tiếp');
+        const blob = await res.blob();
+        const objUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(objUrl);
+        showBanner(`⬇️ Đã tải file video "${filename}" (.MP4) về máy thành công!`);
+      } catch {
+        window.open(rawUrl, '_blank', 'noopener');
+        showBanner(`⬇️ Đã mở luồng tải trực tiếp file "${filename}" (.MP4)!`);
+      } finally {
+        dlMp4Btn.disabled = false;
+        dlMp4Btn.textContent = orig;
+      }
+      return;
+    }
+  });
+}
+
+function renderFootageStudioTab() {
+  const container = document.getElementById('footage-studio-results');
+  if (!container) return;
+
+  const footageScans = Array.isArray(state.botCenter?.footageScans) ? state.botCenter.footageScans : [];
+  const activeScan = footageScans[0] || null;
+
+  const setText = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+  setText('footage-kpi-scans', `${footageScans.length} chủ đề`);
+  if (activeScan) {
+    setText('footage-kpi-direct', `${(activeScan.directDownloadClips || []).length} file .MP4 sẵn sàng`);
+    setText('footage-kpi-yt', `${(activeScan.youtubeBrollClips || []).length} video 4K CC-BY`);
+  }
+
+  if (!activeScan) {
+    container.innerHTML = `
+      <div class="panel-box" style="padding: 28px; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 8px;">🎬</div>
+        <h3 style="margin: 0 0 6px 0; font-size: 1.05rem;">Đang khởi tạo Kho Footage Đa Nền Tảng...</h3>
+        <p style="margin: 0; color: #64748b; font-size: 0.88rem;">
+          Hãy nhập chủ đề (VD: <code>tiểu sử tỷ phú</code>, <code>lịch sử cổ đại</code>, <code>AI robot</code>) hoặc bấm vào 1 trong 6 nút gợi ý ở trên để săn và tải Video .MP4 ngay!
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  const qp = activeScan.queryPack || {};
+  const directClips = Array.isArray(activeScan.directDownloadClips) ? activeScan.directDownloadClips : [];
+  const ytClips = Array.isArray(activeScan.youtubeBrollClips) ? activeScan.youtubeBrollClips : [];
+  const hubs = Array.isArray(activeScan.platformHubs) ? activeScan.platformHubs : [];
+  const shots = Array.isArray(activeScan.shotlist5Scenes) ? activeScan.shotlist5Scenes : [];
+  const rules = Array.isArray(activeScan.fairUseShield) ? activeScan.fairUseShield : [];
+
+  const historyChipsHtml =
+    footageScans.length > 1
+      ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 12px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;">
+          <span style="font-size:11.5px;font-weight:800;color:#475569;">🕘 Lịch sử chủ đề đã săn:</span>
+          ${footageScans
+            .map(
+              (s, i) => `
+              <button
+                type="button"
+                class="btn ${i === 0 ? 'btn-primary' : 'btn-secondary'} btn-xs"
+                data-select-footage-scan-id="${escapeHtml(s.id)}"
+              >
+                🎬 ${escapeHtml(s.query)}
+              </button>
+            `
+            )
+            .join('')}
+        </div>`
+      : '';
+
+  container.innerHTML = `
+    ${historyChipsHtml}
+
+    <!-- BẢNG TỪ KHÓA ĐÃ DỊCH TỰ ĐỘNG SANG TIẾNG ANH ĐIỆN ẢNH & TIẾNG TRUNG (DOUYIN / BILIBILI) -->
+    <div class="panel-box" style="padding: 14px 16px; border-left: 4px solid #0284c7;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <div>
+          <strong style="font-size: 14px; color: #0f172a;">
+            🎯 Chủ đề đang mở: "${escapeHtml(activeScan.query)}"
+          </strong>
+          <span style="font-size: 11.5px; color: #64748b; margin-left: 8px;">
+            (${escapeHtml(activeScan.categoryLabel || '')} · Quét lúc ${escapeHtml(formatDateTimeVi(activeScan.scannedAt))})
+          </span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">
+        <div style="padding:8px 10px;border-radius:8px;background:#f0f9ff;border:1px solid #bae6fd;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <div style="min-width:0;">
+            <div style="font-size:10.5px;font-weight:800;color:#0369a1;">🇺🇸 TỪ KHÓA TIẾNG ANH CHUẨN 4K B-ROLL (PEXELS / PIXABAY / YT):</div>
+            <code style="font-size:12px;font-weight:700;color:#0c4a6e;word-break:break-all;">${escapeHtml(qp.englishCinematicQuery || '')}</code>
+          </div>
+          <button type="button" class="btn btn-secondary btn-xs" data-copy-prompt-text="${escapeHtml(qp.englishCinematicQuery || '')}">📋 Copy</button>
+        </div>
+        <div style="padding:8px 10px;border-radius:8px;background:#faf5ff;border:1px solid #e9d5ff;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <div style="min-width:0;">
+            <div style="font-size:10.5px;font-weight:800;color:#7e22ce;">🇨🇳 TỪ KHÓA TIẾNG TRUNG SĂN KHO DOUYIN (抖音) &amp; BILIBILI:</div>
+            <code style="font-size:12px;font-weight:700;color:#581c87;word-break:break-all;">${escapeHtml(qp.chineseDouyinQuery || '')}</code>
+          </div>
+          <button type="button" class="btn btn-secondary btn-xs" data-copy-prompt-text="${escapeHtml(qp.chineseDouyinQuery || '')}">📋 Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KHU VỰC 1: KHO VIDEO .MP4 XEM THỬ TRỰC TIẾP & TẢI THẲNG 1-CLICK VỀ MÁY (PUBLIC DOMAIN / CC0) -->
+    <div class="panel-box" style="padding: 16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <div>
+          <h3 style="margin:0;font-size:1rem;font-weight:800;color:#047857;">
+            🟢 1. Kho Video .MP4 Xem Thử Trực Tiếp &amp; Tải Thẳng Về Máy (Public Domain / CC0 — An Toàn BKT 100%)
+          </h3>
+          <p style="margin:2px 0 0 0;font-size:12px;color:#64748b;">
+            Anh có thể bấm <strong>▶️ Play</strong> để xem thử ngay trên trang Web và bấm <strong>"⬇️ Tải File .MP4 Về Máy"</strong> để lưu thẳng file video về ổ cứng!
+          </p>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;">
+        ${directClips
+          .map(
+            (c) => `
+            <div style="border:1px solid #cbd5e1;border-radius:10px;padding:10px;background:#ffffff;display:flex;flex-direction:column;gap:8px;">
+              <video
+                controls
+                preload="metadata"
+                style="width:100%;height:175px;object-fit:cover;border-radius:8px;background:#0f172a;"
+                src="${escapeHtml(c.directVideoUrl)}"
+              ></video>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
+                <span style="font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;">
+                  ${escapeHtml(c.licenseBadge)}
+                </span>
+                <span style="font-size:11px;font-weight:700;color:#475569;">
+                  🎞️ ${escapeHtml(c.resolution)} · ⏱️ ${escapeHtml(c.durationText)}
+                </span>
+              </div>
+              <strong style="font-size:12.5px;color:#0f172a;line-height:1.35;">${escapeHtml(c.title)}</strong>
+              <div style="font-size:11px;color:#475569;">${escapeHtml(c.sceneUsage || '')}</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:4px;">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-xs"
+                  style="flex:1;"
+                  data-download-direct-mp4-api="${escapeHtml(c.downloadApiUrl || '')}"
+                  data-download-direct-mp4-url="${escapeHtml(c.directVideoUrl)}"
+                  data-download-direct-mp4-name="${escapeHtml(c.filename || 'acb9x-footage.mp4')}"
+                >
+                  ⬇️ Tải File .MP4 Về Máy
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  data-copy-prompt-text="${escapeHtml(c.directVideoUrl)}"
+                >
+                  📋 Copy Link .MP4
+                </button>
+                <a
+                  href="${escapeHtml(c.sourcePageUrl || c.directVideoUrl)}"
+                  target="_blank"
+                  rel="noopener"
+                  class="btn btn-secondary btn-xs"
+                  style="text-decoration:none;"
+                >
+                  Kho gốc ↗
+                </a>
+              </div>
+            </div>
+          `
+          )
+          .join('')}
+      </div>
+    </div>
+
+    <!-- KHU VỰC 2: 10 KHO FOOTAGE ĐA NỀN TẢNG QUỐC TẾ & TRUNG QUỐC (PEXELS · PIXABAY · DOUYIN · BILIBILI) -->
+    <div class="panel-box" style="padding: 16px;">
+      <h3 style="margin:0 0 4px 0;font-size:1rem;font-weight:800;color:#4338ca;">
+        🌍 2. Mở Nhanh 10 Kho Footage Đa Nền Tảng Quốc Tế &amp; Trung Quốc (Đã Nạp Sẵn Từ Khóa Chuyên Sâu)
+      </h3>
+      <p style="margin:0 0 12px 0;font-size:12px;color:#64748b;">
+        Bấm <strong>"🚀 Mở Kho &amp; Tải Video ↗"</strong> để mở trực tiếp trang kết quả video đã lọc sẵn của từng nền tảng (Pexels 4K, Pixabay, YouTube CC-BY, Douyin 抖音, Bilibili, Archive.org...).
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;">
+        ${hubs
+          .map(
+            (p) => `
+            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;background:#f8fafc;display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                <strong style="font-size:13px;color:#0f172a;">${p.icon} ${escapeHtml(p.name)}</strong>
+                <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;background:#e0e7ff;color:#3730a3;">
+                  ${escapeHtml(p.region)}
+                </span>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:#047857;">🛡️ ${escapeHtml(p.licenseType)}</div>
+              <div style="font-size:11px;color:#334155;">
+                🔑 Từ khóa nạp sẵn: <code>${escapeHtml(p.queryUsed)}</code>
+              </div>
+              <div style="font-size:11px;color:#64748b;">💡 ${escapeHtml(p.downloadTip)}</div>
+              <div style="display:flex;gap:6px;margin-top:auto;padding-top:4px;">
+                <a
+                  href="${escapeHtml(p.searchUrl)}"
+                  target="_blank"
+                  rel="noopener"
+                  class="btn btn-primary btn-xs"
+                  style="flex:1;text-decoration:none;text-align:center;"
+                >
+                  🚀 Mở Kho &amp; Tải Video ↗
+                </a>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  data-copy-prompt-text="${escapeHtml(p.queryUsed)}"
+                >
+                  📋 Copy Key
+                </button>
+              </div>
+            </div>
+          `
+          )
+          .join('')}
+      </div>
+    </div>
+
+    <!-- KHU VỰC 3: DANH SÁCH VIDEO YOUTUBE 4K B-ROLL & CREATIVE COMMONS (CC-BY) THỰC TẾ -->
+    <div class="panel-box" style="padding: 16px;">
+      <h3 style="margin:0 0 4px 0;font-size:1rem;font-weight:800;color:#0284c7;">
+        🔵 3. Danh Sách Video YouTube 4K B-Roll &amp; Creative Commons (Xem Thử &amp; Tải MP4 / Thumbnail)
+      </h3>
+      <p style="margin:0 0 12px 0;font-size:12px;color:#64748b;">
+        Các video B-Roll 4K thực tế được quét trực tiếp từ YouTube theo chủ đề <strong>"${escapeHtml(activeScan.query)}"</strong>. Bấm <strong>"▶️ Xem Thử Trên Web"</strong> hoặc tải về cắt ghép.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;">
+        ${ytClips
+          .map(
+            (y) => `
+            <div style="border:1px solid #cbd5e1;border-radius:10px;padding:10px;background:#ffffff;display:flex;flex-direction:column;gap:7px;">
+              <div style="position:relative;">
+                <img
+                  src="${escapeHtml(y.thumbnailUrl)}"
+                  alt="${escapeHtml(y.title)}"
+                  style="width:100%;height:165px;object-fit:cover;border-radius:8px;background:#0f172a;"
+                  loading="lazy"
+                />
+                <span style="position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.88);color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;">
+                  ⏱️ ${escapeHtml(y.durationText)}
+                </span>
+              </div>
+              <div id="footage-yt-embed-box-${escapeHtml(y.videoId)}" hidden></div>
+              <strong style="font-size:12.5px;color:#0f172a;line-height:1.35;">${escapeHtml(y.title)}</strong>
+              <div style="font-size:11px;color:#475569;">
+                📺 <strong>${escapeHtml(y.channelName)}</strong> · 👁️ ${formatNumber(y.views)} views
+              </div>
+              <div style="font-size:10.5px;color:#0369a1;font-weight:700;">${escapeHtml(y.licenseBadge)}</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:auto;padding-top:4px;">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-xs"
+                  data-preview-yt-embed-id="${escapeHtml(y.videoId)}"
+                >
+                  ▶️ Xem Thử Trên Web
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  data-download-direct-mp4-api="${escapeHtml(y.thumbDownloadUrl)}"
+                  data-download-direct-mp4-url="${escapeHtml(y.thumbnailUrl)}"
+                  data-download-direct-mp4-name="footage-thumb-${escapeHtml(y.videoId)}.jpg"
+                  title="Tải ảnh Thumbnail gốc (.JPG) của video B-Roll này về máy"
+                >
+                  ⬇️ Tải Ảnh (.JPG)
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  data-copy-prompt-text="${escapeHtml(y.ytDlpCommand)}"
+                  title="Copy lệnh yt-dlp tải video 4K MP4 này về máy tính"
+                >
+                  📋 Lệnh Tải 4K
+                </button>
+                <a
+                  href="${escapeHtml(y.videoUrl)}"
+                  target="_blank"
+                  rel="noopener"
+                  class="btn btn-secondary btn-xs"
+                  style="text-decoration:none;"
+                >
+                  YouTube ↗
+                </a>
+              </div>
+            </div>
+          `
+          )
+          .join('')}
+      </div>
+    </div>
+
+    <!-- KHU VỰC 4: BẢNG PHÂN CẢNH B-ROLL 5 PHÂN ĐOẠN (SHOTLIST) + PROMPT TẠO VIDEO AI (KLING / RUNWAY / SORA) + KHIÊN FAIR-USE -->
+    <div class="panel-box" style="padding: 16px;">
+      <h3 style="margin:0 0 4px 0;font-size:1rem;font-weight:800;color:#b45309;">
+        🎞️ 4. Bảng Phân Cảnh B-Roll 5 Phân Đoạn (Shotlist) &amp; Prompt Tạo Video AI (Kling / Hailuo / Runway / Sora)
+      </h3>
+      <p style="margin:0 0 12px 0;font-size:12px;color:#64748b;">
+        Với những cảnh hiếm không có sẵn trên mạng, anh bấm <strong>"📋 Copy Prompt Video AI"</strong> rồi dán vào <em>Kling AI, Hailuo MiniMax, Runway Gen-3 hoặc Sora</em> để tạo cảnh quay 4K độc quyền!
+      </p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${shots
+          .map(
+            (s) => `
+            <div style="padding:10px 12px;border-radius:9px;background:#fffbeb;border:1px solid #fde68a;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+              <div style="flex:1;min-width:240px;">
+                <div style="font-size:12.5px;font-weight:800;color:#92400e;">
+                  🎬 Cảnh #${s.sceneNumber}: ${escapeHtml(s.timeRange)} — ${escapeHtml(s.sceneRole)}
+                </div>
+                <div style="font-size:11.5px;color:#334155;margin-top:3px;">
+                  💡 <strong>Hướng dẫn dựng:</strong> ${escapeHtml(s.visualGuideVi)}
+                </div>
+                <div style="font-size:11px;color:#047857;margin-top:2px;">
+                  🌍 <strong>Nguồn gợi ý:</strong> ${escapeHtml(s.suggestedPlatform)} · 🔑 Key tìm nhanh: <code>${escapeHtml(
+                    s.searchKeywordEn
+                  )}</code>
+                </div>
+                <div style="font-size:11px;color:#475569;margin-top:3px;background:#ffffff;padding:5px 8px;border-radius:6px;border:1px dashed #fcd34d;">
+                  🤖 <strong>Prompt tạo Video AI (Kling / Runway / Sora):</strong> <code>${escapeHtml(s.aiVideoPrompt)}</code>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;flex-shrink:0;">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-xs"
+                  data-copy-prompt-text="${escapeHtml(s.aiVideoPrompt)}"
+                >
+                  📋 Copy Prompt Video AI
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  data-copy-prompt-text="${escapeHtml(s.searchKeywordEn)}"
+                >
+                  📋 Copy Key B-Roll
+                </button>
+              </div>
+            </div>
+          `
+          )
+          .join('')}
+      </div>
+
+      <div style="margin-top:14px;padding:12px;border-radius:9px;background:#ecfdf5;border:1px solid #a7f3d0;">
+        <div style="font-size:12.5px;font-weight:800;color:#047857;margin-bottom:6px;">
+          🛡️ 5 Quy Tắc Vàng Lách Content ID &amp; Chống Reuse Content (Sử Dụng Lại Nội Dung) Khi Bật Kiếm Tiền:
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:#065f46;">
+          ${rules.map((r) => `<div>${escapeHtml(r)}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 // Đăng ký Service Worker cho Mobile App (PWA) & dọn cache cũ tránh lỗi hiển thị CSS
@@ -7819,7 +8425,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=66', { updateViaCache: 'none' })
+      .register('/sw.js?v=71', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
