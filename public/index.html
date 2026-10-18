@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=76" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=76" />
+  <link rel="icon" href="/icon.svg?v=77" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=77" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -100,6 +100,20 @@
                 <span class="nav-btn-label">Săn &amp; Tải Footage</span>
               </span>
               <span class="nav-count" id="nav-count-footage">4K</span>
+            </button>
+
+            <button type="button" class="nav-btn" data-tab="easycut" id="nav-btn-easycut" hidden>
+              <span class="nav-btn-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <circle cx="6" cy="6" r="3" />
+                  <circle cx="6" cy="18" r="3" />
+                  <line x1="20" y1="4" x2="8.12" y2="15.88" />
+                  <line x1="14.47" y1="14.48" x2="20" y2="20" />
+                  <line x1="8.12" y1="8.12" x2="12" y2="12" />
+                </svg>
+                <span class="nav-btn-label">Bàn Dựng EasyCut</span>
+              </span>
+              <span class="nav-count" id="nav-count-easycut" style="background:#7c3aed;color:#ffffff;">NLE</span>
             </button>
 
             <button type="button" class="nav-btn" data-tab="bots" id="nav-btn-bots" hidden>
@@ -1108,6 +1122,22 @@
                   </button>
                 </div>
               </div>
+
+              <!-- ==================== BOT 8: BÀN DỰNG VIDEO ĐA TRACK EASYCUT STUDIO & AGENT REMOTION (/easycut) ==================== -->
+              <div class="bot-card panel-box" style="grid-column: 1 / -1; border: 1.5px solid rgba(124,58,237,0.45); background: linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%);">
+                <div class="bot-card-header">
+                  <div class="bot-card-title-wrap">
+                    <span class="bot-icon-badge" style="background:#ede9fe;border:1px solid #c4b5fd;">✂️</span>
+                    <div>
+                      <h3 class="bot-card-title">Bot 8 — Bàn Dựng Video Đa Track EasyCut Studio &amp; Agent Remotion 6 Trụ Cột (<code>/easycut</code>)</h3>
+                      <p class="bot-card-sub">Giao diện chính là Bàn Dựng Đa Track EasyCut (<code>/app/</code> — Video · Ảnh 3D · Số Năm Motion · Phụ đề · SFX) kết hợp hộp cài đặt gọn <strong>⚙️ Bot 8 &amp; QC</strong> (Nạp Kịch bản/MP3 · Bot 10 Footage · Dán nhãn 🟢🟡🔴 · QC 25/25 · Duyệt &amp; Render MP4)</p>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-sm" data-goto-tab="easycut" style="background:#7c3aed;border-color:#7c3aed;">
+                    ✂️ Mở Bàn Dựng Đa Track EasyCut &amp; Bot 8 →
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- NHẬT KÝ HOẠT ĐỘNG TỰ ĐỘNG CỦA 10 BOT -->
@@ -1127,20 +1157,20 @@
             <!-- BANNER ĐẦU TRANG RIÊNG BOT 10 FOOTAGE STUDIO (NỀN SÁNG TƯƠNG PHẢN CAO, CHỮ RÕ NÉT 100%) -->
             <div class="users-page-header bots-page-header bots-hero-banner" style="background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 55%, #ecfdf5 100%); border: 2px solid #0284c7; border-radius: 14px; padding: 18px 20px;">
               <div class="users-page-title-block bots-hero-left">
-                <div class="bots-hero-badge">🎬 BOT 10 FOOTAGE STUDIO · 🤖 4 AI AGENT ĐẠO DIỄN · 📂 EXCEL / SHEET / NOTION · 🔄 SĂN LẠI (AGAIN)</div>
-                <h2 class="bots-hero-title">Trang Riêng Bot 10 — AI Agent Săn Kho Footage Đa Nền Tảng, Bóc Tách Kịch Bản &amp; Tải Video 4K</h2>
+                <div class="bots-hero-badge">🎬 BOT 10 FOOTAGE STUDIO · 📸 GETTY · IMDB · ALAMY · ISTOCKPHOTO · 🛡️ QC DUYỆT ĐỘ SÁT · 🔄 AGAIN</div>
+                <h2 class="bots-hero-title">Trang Riêng Bot 10 — AI Agent Săn Kho Footage &amp; Ảnh Tư Liệu (Getty Images · IMDb · Alamy · iStockPhoto · Video 4K)</h2>
                 <p class="bots-hero-sub">
-                  Nhập <strong>Từ khóa</strong> hoặc nạp <strong>File Excel (<code>.xlsx</code>, <code>.csv</code>), Link Google Sheets, File Notion (<code>.md</code>, <code>.txt</code>), Kịch Bản Dựng</strong>: Hệ thống <strong>4 AI Agent Đạo Diễn</strong> tự động bóc tách từng cảnh, chọn góc máy, dịch sang <strong>Tiếng Anh 4K &amp; Tiếng Trung (Douyin 抖音 / Bilibili)</strong>, gán <strong>Video .MP4 Tải Trực Tiếp</strong> và hỗ trợ nút <strong>🔄 Săn Lại / Đổi Cảnh Khác (Again)</strong> không giới hạn!
+                  Nhập <strong>Từ khóa</strong> hoặc nạp <strong>File Excel (<code>.xlsx</code>, <code>.csv</code>), Link Google Sheets, File Notion (<code>.md</code>, <code>.txt</code>), Kịch Bản Dựng</strong>: Hệ thống <strong>4 AI Agent Đạo Diễn + Agent QC</strong> tự động bóc tách từng cảnh, chấm điểm độ sát để hiển thị <strong>Video .MP4</strong> &amp; <strong>Ảnh Tư Liệu / Stills Phim (<code>www.gettyimages.com</code> · <code>imdb.com</code> · <code>alamy.com</code> · <code>istockphoto.com</code>)</strong> kèm nút <strong>🔄 Săn Lại / Đổi Cảnh Khác (Again)</strong>!
                 </p>
               </div>
               <div class="users-page-actions bots-hero-actions">
-                <button type="button" class="btn btn-primary" id="btn-footage-download-bat" title="Tải file .BAT tự động kéo toàn bộ Video .MP4 theo từng cảnh Kịch bản & YouTube 4K B-Roll về máy tính">
+                <button type="button" class="btn btn-primary" id="btn-footage-download-bat" title="Tải file .BAT tự động kéo toàn bộ Video .MP4 + Ảnh Stills IMDb/Editorial theo từng cảnh Kịch bản & YouTube 4K B-Roll về máy tính">
                   ⬇️ Tải Auto-Downloader (.BAT)
                 </button>
-                <button type="button" class="btn btn-secondary" id="btn-footage-download-txt" title="Tải toàn bộ Hồ sơ Phân cảnh Kịch bản + Link 10 nền tảng + Prompt AI (.TXT)">
+                <button type="button" class="btn btn-secondary" id="btn-footage-download-txt" title="Tải toàn bộ Hồ sơ Phân cảnh Kịch bản + Link 14 nền tảng (Getty, IMDb, Alamy, iStock...) + Prompt AI (.TXT)">
                   ⬇️ Tải Hồ Sơ Shotlist (.TXT)
                 </button>
-                <button type="button" class="btn btn-secondary" id="btn-footage-download-csv" title="Tải bảng Excel .CSV tổng hợp toàn bộ cảnh kịch bản & link video">
+                <button type="button" class="btn btn-secondary" id="btn-footage-download-csv" title="Tải bảng Excel .CSV tổng hợp toàn bộ cảnh kịch bản, ảnh tư liệu & link video">
                   ⬇️ Tải Bảng Link (.CSV)
                 </button>
               </div>
@@ -1153,16 +1183,16 @@
                 <strong class="bot-kpi-val num" id="footage-kpi-scans" style="color:#0284c7;">0 chủ đề</strong>
               </div>
               <div class="bot-kpi-box">
-                <span class="bot-kpi-label">🟢 Video .MP4 Tải Trực Tiếp</span>
-                <strong class="bot-kpi-val num" id="footage-kpi-direct" style="color:#059669;">6 clip MP4 + Theo cảnh</strong>
+                <span class="bot-kpi-label">🟢 Video .MP4 &amp; Ảnh Đã QC</span>
+                <strong class="bot-kpi-val num" id="footage-kpi-direct" style="color:#059669;">6 clip MP4 + 8 Ảnh Stills</strong>
               </div>
               <div class="bot-kpi-box">
-                <span class="bot-kpi-label">🤖 AI Agent Đạo Diễn &amp; Again</span>
-                <strong class="bot-kpi-val num" id="footage-kpi-yt" style="color:#4f46e5;">4 AI Agent · 5 Góc máy</strong>
+                <span class="bot-kpi-label">📸 Kho Ảnh &amp; Stills Điện Ảnh</span>
+                <strong class="bot-kpi-val num" id="footage-kpi-yt" style="color:#4f46e5;">Getty · IMDb · Alamy · iStock</strong>
               </div>
               <div class="bot-kpi-box">
                 <span class="bot-kpi-label">🌍 Kho Đa Nền Tảng Kết Nối</span>
-                <strong class="bot-kpi-val num" style="color:#d97706;">10 Nền tảng (Mỹ · Trung · Âu)</strong>
+                <strong class="bot-kpi-val num" style="color:#d97706;">14 Nền tảng Quốc tế</strong>
               </div>
             </div>
 
@@ -1333,6 +1363,84 @@
             <div id="footage-studio-results" style="margin-top: 14px; display: flex; flex-direction: column; gap: 14px;"></div>
           </div>
         </section>
+
+        <!-- ==================== TRANG RIÊNG BÀN DỰNG VIDEO ĐA TRACK EASYCUT STUDIO + BOT 8 (/easycut) ==================== -->
+        <section class="tab-panel" id="panel-easycut">
+          <div id="easycut-studio-shell" style="display:flex;flex-direction:column;gap:8px;height:calc(100vh - 24px);min-height:680px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;border-radius:10px;background:#0f172a;color:#f8fafc;border:1px solid #334155;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:rgba(16,185,129,0.18);color:#34d399;border:1px solid rgba(16,185,129,0.4);font-size:11.5px;font-weight:800;" id="easycut-conn-badge">
+                  🟢 EasyCut Studio NLE + ⚙️ Bot 8
+                </span>
+                <span style="font-size:12px;color:#cbd5e1;">
+                  Timeline Đa Track là giao diện chính · Bấm <strong>⚙️ Bot 8 &amp; QC</strong> ở góc phải thanh Topbar để nạp Kịch bản/MP3, dán nhãn &amp; chạy QC 25/25
+                </span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;justify-content:flex-end;min-width:300px;">
+                <input
+                  type="url"
+                  id="input-easycut-tunnel-url"
+                  class="input-control"
+                  style="max-width:340px;height:30px;font-size:11.5px;background:#1e293b;color:#f8fafc;border-color:#475569;padding:3px 9px;"
+                  placeholder="https://xxx.trycloudflare.com hoặc http://127.0.0.1:8787"
+                />
+                <button
+                  type="button"
+                  class="btn btn-primary btn-xs"
+                  id="btn-easycut-save-url"
+                  style="background:#7c3aed;border-color:#7c3aed;color:#ffffff !important;font-weight:700;"
+                  title="Lưu và kết nối tới địa chỉ Cloudflare Tunnel / Local của Bàn Dựng EasyCut"
+                >
+                  🔗 Kết nối
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  id="btn-easycut-use-local"
+                  style="background:#1e293b;color:#e2e8f0;border-color:#475569;"
+                  title="Kết nối trực tiếp cổng Local 127.0.0.1:8787 trên máy tính đang chạy"
+                >
+                  💻 Local :8787
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  id="btn-easycut-reload"
+                  style="background:#1e293b;color:#e2e8f0;border-color:#475569;"
+                  title="Tải lại khung Bàn Dựng EasyCut"
+                >
+                  🔄 Tải lại
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-xs"
+                  id="btn-easycut-fullscreen"
+                  style="background:#059669;color:#ffffff !important;border-color:#059669;font-weight:700;"
+                  title="Phóng to Bàn Dựng EasyCut toàn màn hình 100%"
+                >
+                  🖥️ Toàn màn hình
+                </button>
+                <a
+                  href="https://extra-ali-compete-equilibrium.trycloudflare.com/"
+                  target="_blank"
+                  rel="noopener"
+                  id="link-easycut-newtab"
+                  class="btn btn-secondary btn-xs"
+                  style="background:#1e293b;color:#38bdf8;border-color:#475569;text-decoration:none;font-weight:700;"
+                >
+                  ↗ Mở Tab Riêng
+                </a>
+              </div>
+            </div>
+
+            <iframe
+              id="iframe-easycut-studio"
+              title="EasyCut Studio NLE & Bot 8"
+              style="flex:1;width:100%;height:100%;border:1px solid #1e293b;border-radius:10px;background:#090d16;"
+              allow="autoplay; clipboard-read; clipboard-write; fullscreen"
+            ></iframe>
+          </div>
+        </section>
         </main>
       </div>
 
@@ -1357,6 +1465,16 @@
             <polygon points="10 9 15 12 10 15 10 9" />
           </svg>
           <span>🎬 Footage</span>
+        </button>
+        <button type="button" class="m-nav-btn" data-tab="easycut" id="m-nav-btn-easycut" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <circle cx="6" cy="6" r="3" />
+            <circle cx="6" cy="18" r="3" />
+            <line x1="20" y1="4" x2="8.12" y2="15.88" />
+            <line x1="14.47" y1="14.48" x2="20" y2="20" />
+            <line x1="8.12" y1="8.12" x2="12" y2="12" />
+          </svg>
+          <span>✂️ EasyCut</span>
         </button>
         <button type="button" class="m-nav-btn" data-tab="contents">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -1727,7 +1845,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=76"></script>
+  <script type="module" src="/app.js?v=77"></script>
 </body>
 </html>
 

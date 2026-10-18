@@ -42,7 +42,7 @@ const SECURITY_HEADERS = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
   'Content-Security-Policy':
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https: data: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; connect-src 'self' https:; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http://127.0.0.1:8787 http://localhost:8787; media-src 'self' https: data: blob: http://127.0.0.1:8787 http://localhost:8787; frame-src 'self' https://*.trycloudflare.com http://127.0.0.1:8787 http://localhost:8787 https://www.youtube.com https://www.youtube-nocookie.com; connect-src 'self' https: http://127.0.0.1:8787 http://localhost:8787; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
 };
 
 const MAX_BODY_BYTES = 10 * 1024 * 1024; // Giới hạn gói tin tối đa 10MB hỗ trợ khôi phục Backup JSON & chống DoS
@@ -338,6 +338,59 @@ export function createAppServer({
           null
         );
         return sendJson(res, 201, created);
+      }
+
+      // Cổng đồng bộ & đọc URL Bàn Dựng EasyCut + Bot 8 (Cloudflare Tunnel / Local :8787)
+      if (pathname === '/api/bots/easycut/config') {
+        if (!store.state.meta) store.state.meta = {};
+        if (!store.state.meta.botCenter) store.state.meta.botCenter = {};
+        if (!store.state.meta.botCenter.easycutConfig) {
+          store.state.meta.botCenter.easycutConfig = {
+            tunnelUrl: 'https://extra-ali-compete-equilibrium.trycloudflare.com',
+            localUrl: 'http://127.0.0.1:8787',
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        const ecCfg = store.state.meta.botCenter.easycutConfig;
+
+        if (method === 'GET') {
+          return sendJson(res, 200, {
+            ok: true,
+            tunnelUrl: ecCfg.tunnelUrl || 'https://extra-ali-compete-equilibrium.trycloudflare.com',
+            localUrl: ecCfg.localUrl || 'http://127.0.0.1:8787',
+            updatedAt: ecCfg.updatedAt || '',
+          });
+        }
+
+        if (method === 'POST') {
+          const body = await readJsonBody(req);
+          const rawUrl = String(body.tunnelUrl || body.url || '').trim().replace(/\/+$/, '');
+          const isValidTunnel =
+            /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(rawUrl) ||
+            /^http:\/\/(127\.0\.0\.1|localhost):\d+$/i.test(rawUrl);
+          const authChk = store.getAuthStatus(clientToken);
+          const isAdminAuth = !authChk.passwordEnabled || (authChk.authenticated && (!authChk.user || authChk.user.role === 'admin'));
+
+          if (!rawUrl || (!isValidTunnel && !(isAdminAuth && /^https?:\/\//i.test(rawUrl)))) {
+            return sendJson(res, 400, { error: 'URL Bàn Dựng EasyCut không hợp lệ (Cần link https://*.trycloudflare.com hoặc http://127.0.0.1:8787)!' });
+          }
+
+          ecCfg.tunnelUrl = rawUrl;
+          ecCfg.updatedAt = new Date().toISOString();
+          appendBotLog(
+            store.state.meta,
+            'Bot 8 (EasyCut NLE)',
+            `Đã kết nối & đồng bộ URL Bàn Dựng Video Đa Track EasyCut: ${rawUrl}`,
+            'success'
+          );
+          store.saveState();
+          return sendJson(res, 200, {
+            ok: true,
+            tunnelUrl: ecCfg.tunnelUrl,
+            localUrl: ecCfg.localUrl || 'http://127.0.0.1:8787',
+            updatedAt: ecCfg.updatedAt,
+          });
+        }
       }
 
       const authStatus = store.getAuthStatus(clientToken);
