@@ -59,3 +59,21 @@ Tài liệu bàn giao ngữ cảnh (Handoff Context) để Claude / Claude Code 
    - Trên PC Web (`@media (min-width: 769px)`), toàn bộ thông tin của 1 kênh nằm trên **1 hàng ngang duy nhất** theo thứ tự thông minh từ trái sang phải:
      `Tên kênh` ➔ `@Handle ↗` ➔ `SUB` ➔ `TỔNG VIEWS` ➔ `VIDEO` ➔ `Trạng thái BKT` ➔ `Ngách` ➔ `Group` ➔ `Quản lý` ➔ `Gà: •••• [🔒 Xem] [🔑 Pass]` ➔ `📅 Ngày đầu` ➔ `Đồng bộ | Xóa` (căn phải).
    - Trên Mobile / App (`@media (max-width: 768px)` hoặc chế độ `.mode-app`), giữ nguyên chế độ thu gọn Accordion và lưới thông minh (Smart Grid).
+
+---
+
+## 4. Danh mục 10 Bot Thực Chiến Có Thể Tích Hợp Tiếp Theo
+
+Khi người dùng yêu cầu làm Bot số mấy, hãy triển khai theo đúng thiết kế dưới đây:
+
+1. **Bot 1 — Telegram Admin Center Bot**: Thông báo & duyệt User đăng ký mới ngay trên Telegram, cảnh báo đăng nhập sai, nhận lệnh `/add @handle`, `/top`, `/doanhthu`.
+2. **Bot 2 — Viral & Outlier Watchdog Bot**: Tự động quét dàn kênh mỗi giờ, báo động ngay khi có video nổ view đột biến (gấp 2x–10x trung bình kênh) hoặc kênh bị tắt BKT.
+3. **Bot 3 — Dead-Channel & Schedule Reminder Bot**: Tự động phát hiện kênh quá 3–5 ngày chưa đăng video mới và nhắc nhở Quản lý phụ trách kênh/Group đó.
+4. **Bot 4 — Auto-Backup Cloud Bot**: Tự động sao lưu dữ liệu `studio-db.json` lên Cloud (Supabase / MongoDB Atlas / Google Sheets / Notion / GitHub Gist) để dữ liệu trên Render.com bền vững 100% khi redeploy.
+5. **Bot 5 — Niche & Competitor Spy Bot**: Theo dõi danh sách kênh đối thủ cùng ngách (US/Global), phát hiện video mới đang cắn đề xuất mạnh của đối thủ để bắt trend.
+6. **Bot 6 — SEO Title & Tag Formula Bot**: Phân tích công thức đặt tiêu đề và bộ từ khóa của các video Top 1 nổ view trên dàn kênh để gợi ý tiêu đề mới chuẩn CTR cao.
+7. **Bot 7 — Transcript Harvester & AI Script Rewriter Bot**: Bấm 1 nút trên video nổ view -> tự động hút phụ đề (Transcript) của video YouTube và viết lại thành kịch bản mới lưu thẳng vào **Nơi lưu nội dung (Content Vault)**.
+8. **Bot 8 — Thumbnail Clone & Prompt Bot**: Phân tích ảnh Thumbnail của video triệu view và sinh Prompt tạo ảnh AI tương tự.
+9. **Bot 9 — Auto Voice-Over Bot (Local PC Bridge)**: Kết nối kịch bản đã duyệt trên Web với `E:\TTSHub_v2.2.9` / `E:\Elevenlabs_v1` trên máy PC để tự xuất file đọc giọng MP3.
+10. **Bot 10 — Media Harvester & Auto-Edit Draft Bot (Local PC Bridge)**: Kết nối với `media-harvester` / `easycut-studio` trên PC để tải footage và dựng nháp từ kịch bản.
+
