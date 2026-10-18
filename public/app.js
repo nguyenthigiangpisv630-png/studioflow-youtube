@@ -6307,22 +6307,22 @@ function renderBotsCenterTab() {
                     const subRatio = v.viewsToSubRatio ?? 1.2;
                     const oneRank = v.oneOfTenRank || idx + 1;
                     return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; background: rgba(15,23,42,0.45); border: 1px solid rgba(148,163,184,0.12);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1;">
                       <div style="min-width: 0; flex: 1;">
-                        <div style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <div style="font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #0f172a;">
                           <span style="font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px; background: ${
                             oneRank === 1 ? 'rgba(234,179,8,0.2)' : 'rgba(99,102,241,0.14)'
                           }; color: ${oneRank === 1 ? '#b45309' : '#4f46e5'}; margin-right: 4px;">${
                             oneRank === 1 ? '🏆 1/10 (1of10)' : `🔥 ${oneRank}/10`
                           }</span>
-                          <span style="color: #f59e0b; margin-right: 4px;">(${escapeHtml(
+                          <span style="color: #d97706; margin-right: 4px;">(${escapeHtml(
                             String(mult)
                           )}x)</span>
-                          <a href="${escapeHtml(v.videoUrl || '#')}" target="_blank" rel="noopener" style="color: var(--text); text-decoration: none;">
+                          <a href="${escapeHtml(v.videoUrl || '#')}" target="_blank" rel="noopener" style="color: #0f172a; text-decoration: none;">
                             ${escapeHtml(v.title || 'Video')}
                           </a>
                         </div>
-                        <div style="font-size: 11px; color: var(--text-muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 2px;">
+                        <div style="font-size: 11px; color: #475569; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 2px;">
                           <span>👁️ ${escapeHtml(Number(v.views || 0).toLocaleString('vi-VN'))} views</span>
                           <span style="padding: 0 6px; border-radius: 999px; background: rgba(245,158,11,0.15); color: #d97706; font-weight: 700;">⚡ ${escapeHtml(
                             vphVal.toLocaleString('vi-VN')
@@ -6564,7 +6564,7 @@ function renderBotsCenterTab() {
                     </div>`
                   : ''
               }
-              <div style="font-size: 11px; color: var(--text-muted); background: rgba(15,23,42,0.55); padding: 6px 8px; border-radius: 6px; font-family: monospace; word-break: break-word;">
+              <div style="font-size: 11px; color: #1e293b; background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 8px; border-radius: 6px; font-family: monospace; word-break: break-word;">
                 <strong>REA 1:1 / Midjourney:</strong> ${escapeHtml(p.reaReconstruction || p.midjourney || '')}
               </div>
             </div>
@@ -6813,10 +6813,10 @@ function renderBotsCenterTab() {
                         }\n\n📝 MÔ TẢ & HASHTAGS CHUẨN SEO:\n${k.seoPackage.descriptionSeo || ''}`
                       : `Phân loại: ${k.intentTag || ''} | Gợi ý tiêu đề: ${k.suggestedTitle || ''}`;
                     return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; background: rgba(15,23,42,0.45); border: 1px solid rgba(148,163,184,0.12);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1;">
                       <div style="min-width: 0; flex: 1;">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                          <span>#${k.rank} · <a href="${escapeHtml(k.youtubeSearchUrl || '#')}" target="_blank" rel="noopener" style="color: #38bdf8; text-decoration: none;">${escapeHtml(k.keyword)}</a></span>
+                        <div style="font-size: 12px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                          <span>#${k.rank} · <a href="${escapeHtml(k.youtubeSearchUrl || '#')}" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: none;">${escapeHtml(k.keyword)}</a></span>
                           <span style="font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: rgba(16,185,129,0.16); color: #059669;">🎯 vidIQ: ${oppScore}/100</span>
                           <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: rgba(245,158,11,0.15); color: #b45309;">📊 Vol: ${volScore}</span>
                           <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: rgba(59,130,246,0.14); color: #1d4ed8;">⚔️ Cạnh tranh: ${escapeHtml(
@@ -6825,9 +6825,9 @@ function renderBotsCenterTab() {
                           <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: rgba(236,72,153,0.14); color: #be185d;">${escapeHtml(
                             waveTxt
                           )}</span>
-                          <span style="font-size: 10.5px; font-weight: 500; color: var(--text-muted);">${escapeHtml(k.intentTag || '')}</span>
+                          <span style="font-size: 10.5px; font-weight: 600; color: #475569;">${escapeHtml(k.intentTag || '')}</span>
                         </div>
-                        <div style="font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <div style="font-size: 11px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                           🎬 <em>Tiêu đề gợi ý:</em> ${escapeHtml(k.suggestedTitle || '')}
                         </div>
                       </div>
@@ -8935,7 +8935,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=73', { updateViaCache: 'none' })
+      .register('/sw.js?v=74', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });

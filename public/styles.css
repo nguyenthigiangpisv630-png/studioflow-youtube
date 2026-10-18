@@ -6911,4 +6911,73 @@ select:focus-visible {
   color: #1e293b;
 }
 
+/* ==================== BANNER TRANG RIÊNG BOT 10 FOOTAGE STUDIO (TƯƠNG PHẢN CAO, CHỮ SẮC NÉT 100%) ==================== */
+.bots-hero-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 55%, #ecfdf5 100%) !important;
+  border: 2px solid #0284c7 !important;
+  border-radius: 14px !important;
+  padding: 18px 20px !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);
+}
+
+.bots-hero-left {
+  flex: 1 1 520px;
+  min-width: 260px;
+}
+
+.bots-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+.bots-hero-title {
+  margin: 0 0 6px 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  color: #0f172a !important;
+}
+
+.bots-hero-sub {
+  margin: 0 !important;
+  font-size: 0.88rem !important;
+  line-height: 1.55 !important;
+  color: #1e293b !important;
+}
+
+.bots-hero-sub strong {
+  color: #0369a1 !important;
+  font-weight: 800 !important;
+}
+
+.bots-hero-sub code {
+  background: #e0f2fe !important;
+  color: #0c4a6e !important;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-weight: 700;
+}
+
+.bots-hero-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+
 
