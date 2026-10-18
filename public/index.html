@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>ACB9x — Quản Lý Kênh YouTube &amp; Kho Nội Dung (StudioFlow)</title>
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icon.svg?v=67" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=67" />
+  <link rel="icon" href="/icon.svg?v=68" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=68" />
 </head>
 <body>
   <div id="platform-wrapper" class="platform-wrapper mode-web" hidden>
@@ -782,11 +782,11 @@
                   <div class="bot-card-title-wrap">
                     <span class="bot-icon-badge bot-badge-emerald" style="background:#ecfeff;border-color:#a5f3fc;">🕵️</span>
                     <div>
-                      <h3 class="bot-card-title">Bot 5 — Săn Ngách &amp; Dò Kênh Đối Thủ (NexLev Hunter)</h3>
-                      <p class="bot-card-sub">Quét bất kỳ kênh đối thủ nào để tìm Video Outlier nổ đề xuất, lọc từ khóa ngách &amp; lưu Key</p>
+                      <h3 class="bot-card-title">Bot 5 — Săn Ngách &amp; Dò Kênh Đối Thủ (NexLev + vidIQ Pro)</h3>
+                      <p class="bot-card-sub">Đo tốc độ VPH (Views/Giờ), Tỷ lệ Views/Sub, Nhận diện kênh Faceless AI &amp; Bóc bộ Thẻ Tags chuẩn vidIQ</p>
                     </div>
                   </div>
-                  <span class="bot-status-pill active" id="bot5-status-pill">🟢 Sẵn sàng săn ngách</span>
+                  <span class="bot-status-pill active" id="bot5-status-pill">🟢 NexLev + vidIQ</span>
                 </div>
 
                 <div class="bot-kpi-strip">
@@ -802,12 +802,12 @@
 
                 <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:end;">
                   <label class="field" style="margin:0;">
-                    <span>Nhập @Handle hoặc Link kênh YouTube đối thủ cần dò</span>
+                    <span>Nhập @Handle, Link kênh đối thủ HOẶC Từ khóa ngách cần dò (NexLev Explorer)</span>
                     <input
                       type="text"
                       id="input-bot5-query"
                       class="input-control"
-                      placeholder="VD: @MrBeast, @TinyWrist hoặc https://www.youtube.com/@..."
+                      placeholder="VD: @MrBeast, @TinyWrist hoặc từ khóa ngách..."
                     />
                   </label>
                   <label class="field" style="margin:0;">
@@ -826,7 +826,7 @@
 
                 <div class="bot-actions-row" style="margin-top:8px;">
                   <button type="button" class="btn btn-primary btn-sm" id="btn-bot5-scan-only">
-                    🕵️ Dò Kênh Đối Thủ ngay
+                    🕵️ Dò Kênh Đối Thủ (NexLev + vidIQ)
                   </button>
                   <button type="button" class="btn btn-secondary btn-sm" id="btn-bot5-scan-and-tg">
                     📲 Dò &amp; Bắn kết quả về Telegram
@@ -834,7 +834,7 @@
                 </div>
 
                 <div class="bot-section-divider">
-                  <span>🏆 Kết quả phân tích Kênh Đối Thủ &amp; Top Video Outlier (Bấm 1-Click Lưu Key / Clone Thumbnail)</span>
+                  <span>🏆 Hồ Sơ NexLev (⚡VPH · 💎Views/Sub · 🤖Faceless AI) &amp; Bộ Tags Ẩn Chuẩn vidIQ (1-Click Copy)</span>
                 </div>
                 <div id="bot5-competitor-results" class="bot-viral-list" style="max-height:330px;"></div>
               </div>
@@ -905,11 +905,11 @@
                   <div class="bot-card-title-wrap">
                     <span class="bot-icon-badge bot-badge-blue" style="background:#eef2ff;border-color:#c7d2fe;">🔍</span>
                     <div>
-                      <h3 class="bot-card-title">Bot 7 — Săn Từ Khóa Ngách &amp; Bóc Tách Trend Đối Thủ (<code>/trend</code>)</h3>
-                      <p class="bot-card-sub">Nhập từ khóa HOẶC dán @Handle / Link kênh đối thủ để tự tìm cụm từ khóa đang nổ view &amp; mở rộng 24 ngách con</p>
+                      <h3 class="bot-card-title">Bot 7 — Săn Từ Khóa Ngách &amp; Chấm Điểm vidIQ Pro (<code>/trend</code>)</h3>
+                      <p class="bot-card-sub">Chấm 3 điểm chuẩn vidIQ (📊 Volume · ⚔️ Độ cạnh tranh · 🎯 Overall Score /100), Dò kênh đối thủ ngách &amp; Copy Tags 500 ký tự</p>
                     </div>
                   </div>
-                  <span class="bot-status-pill active" id="bot7-status-pill">🟢 Sẵn sàng săn Trend</span>
+                  <span class="bot-status-pill active" id="bot7-status-pill">🟢 vidIQ + NexLev</span>
                 </div>
 
                 <div class="bot-kpi-strip">
@@ -925,7 +925,7 @@
 
                 <div style="display:grid;grid-template-columns:1fr 145px;gap:8px;align-items:end;">
                   <label class="field" style="margin:0;">
-                    <span>Nhập Từ khóa gốc HOẶC @Handle / Link kênh đối thủ cần tìm từ khóa đang Trend</span>
+                    <span>Nhập Từ khóa gốc HOẶC @Handle / Link kênh đối thủ cần chấm điểm vidIQ &amp; săn Trend</span>
                     <input
                       type="text"
                       id="input-bot7-seed"
@@ -944,15 +944,15 @@
 
                 <div class="bot-actions-row" style="margin-top:8px;">
                   <button type="button" class="btn btn-primary btn-sm" id="btn-bot7-scan-only">
-                    🔍 Phân Tích &amp; Săn Từ Khóa Trend
+                    🔍 Chấm Điểm vidIQ &amp; Săn Từ Khóa Trend
                   </button>
                   <button type="button" class="btn btn-secondary btn-sm" id="btn-bot7-scan-and-tg">
-                    📲 Quét &amp; Bắn Trend về Telegram
+                    📲 Quét &amp; Bắn Báo cáo vidIQ về Telegram
                   </button>
                 </div>
 
                 <div class="bot-section-divider">
-                  <span>🔑 Cụm Từ Khóa Đang Trend Của Đối Thủ &amp; 24 Ngách Tìm Kiếm Thực Tế (1-Click +Lưu Key)</span>
+                  <span>🔑 Bảng Điểm vidIQ (📊Volume vs ⚔️Cạnh Tranh) · Top Kênh Thống Trị Ngách &amp; Dàn Ý 5 Phần</span>
                 </div>
                 <div id="bot7-trend-results" class="bot-viral-list" style="max-height:330px;"></div>
               </div>
@@ -1475,7 +1475,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=67"></script>
+  <script type="module" src="/app.js?v=68"></script>
 </body>
 </html>
 

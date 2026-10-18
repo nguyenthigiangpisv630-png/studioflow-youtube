@@ -100,6 +100,7 @@ function collectVideoRenderers(node, list = []) {
         title,
         views,
         publishedAt,
+        publishedText: pubText,
         likes: Math.max(10, Math.round(views * 0.042)),
         comments: Math.max(2, Math.round(views * 0.004)),
       });
@@ -630,11 +631,18 @@ export async function fetchYouTubeChannelProfile(rawQuery) {
   const finalTotalVideos = totalVideos || aboutMetrics.totalVideos || videos.length;
 
   const description = String(meta.description || '').trim();
+  const rawKeywordsStr = String(meta.keywords || '').trim();
+  const channelKeywords = rawKeywordsStr
+    ? (rawKeywordsStr.match(/"[^"]+"|[^\s,]+/g) || [])
+        .map((s) => s.replace(/^"+|"+$/g, '').trim())
+        .filter((s) => s.length >= 2)
+        .slice(0, 25)
+    : [];
   const category = inferChannelCategory({
     name: meta.title,
     handle: cleanHandle,
     description,
-    keywords: String(meta.keywords || ''),
+    keywords: rawKeywordsStr,
     videos,
   });
 
@@ -649,9 +657,105 @@ export async function fetchYouTubeChannelProfile(rawQuery) {
     firstVideoDate,
     category,
     description,
+    channelKeywords,
     videos,
     topVideos,
   };
 }
+
+function collectSearchVideoRenderers(node, list = []) {
+  if (!node || typeof node !== 'object' || list.length >= 40) return list;
+  if (node.videoRenderer && node.videoRenderer.videoId) {
+    const vr = node.videoRenderer;
+    const title = vr.title?.runs?.[0]?.text || vr.title?.simpleText || 'Video YouTube';
+    const viewText = vr.viewCountText?.simpleText || vr.viewCountText?.runs?.[0]?.text || '0';
+    const pubText = vr.publishedTimeText?.simpleText || vr.publishedTimeText?.runs?.[0]?.text || '';
+    const ownerRun = vr.ownerText?.runs?.[0] || vr.longBylineText?.runs?.[0] || {};
+    const channelName = String(ownerRun.text || 'YouTube Channel').trim();
+    const browseUrl =
+      ownerRun.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl ||
+      ownerRun.navigationEndpoint?.commandMetadata?.webCommandMetadata?.url ||
+      '';
+    const handleMatch = String(browseUrl).match(/\/(@[^/?#]+)/);
+    const channelHandle = handleMatch
+      ? decodeURIComponent(handleMatch[1])
+      : `@${channelName.replace(/\s+/g, '')}`;
+    const channelUrl = browseUrl
+      ? `https://www.youtube.com${browseUrl}`
+      : `https://www.youtube.com/${channelHandle}`;
+    const views = parseCompactNumber(viewText);
+    const publishedAt = parseRelativePublishDate(pubText);
+    if (!list.some((x) => x.youtubeVideoId === vr.videoId)) {
+      list.push({
+        youtubeVideoId: vr.videoId,
+        videoId: vr.videoId,
+        title,
+        views,
+        publishedAt,
+        publishedText: pubText,
+        channelName,
+        channelHandle,
+        channelUrl,
+      });
+    }
+    return list;
+  }
+  for (const val of Object.values(node)) {
+    if (val && typeof val === 'object') {
+      collectSearchVideoRenderers(val, list);
+      if (list.length >= 40) break;
+    }
+  }
+  return list;
+}
+
+export async function fetchYouTubeNicheExplorer(nicheQuery = '') {
+  const q = String(nicheQuery || '').trim();
+  if (!q) return { videos: [], channels: [] };
+  const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+  const res = await fetch(searchUrl, { headers: DEFAULT_HEADERS });
+  if (!res.ok) return { videos: [], channels: [] };
+  const html = await res.text();
+  const match = html.match(/var ytInitialData = (\{.*?\});<\/script>/);
+  if (!match) return { videos: [], channels: [] };
+
+  const initialData = JSON.parse(match[1]);
+  const videos = collectSearchVideoRenderers(initialData, []);
+
+  const channelMap = new Map();
+  for (const v of videos) {
+    const key = (v.channelHandle || v.channelName || '').toLowerCase();
+    if (!key) continue;
+    if (!channelMap.has(key)) {
+      channelMap.set(key, {
+        channelName: v.channelName,
+        handle: v.channelHandle,
+        channelUrl: v.channelUrl,
+        videoCountInTop: 0,
+        totalViewsInTop: 0,
+        bestVideoTitle: v.title,
+        bestVideoViews: v.views,
+      });
+    }
+    const ch = channelMap.get(key);
+    ch.videoCountInTop += 1;
+    ch.totalViewsInTop += Number(v.views) || 0;
+    if ((Number(v.views) || 0) > ch.bestVideoViews) {
+      ch.bestVideoViews = Number(v.views) || 0;
+      ch.bestVideoTitle = v.title;
+    }
+  }
+
+  const channels = [...channelMap.values()]
+    .sort((a, b) => b.totalViewsInTop - a.totalViewsInTop || b.videoCountInTop - a.videoCountInTop)
+    .slice(0, 8);
+
+  return {
+    query: q,
+    videos,
+    channels,
+  };
+}
+
 
 

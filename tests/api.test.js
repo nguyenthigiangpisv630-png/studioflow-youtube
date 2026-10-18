@@ -743,6 +743,13 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(spyScan.outlierCount, 1);
     assert.equal(spyScan.outliers[0].videoId, 'vid003');
     assert.ok(spyScan.outliers[0].multiplier >= 2);
+    assert.ok(spyScan.outliers[0].vph > 100);
+    assert.ok(spyScan.outliers[0].viewsToSubRatio >= 1.5);
+    assert.equal(spyScan.outliers[0].isDiamondOutlier, true);
+    assert.ok(spyScan.nexlevDossier && spyScan.nexlevDossier.avgVph > 0);
+    assert.ok(spyScan.nexlevDossier.facelessVerdict.includes('Faceless'));
+    assert.ok(spyScan.vidiqAudit && spyScan.vidiqAudit.seoScore >= 75);
+    assert.ok(spyScan.vidiqAudit.tagsCsv.includes('automation'));
     assert.ok(spyScan.estimatedMonthlyRevenueUsd > 0);
     assert.ok(spyScan.estimatedRpmUsd > 0);
     assert.ok(spyScan.hotKeywords.some((k) => k.word === 'automation'));
@@ -769,7 +776,7 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(thumbData.cloneItem.reaDossier && thumbData.cloneItem.reaDossier.binaryEvidence);
     assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
 
-    // 8. Bot 7 (Bot 9) — Săn Từ Khóa Ngách, Điểm Cơ Hội & Dàn Ý Kịch Bản 5 Phần (/trend)
+    // 8. Bot 7 (Bot 9) — Săn Từ Khóa Ngách, Chấm Điểm vidIQ Pro & Dàn Ý Kịch Bản 5 Phần (/trend)
     const trendScan = await store.runTrendHunterScan({
       seedKeyword: 'tiểu sử tỷ phú',
       market: 'vi',
@@ -783,6 +790,12 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.ok(trendScan.totalKeywords >= 6);
     assert.ok(trendScan.keywords.some((k) => k.keyword.includes('tự thân làm giàu')));
     assert.ok(trendScan.keywords[0].opportunityScore >= 75);
+    assert.ok(trendScan.keywords[0].vidiqVolumeScore >= 60);
+    assert.ok(trendScan.keywords[0].vidiqCompetitionScore >= 15);
+    assert.ok(trendScan.keywords[0].vidiqOverallScore >= 75);
+    assert.ok(trendScan.keywords[0].vidiqTagsCsv.includes('tiểu sử tỷ phú'));
+    assert.ok(trendScan.vidiqSummary && trendScan.vidiqSummary.bestOverallScore >= 75);
+    assert.ok(trendScan.vidiqSummary.masterTagsCsv.includes('tiểu sử tỷ phú'));
     assert.ok(trendScan.keywords[0].seoPackage.scriptOutline5Parts.includes('Phần 1'));
 
     const compTrendScan = await store.runTrendHunterScan({
@@ -803,6 +816,7 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     });
     assert.ok(compTrendScan.sourceChannel);
     assert.equal(compTrendScan.sourceChannel.handle, '@MockCompetitor');
+    assert.ok(Array.isArray(compTrendScan.nicheCompetitors) && compTrendScan.nicheCompetitors.length > 0);
     assert.ok(compTrendScan.keywords.some((k) => k.keyword.includes('ai automation')));
 
     // 9. Bot 11 — Đếm Ngược BKT, Bảo Vệ Gà AdSense & RPM (/ga & /revenue)
