@@ -757,6 +757,8 @@ test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2
     assert.equal(thumbData.ok, true);
     assert.ok(thumbData.cloneItem.prompts.midjourney.includes('--ar 16:9'));
     assert.ok(thumbData.cloneItem.prompts.fluxIdeogram.length > 20);
+    assert.ok(thumbData.cloneItem.prompts.reaReconstruction.includes('REA 1:1'));
+    assert.ok(thumbData.cloneItem.reaDossier && thumbData.cloneItem.reaDossier.binaryEvidence);
     assert.ok(thumbData.cloneItem.prompts.vietnameseBrief.length > 20);
 
     // 8. Bot 7 (Bot 9) — Săn Từ Khóa Ngách & Trend Tìm Kiếm Thực Tế (/trend theo từ khóa & theo @Handle đối thủ)

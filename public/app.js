@@ -6143,18 +6143,18 @@ function renderBotsCenterTab() {
     }
   }
 
-  // --- BOT 6: PHÂN TÍCH & SINH PROMPT THUMBNAIL (CLONE BOT) ---
+  // --- BOT 6: DỊCH NGƯỢC REA (/rea) & SINH PROMPT THUMBNAIL (CLONE BOT) ---
   const bot6Pill = document.getElementById('bot6-status-pill');
   if (bot6Pill) {
     bot6Pill.textContent =
-      thumbnailClones.length > 0 ? `🎨 Đã tạo ${thumbnailClones.length} bộ Prompt` : '🟢 AI Prompt Studio';
+      thumbnailClones.length > 0 ? `🔬 Đã dịch ngược ${thumbnailClones.length} mẫu` : '🔬 REA Decompiler';
   }
   const bot6ListEl = document.getElementById('bot6-thumbnail-list');
   if (bot6ListEl) {
     if (thumbnailClones.length === 0) {
       bot6ListEl.innerHTML = `
         <div class="bot-empty-note">
-          Chưa có bản mổ xẻ Thumbnail nào. Dán link YouTube hoặc tiêu đề video vào ô trên rồi bấm <strong>"🎨 Bóc tách & Sinh Prompt ngay"</strong>!
+          Chưa có bản Dịch ngược REA nào. Dán link YouTube hoặc tiêu đề video vào ô trên rồi bấm <strong>"🔬 Dịch Ngược /rea &amp; Sinh Prompt ngay"</strong>!
         </div>
       `;
     } else {
@@ -6162,10 +6162,12 @@ function renderBotsCenterTab() {
         .slice(0, 6)
         .map((item) => {
           const p = item.prompts || {};
+          const rea = item.reaDossier || {};
           const maxRes = item.thumbnailMaxRes || item.maxResThumbnailUrl || '';
           const hqThumb = item.thumbnailHq || item.hqThumbnailUrl || maxRes;
           const vTitle = item.videoTitle || item.title || 'Chủ đề Thumbnail';
           const hookTxt = item.hookTextSuggestion || item.hookText || '';
+          const hiddenTags = Array.isArray(rea.hiddenVideoTags) ? rea.hiddenVideoTags.slice(0, 8) : [];
           return `
             <div class="bot-viral-item" style="flex-direction: column; align-items: stretch; gap: 8px; border-left: 3px solid #ec4899;">
               <div style="display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap;">
@@ -6184,7 +6186,7 @@ function renderBotsCenterTab() {
                   <div style="font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 3px;">
                     🎬 ${escapeHtml(vTitle)}
                   </div>
-                  <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">
+                  <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">
                     🔤 Chữ giật tít (Hook Text): <strong style="color: #f472b6;">"${escapeHtml(hookTxt)}"</strong>
                     ${
                       maxRes
@@ -6192,7 +6194,33 @@ function renderBotsCenterTab() {
                         : ''
                     }
                   </div>
+                  ${
+                    rea.binaryEvidence
+                      ? `<div style="font-size: 10.5px; color: #38bdf8; margin-bottom: 3px;">
+                          🔬 <strong>REA Binary:</strong> <code>${escapeHtml(rea.binaryEvidence)}</code>
+                        </div>`
+                      : ''
+                  }
+                  ${
+                    rea.psychologicalFormula
+                      ? `<div style="font-size: 10.5px; color: #f59e0b; margin-bottom: 5px;">
+                          🧠 <strong>Tâm lý CTR:</strong> ${escapeHtml(rea.psychologicalFormula)}
+                        </div>`
+                      : ''
+                  }
                   <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    ${
+                      p.reaReconstruction
+                        ? `<button
+                            type="button"
+                            class="btn btn-primary btn-xs"
+                            data-copy-prompt-text="${escapeHtml(p.reaReconstruction)}"
+                            title="Copy Prompt Dịch Ngược REA 1:1"
+                          >
+                            🔬 Copy REA 1:1
+                          </button>`
+                        : ''
+                    }
                     <button
                       type="button"
                       class="btn btn-secondary btn-xs"
@@ -6220,20 +6248,31 @@ function renderBotsCenterTab() {
                     <button
                       type="button"
                       class="btn btn-secondary btn-xs"
-                      data-save-spy-key-title="[Thumbnail Prompt] ${escapeHtml(vTitle)}"
+                      data-save-spy-key-title="[REA Thumbnail] ${escapeHtml(vTitle)}"
                       data-save-spy-key-url="${escapeHtml(item.videoUrl || maxRes || '')}"
-                      data-save-spy-key-notes="Hook Text: ${escapeHtml(hookTxt)} | Midjourney: ${escapeHtml(
-                        p.midjourney || ''
-                      )} | Bố cục: ${escapeHtml(p.vietnameseBrief || '')}"
-                      title="Lưu bộ Prompt Thumbnail này vào Kho Ý Tưởng & Key"
+                      data-save-spy-key-notes="REA Binary: ${escapeHtml(
+                        rea.binaryEvidence || ''
+                      )} | Hook Text: ${escapeHtml(hookTxt)} | REA 1:1: ${escapeHtml(
+                        p.reaReconstruction || ''
+                      )} | Midjourney: ${escapeHtml(p.midjourney || '')}"
+                      title="Lưu Hồ sơ Dịch ngược REA & Prompt Thumbnail này vào Kho Ý Tưởng & Key"
                     >
                       💾 Lưu vào Kho
                     </button>
                   </div>
                 </div>
               </div>
+              ${
+                hiddenTags.length > 0
+                  ? `<div style="font-size: 10.5px; color: var(--text-muted); padding: 4px 8px; border-radius: 6px; background: rgba(79,70,229,0.08);">
+                      🏷️ <strong>Thẻ Tags ẩn bóc từ Video đối thủ:</strong> ${hiddenTags
+                        .map((t) => `<code>#${escapeHtml(t)}</code>`)
+                        .join(' ')}
+                    </div>`
+                  : ''
+              }
               <div style="font-size: 11px; color: var(--text-muted); background: rgba(15,23,42,0.55); padding: 6px 8px; border-radius: 6px; font-family: monospace; word-break: break-word;">
-                <strong>Midjourney:</strong> ${escapeHtml(p.midjourney || '')}
+                <strong>REA 1:1 / Midjourney:</strong> ${escapeHtml(p.reaReconstruction || p.midjourney || '')}
               </div>
             </div>
           `;
@@ -7271,7 +7310,7 @@ if ('caches' in window) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw.js?v=65', { updateViaCache: 'none' })
+      .register('/sw.js?v=66', { updateViaCache: 'none' })
       .then((reg) => reg.update())
       .catch(() => {});
   });
