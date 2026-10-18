@@ -1,0 +1,664 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+
+const MAX_SAVED_SNAPSHOTS = 10;
+
+export function getDefaultBotConfig() {
+  return {
+    // Bot 1: Telegram Admin Center
+    telegramEnabled: false,
+    telegramBotToken: '',
+    telegramChatId: '',
+    notifyOnNewUser: true,
+    notifyOnViralVideo: true,
+    autoTelegramBackupDaily: true,
+    lastTelegramReportAt: null,
+    lastTelegramUpdateId: 0,
+
+    // Bot 2: Viral & Outlier Watchdog
+    watchdogEnabled: true,
+    outlierThreshold: 1.5, // Gấp 1.5x trung bình kênh trở lên
+    minViralViews: 500,
+    staleDaysThreshold: 5, // Quá 5 ngày chưa ra video mới
+    lastWatchdogScanAt: null,
+
+    // Bot 4: Auto-Backup Cloud & Immortal Snapshot
+    autoBackupEnabled: true,
+    cloudBackupWebhookUrl: '',
+    lastBackupAt: null,
+    lastCloudSyncStatus: '',
+  };
+}
+
+export function ensureBotCenterState(meta = {}) {
+  if (!meta.botCenter || typeof meta.botCenter !== 'object') {
+    meta.botCenter = {
+      config: getDefaultBotConfig(),
+      snapshots: [],
+      notifiedViralVideoIds: [],
+      activityLogs: [],
+    };
+  }
+  meta.botCenter.config = {
+    ...getDefaultBotConfig(),
+    ...(meta.botCenter.config || {}),
+  };
+  if (!Array.isArray(meta.botCenter.snapshots)) {
+    meta.botCenter.snapshots = [];
+  }
+  if (!Array.isArray(meta.botCenter.notifiedViralVideoIds)) {
+    meta.botCenter.notifiedViralVideoIds = [];
+  }
+  if (!Array.isArray(meta.botCenter.activityLogs)) {
+    meta.botCenter.activityLogs = [];
+  }
+  return meta.botCenter;
+}
+
+export function appendBotLog(meta, botName, message, level = 'info') {
+  const center = ensureBotCenterState(meta);
+  center.activityLogs.unshift({
+    id: `log-${crypto.randomUUID().slice(0, 8)}`,
+    botName,
+    message: String(message || ''),
+    level,
+    createdAt: new Date().toISOString(),
+  });
+  if (center.activityLogs.length > 40) {
+    center.activityLogs.length = 40;
+  }
+}
+
+// ============================================================================
+// BOT 2: VIRAL & OUTLIER WATCHDOG BOT (CANH VIDEO NỔ VIEW & SỨC KHỎE KÊNH 24/7)
+// ============================================================================
+export function scanViralAndChannelHealth(store, customOptions = {}) {
+  const center = ensureBotCenterState(store.state.meta);
+  const cfg = center.config;
+  const outlierThreshold = Number(customOptions.outlierThreshold ?? cfg.outlierThreshold) || 1.5;
+  const minViralViews = Number(customOptions.minViralViews ?? cfg.minViralViews) || 100;
+  const staleDaysThreshold = Number(customOptions.staleDaysThreshold ?? cfg.staleDaysThreshold) || 5;
+
+  const channels = store.state.channels || [];
+  const allVideos = store.state.videos || [];
+  const channelMap = new Map(channels.map((ch) => [ch.id, ch]));
+
+  // Tính trung bình view của từng kênh (từ cả danh sách videos và topVideos)
+  const channelVideosListMap = new Map();
+  for (const ch of channels) {
+    const fromStore = allVideos.filter((v) => v.channelId === ch.id);
+    const mergedMap = new Map();
+    for (const v of fromStore) {
+      const key = v.youtubeVideoId || v.id || v.title;
+      mergedMap.set(key, {
+        id: v.id || key,
+        youtubeVideoId: v.youtubeVideoId || '',
+        title: v.title || 'Video YouTube',
+        views: Number(v.currentViews ?? v.views) || 0,
+        publishedAt: v.publishedAt || v.lastUpdatedDate || '',
+        channelId: ch.id,
+      });
+    }
+    if (Array.isArray(ch.topVideos)) {
+      for (const tv of ch.topVideos) {
+        const key = tv.youtubeVideoId || tv.id || tv.title;
+        if (!mergedMap.has(key)) {
+          mergedMap.set(key, {
+            id: tv.id || `tv-${key}`,
+            youtubeVideoId: tv.youtubeVideoId || '',
+            title: tv.title || 'Video YouTube',
+            views: Number(tv.views ?? tv.currentViews) || 0,
+            publishedAt: tv.publishedAt || '',
+            channelId: ch.id,
+          });
+        }
+      }
+    }
+    channelVideosListMap.set(ch.id, [...mergedMap.values()]);
+  }
+
+  const viralVideos = [];
+  const channelAlerts = [];
+  const nowMs = Date.now();
+
+  for (const ch of channels) {
+    const chVids = channelVideosListMap.get(ch.id) || [];
+    const totalVidsCount = Math.max(chVids.length, Number(ch.totalVideos) || 0, 1);
+    const sumShownViews = chVids.reduce((s, v) => s + (Number(v.views) || 0), 0);
+    const avgViews =
+      chVids.length > 0
+        ? Math.max(1, Math.round(sumShownViews / chVids.length))
+        : Math.max(1, Math.round((Number(ch.totalViews) || 0) / totalVidsCount));
+
+    // Tìm các video nổ view (Outlier)
+    for (const v of chVids) {
+      const views = Number(v.views) || 0;
+      if (views < minViralViews) continue;
+      const multiplier = Math.round((views / avgViews) * 10) / 10;
+      if (multiplier >= outlierThreshold || views >= avgViews * 1.5) {
+        viralVideos.push({
+          id: v.id,
+          youtubeVideoId: v.youtubeVideoId,
+          title: v.title,
+          views,
+          publishedAt: v.publishedAt || '',
+          channelId: ch.id,
+          channelName: ch.name,
+          channelHandle: ch.handle || '',
+          group: ch.group || 'Chưa gắn Group',
+          manager: ch.managerEmail || ch.manager || 'Chưa gán QL',
+          channelAvgViews: avgViews,
+          outlierMultiplier: multiplier,
+          url: v.youtubeVideoId
+            ? `https://www.youtube.com/watch?v=${encodeURIComponent(v.youtubeVideoId)}`
+            : ch.channelUrl || '#',
+          videoUrl: v.youtubeVideoId
+            ? `https://www.youtube.com/watch?v=${encodeURIComponent(v.youtubeVideoId)}`
+            : ch.channelUrl || '#',
+        });
+      }
+    }
+
+    // Kiểm tra sức khỏe kênh (BKT / gậy / lâu chưa đăng video)
+    if (ch.status === 'warning' || ch.status === 'demonetized' || Number(ch.strikeCount) > 0) {
+      channelAlerts.push({
+        channelId: ch.id,
+        channelName: ch.name,
+        group: ch.group || 'Chưa gắn Group',
+        manager: ch.managerEmail || ch.manager || '',
+        type: 'status_warning',
+        severity: ch.status === 'demonetized' ? 'danger' : 'warning',
+        message:
+          ch.status === 'demonetized'
+            ? `⛔ Kênh "${ch.name}" đang ở trạng thái Tắt BKT (Demonetized)!`
+            : `⚠️ Kênh "${ch.name}" đang có cảnh báo (${ch.strikeCount || 1} gậy / Warning)!`,
+      });
+    }
+
+    const datedVids = chVids
+      .map((v) => v.publishedAt)
+      .filter(Boolean)
+      .sort((a, b) => b.localeCompare(a));
+    const latestVideoDate = datedVids[0] || ch.firstVideoDate || '';
+    if (latestVideoDate) {
+      const latestMs = new Date(latestVideoDate).getTime();
+      if (Number.isFinite(latestMs)) {
+        const daysSince = Math.floor((nowMs - latestMs) / (24 * 60 * 60 * 1000));
+        if (daysSince >= staleDaysThreshold) {
+          channelAlerts.push({
+            channelId: ch.id,
+            channelName: ch.name,
+            group: ch.group || 'Chưa gắn Group',
+            manager: ch.managerEmail || ch.manager || '',
+            type: 'stale_upload',
+            severity: 'warning',
+            daysSinceUpload: daysSince,
+            lastUploadDate: latestVideoDate,
+            message: `⏰ Kênh "${ch.name}" đã ${daysSince} ngày chưa có video mới (video gần nhất: ${latestVideoDate}).`,
+          });
+        }
+      }
+    }
+  }
+
+  viralVideos.sort((a, b) => b.outlierMultiplier - a.outlierMultiplier || b.views - a.views);
+  center.config.lastWatchdogScanAt = new Date().toISOString();
+  const topVirals = viralVideos.slice(0, 30);
+
+  return {
+    scannedAt: center.config.lastWatchdogScanAt,
+    outlierThreshold,
+    minViralViews,
+    staleDaysThreshold,
+    totalChannelsScanned: channels.length,
+    summary: {
+      totalChannelsScanned: channels.length,
+      viralCount: topVirals.length,
+      healthAlertCount: channelAlerts.length,
+    },
+    viralVideos: topVirals,
+    healthAlerts: channelAlerts,
+    channelAlerts,
+  };
+}
+
+// ============================================================================
+// BOT 4: AUTO-BACKUP CLOUD & IMMORTAL SNAPSHOT BOT (SAO LƯU DỮ LIỆU BẤT TỬ)
+// ============================================================================
+export function buildBackupPayload(store, label = 'Auto Snapshot') {
+  const rawState = store.state || {};
+  // Sao chép dữ liệu sạch (không lặp lại mảng snapshots bên trong bản chụp để tránh phình dung lượng)
+  const cleanMeta = { ...(rawState.meta || {}) };
+  if (cleanMeta.botCenter) {
+    cleanMeta.botCenter = {
+      ...cleanMeta.botCenter,
+      snapshots: [],
+    };
+  }
+  const backupData = JSON.parse(
+    JSON.stringify({
+      meta: cleanMeta,
+      users: Array.isArray(rawState.users) ? rawState.users : [],
+      channels: Array.isArray(rawState.channels) ? rawState.channels : [],
+      deals: Array.isArray(rawState.deals) ? rawState.deals : [],
+      projects: Array.isArray(rawState.projects) ? rawState.projects : [],
+      contents: Array.isArray(rawState.contents) ? rawState.contents : [],
+      videos: Array.isArray(rawState.videos) ? rawState.videos : [],
+    })
+  );
+
+  const jsonStr = JSON.stringify(backupData, null, 2);
+  const sizeBytes = Buffer.byteLength(jsonStr, 'utf8');
+  const sizeKB = Math.round((sizeBytes / 1024) * 100) / 100;
+  const totalRevenue = Math.round(
+    (backupData.channels || []).reduce((s, c) => s + (Number(c.totalYearlyRevenue) || 0), 0) * 100
+  ) / 100;
+
+  return {
+    id: `snap-${crypto.randomUUID().slice(0, 8)}`,
+    label: String(label || 'Bản sao lưu tự động').trim(),
+    createdAt: new Date().toISOString(),
+    sizeBytes,
+    sizeKB,
+    counts: {
+      channels: backupData.channels.length,
+      videos: backupData.videos.length,
+      users: backupData.users.length,
+      contents: backupData.contents.length,
+    },
+    stats: {
+      channelsCount: backupData.channels.length,
+      videosCount: backupData.videos.length,
+      usersCount: backupData.users.length,
+      contentsCount: backupData.contents.length,
+      totalRevenue,
+    },
+    data: backupData,
+  };
+}
+
+export async function createImmortalSnapshot(store, { label = 'Sao lưu tự động', sendToCloud = true } = {}) {
+  const center = ensureBotCenterState(store.state.meta);
+  const snap = buildBackupPayload(store, label);
+
+  // 1. Lưu vào danh sách Snapshots khôi phục nhanh
+  center.snapshots.unshift(snap);
+  if (center.snapshots.length > MAX_SAVED_SNAPSHOTS) {
+    center.snapshots.length = MAX_SAVED_SNAPSHOTS;
+  }
+  center.config.lastBackupAt = snap.createdAt;
+
+  // 2. Ghi thêm bản backup dự phòng ra file cạnh studio-db.json
+  try {
+    if (store.filePath) {
+      const backupFilePath = `${store.filePath}.backup.json`;
+      fs.writeFileSync(backupFilePath, JSON.stringify(snap, null, 2), 'utf8');
+    }
+  } catch {}
+
+  // 3. Nếu có cấu hình Cloud Webhook URL -> Tự động đẩy bản sao lưu lên Cloud
+  let cloudSyncResult = null;
+  const webhookUrl = String(center.config.cloudBackupWebhookUrl || '').trim();
+  if (sendToCloud && webhookUrl && /^https?:\/\//i.test(webhookUrl)) {
+    try {
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(snap),
+      });
+      center.config.lastCloudSyncStatus = res.ok
+        ? `✅ Đã đồng bộ Cloud (${new Date().toLocaleTimeString('vi-VN')})`
+        : `⚠️ Cloud trả về HTTP ${res.status}`;
+      cloudSyncResult = { ok: res.ok, status: res.status };
+    } catch (err) {
+      center.config.lastCloudSyncStatus = `⚠️ Lỗi kết nối Cloud: ${err.message}`;
+      cloudSyncResult = { ok: false, error: err.message };
+    }
+  }
+
+  appendBotLog(
+    store.state.meta,
+    'Bot 4 (Backup)',
+    `Đã tạo bản sao lưu "${snap.label}" (${snap.stats.channelsCount} kênh, ${snap.stats.usersCount} user, ${snap.sizeKB} KB).`,
+    'success'
+  );
+
+  return {
+    snapshot: {
+      id: snap.id,
+      label: snap.label,
+      createdAt: snap.createdAt,
+      sizeKB: snap.sizeKB,
+      stats: snap.stats,
+    },
+    cloudSyncResult,
+  };
+}
+
+// ============================================================================
+// BOT 1: TELEGRAM ADMIN CENTER BOT (DUYỆT USER, BÁO CÁO & ĐIỀU KHIỂN TỪ XA)
+// ============================================================================
+export async function callTelegramApi(botToken, method, payload = {}) {
+  const cleanToken = String(botToken || '').trim();
+  if (!cleanToken) {
+    throw new Error('Chưa nhập Telegram Bot Token!');
+  }
+  const url = `https://api.telegram.org/bot${encodeURIComponent(cleanToken)}/${method}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok) {
+    throw new Error(data.description || `Lỗi Telegram API (${res.status})`);
+  }
+  return data.result;
+}
+
+export async function detectTelegramChatId(botToken) {
+  const updates = await callTelegramApi(botToken, 'getUpdates', { limit: 20 });
+  if (!Array.isArray(updates) || updates.length === 0) {
+    throw new Error(
+      'Chưa tìm thấy tin nhắn nào! Anh hãy mở Telegram, nhắn 1 chữ bất kỳ (VD: /start) vào Bot rồi bấm lại nút này nhé.'
+    );
+  }
+  for (let i = updates.length - 1; i >= 0; i -= 1) {
+    const u = updates[i];
+    const msg = u.message || u.edited_message || u.channel_post || u.callback_query?.message;
+    if (msg && msg.chat && msg.chat.id) {
+      return {
+        chatId: String(msg.chat.id),
+        chatTitle: msg.chat.title || msg.chat.username || msg.chat.first_name || 'Admin Chat',
+        chatType: msg.chat.type || 'private',
+      };
+    }
+  }
+  throw new Error('Không đọc được Chat ID từ tin nhắn gần nhất. Hãy nhắn /start vào Bot!');
+}
+
+export async function sendTelegramBackupDocument(store, customToken = '', customChatId = '') {
+  const center = ensureBotCenterState(store.state.meta);
+  const botToken = String(customToken || center.config.telegramBotToken || '').trim();
+  const chatId = String(customChatId || center.config.telegramChatId || '').trim();
+  if (!botToken || !chatId) {
+    throw new Error('Vui lòng nhập Telegram Bot Token và Chat ID trước khi gửi file Backup qua Telegram!');
+  }
+
+  const snap = buildBackupPayload(store, 'Telegram Cloud Backup');
+  const fileName = `studioflow-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  const jsonBytes = Buffer.from(JSON.stringify(snap, null, 2), 'utf8');
+
+  const formData = new FormData();
+  formData.append('chat_id', chatId);
+  formData.append(
+    'caption',
+    `☁️ <b>BẢN SAO LƯU BẤT TỬ (BOT 4)</b>\n📅 Thời gian: ${new Date().toLocaleString('vi-VN')}\n📺 Số kênh: <b>${snap.stats.channelsCount}</b> | 👥 User: <b>${snap.stats.usersCount}</b> | 📦 Dung lượng: <b>${snap.sizeKB} KB</b>`
+  );
+  formData.append('parse_mode', 'HTML');
+  formData.append('document', new Blob([jsonBytes], { type: 'application/json' }), fileName);
+
+  const url = `https://api.telegram.org/bot${encodeURIComponent(botToken)}/sendDocument`;
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData,
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok) {
+    throw new Error(data.description || 'Không thể gửi file Backup sang Telegram');
+  }
+
+  appendBotLog(
+    store.state.meta,
+    'Bot 4 (Telegram Cloud)',
+    `Đã gửi file ${fileName} (${snap.sizeKB} KB) vào Telegram an toàn!`,
+    'success'
+  );
+  return { ok: true, fileName, sizeKB: snap.sizeKB };
+}
+
+export function formatTelegramSystemReport(store) {
+  const summary = store.getDashboardSummary();
+  const yt = summary.youtube || {};
+  const usersSum = summary.meta?.usersSummary || {};
+  const watchdog = scanViralAndChannelHealth(store);
+  const topViral = (watchdog.viralVideos || []).slice(0, 3);
+
+  const viralLines =
+    topViral.length > 0
+      ? topViral
+          .map(
+            (v, idx) =>
+              `  ${idx + 1}. 🔥 <b>${escapeTgHtml(v.title)}</b> (${escapeTgHtml(v.channelName)}) — <b>${Number(
+                v.views
+              ).toLocaleString('vi-VN')} views</b> (x${v.outlierMultiplier} TB kênh)`
+          )
+          .join('\n')
+      : '  • Chưa có video vượt ngưỡng nổ view.';
+
+  return [
+    `🤖 <b>BÁO CÁO HỆ THỐNG ACB9X STUDIOFLOW</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `📺 Tổng số kênh: <b>${yt.totalChannels || 0} kênh</b>`,
+    `👁️ Tổng lượt xem: <b>${Number(yt.totalViews || 0).toLocaleString('vi-VN')} views</b> (+${Number(
+      yt.todayViewsDelta || 0
+    ).toLocaleString('vi-VN')} hôm nay)`,
+    `🎬 Tổng số video: <b>${yt.totalVideos || 0} video</b>`,
+    `💰 Tổng doanh thu năm: <b>$${Number(yt.totalNetworkRevenue || 0).toLocaleString('vi-VN')}</b>`,
+    `👥 Tài khoản User: <b>${usersSum.totalUsers || 0}</b> (⏳ Chờ duyệt: <b>${
+      usersSum.pendingUsersCount || 0
+    }</b>)`,
+    ``,
+    `🔥 <b>TOP VIDEO ĐANG NỔ ĐỀ XUẤT (BOT 2):</b>`,
+    viralLines,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `💡 <i>Gõ /users để duyệt thành viên mới, /backup để lấy file sao lưu, /top để xem toàn bộ video nổ view.</i>`,
+  ].join('\n');
+}
+
+function escapeTgHtml(str = '') {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+export async function notifyTelegramNewUser(store, user) {
+  const center = ensureBotCenterState(store.state.meta);
+  const cfg = center.config;
+  if (!cfg.telegramEnabled || !cfg.notifyOnNewUser || !cfg.telegramBotToken || !cfg.telegramChatId) {
+    return { sent: false };
+  }
+  try {
+    const text = [
+      `🔔 <b>CÓ THÀNH VIÊN MỚI ĐĂNG KÝ TÀI KHOẢN!</b>`,
+      `━━━━━━━━━━━━━━━━━━━━`,
+      `👤 Họ tên / Nhóm: <b>${escapeTgHtml(user.name)}</b>`,
+      `🔑 Username: <code>${escapeTgHtml(user.email)}</code>`,
+      `📝 Ghi chú: ${escapeTgHtml(user.note || 'Không có')}`,
+      `⏳ Trạng thái: <b>Đang chờ Admin (timhanhphuc) phê duyệt</b>`,
+    ].join('\n');
+
+    await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+      chat_id: cfg.telegramChatId,
+      text,
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '✅ Duyệt & Cấp quyền ngay', callback_data: `approve_user:${user.id}` },
+            { text: '⛔ Từ chối / Khóa', callback_data: `suspend_user:${user.id}` },
+          ],
+        ],
+      },
+    });
+    appendBotLog(
+      store.state.meta,
+      'Bot 1 (Telegram)',
+      `Đã bắn thông báo duyệt tài khoản mới "${user.email}" về Telegram Admin.`,
+      'info'
+    );
+    return { sent: true };
+  } catch (err) {
+    appendBotLog(store.state.meta, 'Bot 1 (Telegram)', `Lỗi gửi thông báo User mới: ${err.message}`, 'error');
+    return { sent: false, error: err.message };
+  }
+}
+
+export async function pollTelegramBotUpdates(store) {
+  const center = ensureBotCenterState(store.state.meta);
+  const cfg = center.config;
+  if (!cfg.telegramEnabled || !cfg.telegramBotToken) return;
+
+  try {
+    const offset = (Number(cfg.lastTelegramUpdateId) || 0) + 1;
+    const updates = await callTelegramApi(cfg.telegramBotToken, 'getUpdates', {
+      offset,
+      timeout: 0,
+      limit: 15,
+    });
+    if (!Array.isArray(updates) || updates.length === 0) return;
+
+    for (const u of updates) {
+      if (u.update_id >= (cfg.lastTelegramUpdateId || 0)) {
+        cfg.lastTelegramUpdateId = u.update_id;
+      }
+
+      // 1. Xử lý khi Admin bấm nút Inline [✅ Duyệt] hoặc [⛔ Khóa] ngay trên Telegram
+      if (u.callback_query) {
+        const cb = u.callback_query;
+        const data = String(cb.data || '');
+        const chatId = cb.message?.chat?.id || cfg.telegramChatId;
+        if (data.startsWith('approve_user:')) {
+          const userId = data.split(':')[1];
+          try {
+            const updatedUser = store.updateUserPermissions(userId, { status: 'approved' });
+            await callTelegramApi(cfg.telegramBotToken, 'answerCallbackQuery', {
+              callback_query_id: cb.id,
+              text: `✅ Đã duyệt tài khoản ${updatedUser.email}!`,
+            });
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              text: `✅ <b>Admin đã duyệt thành công!</b>\nTài khoản <code>${escapeTgHtml(
+                updatedUser.email
+              )}</code> (${escapeTgHtml(updatedUser.name)}) hiện đã có thể đăng nhập vào hệ thống.`,
+              parse_mode: 'HTML',
+            });
+            appendBotLog(
+              store.state.meta,
+              'Bot 1 (Telegram)',
+              `Admin đã duyệt tài khoản "${updatedUser.email}" trực tiếp từ Telegram.`,
+              'success'
+            );
+          } catch (err) {
+            await callTelegramApi(cfg.telegramBotToken, 'answerCallbackQuery', {
+              callback_query_id: cb.id,
+              text: `Lỗi: ${err.message}`,
+            });
+          }
+        } else if (data.startsWith('suspend_user:')) {
+          const userId = data.split(':')[1];
+          try {
+            const updatedUser = store.updateUserPermissions(userId, { status: 'suspended' });
+            await callTelegramApi(cfg.telegramBotToken, 'answerCallbackQuery', {
+              callback_query_id: cb.id,
+              text: `⛔ Đã khóa tài khoản ${updatedUser.email}!`,
+            });
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              text: `⛔ Đã tạm khóa tài khoản <code>${escapeTgHtml(updatedUser.email)}</code>.`,
+              parse_mode: 'HTML',
+            });
+          } catch {}
+        }
+        continue;
+      }
+
+      // 2. Xử lý các câu lệnh chat từ Telegram (/start, /report, /top, /users, /backup)
+      const msg = u.message || u.edited_message;
+      if (!msg || !msg.text || !msg.chat?.id) continue;
+      const chatId = String(msg.chat.id);
+      if (!cfg.telegramChatId) {
+        cfg.telegramChatId = chatId;
+      }
+      const text = String(msg.text || '').trim();
+
+      if (text.startsWith('/start') || text.startsWith('/help')) {
+        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+          chat_id: chatId,
+          parse_mode: 'HTML',
+          text: [
+            `👑 <b>TRUNG TÂM BOT QUẢN TRỊ ACB9X STUDIOFLOW</b>`,
+            `Xin chào Admin <b>timhanhphuc</b>! Các lệnh điều khiển nhanh:`,
+            `• /report — Xem báo cáo tổng hợp Kênh, Views & Doanh thu`,
+            `• /top — Xem danh sách Video đang nổ đề xuất (Bot 2)`,
+            `• /users — Danh sách thành viên đang chờ duyệt kèm nút Duyệt`,
+            `• /backup — Nhận ngay file Sao lưu dữ liệu bất tử (.json)`,
+          ].join('\n'),
+        });
+      } else if (text.startsWith('/report') || text.startsWith('/baocao')) {
+        const reportHtml = formatTelegramSystemReport(store);
+        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+          chat_id: chatId,
+          parse_mode: 'HTML',
+          text: reportHtml,
+        });
+      } else if (text.startsWith('/top') || text.startsWith('/no')) {
+        const scan = scanViralAndChannelHealth(store);
+        const topList = (scan.viralVideos || []).slice(0, 8);
+        const body =
+          topList.length > 0
+            ? topList
+                .map(
+                  (v, i) =>
+                    `${i + 1}. 🔥 <b>${escapeTgHtml(v.title)}</b>\n   📺 ${escapeTgHtml(
+                      v.channelName
+                    )} (${escapeTgHtml(v.group)}) — <b>${Number(v.views).toLocaleString(
+                      'vi-VN'
+                    )} views</b> (<b>x${v.outlierMultiplier}</b> TB kênh)`
+                )
+                .join('\n\n')
+            : 'Chưa có video nào vượt ngưỡng nổ view.';
+        await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+          chat_id: chatId,
+          parse_mode: 'HTML',
+          text: `🔥 <b>DANH SÁCH VIDEO ĐANG NỔ VIEW (BOT 2):</b>\n\n${body}`,
+        });
+      } else if (text.startsWith('/users')) {
+        const pending = (store.state.users || []).filter((usr) => usr.status === 'pending');
+        if (pending.length === 0) {
+          await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+            chat_id: chatId,
+            text: '✅ Hiện không có tài khoản nào đang chờ duyệt!',
+          });
+        } else {
+          for (const usr of pending) {
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: chatId,
+              parse_mode: 'HTML',
+              text: `⏳ <b>Chờ duyệt:</b> <code>${escapeTgHtml(usr.email)}</code> (${escapeTgHtml(
+                usr.name
+              )})`,
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    { text: '✅ Duyệt ngay', callback_data: `approve_user:${usr.id}` },
+                    { text: '⛔ Khóa', callback_data: `suspend_user:${usr.id}` },
+                  ],
+                ],
+              },
+            });
+          }
+        }
+      } else if (text.startsWith('/backup')) {
+        await sendTelegramBackupDocument(store, cfg.telegramBotToken, chatId);
+      }
+    }
+    if (updates.length > 0 && typeof store.saveState === 'function') {
+      store.saveState();
+    }
+  } catch {
+    // Im lặng bỏ qua lỗi mạng tạm thời khi polling
+  }
+}

@@ -638,3 +638,74 @@ test('POST /api/ingest/content: tắt khi chưa có khóa, từ chối khóa sai
     else process.env.STUDIOFLOW_INGEST_KEY = oldKey;
   }
 });
+
+test('Trung tâm 3 Bot (Bot 4 Sao lưu bất tử & Khôi phục 1-Click + Bot 2 Canh nổ view + Bot 1 Telegram Config)', async () => {
+  await withTestServer(async ({ baseUrl, store }) => {
+    // 1. Tạo dữ liệu mẫu để kiểm thử Bot 2 (Canh nổ view) & Bot 4 (Sao lưu bất tử)
+    const ch = store.createChannel({
+      name: 'Kênh Test Bot Nổ View',
+      handle: '@TestBotChannel',
+      group: 'Group Bot Test',
+    });
+    store.createVideo({
+      title: 'Video Bình Thường 1',
+      channelId: ch.id,
+      initialViews: 1000,
+    });
+    store.createVideo({
+      title: 'Video Bình Thường 2',
+      channelId: ch.id,
+      initialViews: 1200,
+    });
+    store.createVideo({
+      title: 'Video Cắn Đề Xuất Nổ View',
+      channelId: ch.id,
+      initialViews: 15000,
+    });
+
+    // 2. Quét Bot 2 Watchdog
+    const scanRes = await fetch(`${baseUrl}/api/bots/watchdog/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ outlierThreshold: 1.5, minViralViews: 500 }),
+    });
+    assert.equal(scanRes.status, 200);
+    const scanData = await scanRes.json();
+    assert.equal(scanData.ok, true);
+    assert.ok(scanData.watchdog.viralVideos.some((v) => v.title === 'Video Cắn Đề Xuất Nổ View'));
+
+    // 3. Tạo Snapshot Bất Tử (Bot 4) khi đang có kênh Test
+    const snapRes = await fetch(`${baseUrl}/api/bots/backup/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: 'Snapshot Trước Khi Xóa' }),
+    });
+    assert.equal(snapRes.status, 201);
+    const snapData = await snapRes.json();
+    assert.equal(snapData.ok, true);
+    const savedSnapshotId = snapData.snapshot.id;
+    assert.ok(savedSnapshotId);
+
+    // 4. Xóa kênh Test đi, xác nhận kênh đã bị xóa
+    store.deleteChannel(ch.id);
+    assert.equal(
+      store.listChannels().some((c) => c.id === ch.id),
+      false
+    );
+
+    // 5. Bấm Khôi phục 1-Click từ Snapshot vừa lưu (Bot 4) -> Kênh và Video quay trở lại nguyên vẹn!
+    const restoreRes = await fetch(`${baseUrl}/api/bots/backup/restore`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ snapshotId: savedSnapshotId }),
+    });
+    assert.equal(restoreRes.status, 200);
+    const restoreData = await restoreRes.json();
+    assert.equal(restoreData.ok, true);
+    assert.equal(
+      store.listChannels().some((c) => c.id === ch.id && c.name === 'Kênh Test Bot Nổ View'),
+      true
+    );
+  });
+});
+

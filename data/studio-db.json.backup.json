@@ -1,0 +1,1185 @@
+{
+  "id": "snap-f31fb6f5",
+  "label": "Snapshot Khởi tạo Hệ thống (Bot 4)",
+  "createdAt": "2026-10-18T04:04:09.984Z",
+  "sizeBytes": 35236,
+  "sizeKB": 34.41,
+  "counts": {
+    "channels": 2,
+    "videos": 17,
+    "users": 0,
+    "contents": 5
+  },
+  "stats": {
+    "channelsCount": 2,
+    "videosCount": 17,
+    "usersCount": 0,
+    "contentsCount": 5,
+    "totalRevenue": 0
+  },
+  "data": {
+    "meta": {
+      "lastDailySyncDate": "2026-10-18",
+      "lastDailySyncAt": "2026-10-18T03:53:21.469Z",
+      "authPasswordHash": "cb420b45d8da78776f5c5b081d351852ab296a8edfee449dfa2fafcaac13475b",
+      "customGroups": [
+        "KÊNH ÂM THỰC",
+        "NGƯỜI NỔI TIẾNG"
+      ],
+      "botCenter": {
+        "config": {
+          "telegramEnabled": false,
+          "telegramBotToken": "",
+          "telegramChatId": "",
+          "notifyOnNewUser": true,
+          "notifyOnViralVideo": true,
+          "autoTelegramBackupDaily": true,
+          "lastTelegramReportAt": null,
+          "lastTelegramUpdateId": 0,
+          "watchdogEnabled": true,
+          "outlierThreshold": 1.5,
+          "minViralViews": 500,
+          "staleDaysThreshold": 5,
+          "lastWatchdogScanAt": null,
+          "autoBackupEnabled": true,
+          "cloudBackupWebhookUrl": "",
+          "lastBackupAt": null,
+          "lastCloudSyncStatus": ""
+        },
+        "snapshots": [],
+        "notifiedViralVideoIds": [],
+        "activityLogs": []
+      }
+    },
+    "users": [],
+    "channels": [
+      {
+        "id": "ch-5579872d",
+        "name": "FOOD 75",
+        "handle": "@FOOD75-h2q",
+        "channelUrl": "https://www.youtube.com/@FOOD75-h2q",
+        "subscribers": 4,
+        "totalVideos": 3,
+        "totalViews": 972,
+        "firstVideoDate": "2026-10-01",
+        "category": "Ẩm thực & Đời sống",
+        "manager": "",
+        "managerEmail": "",
+        "status": "active",
+        "monetization": "pending",
+        "strikeCount": 0,
+        "statusNote": "Kênh mới khởi tạo trên hệ thống.",
+        "updatedAt": "2026-10-18T03:53:21.031Z",
+        "group": "KÊNH ÂM THỰC",
+        "watchHours": 0,
+        "realtimeViews48h": 0,
+        "ctrPercent": 0,
+        "avgViewDuration": "",
+        "estimatedRevenue": "",
+        "topVideos": [
+          {
+            "id": "vid-73bed26b",
+            "youtubeVideoId": "d_Ft0bFYLxg",
+            "title": "6 Tables Randy 'Macho Man' Savage Sat At Until His Heart Gave Out",
+            "views": 453,
+            "likes": 19,
+            "comments": 2,
+            "publishedAt": "2026-10-05"
+          },
+          {
+            "id": "vid-6c66a438",
+            "youtubeVideoId": "d5giUxqaVy8",
+            "title": "10 Wild Foods and Drinks Andre the Giant Used to Hide His Pain",
+            "views": 305,
+            "likes": 13,
+            "comments": 2,
+            "publishedAt": "2026-10-01"
+          },
+          {
+            "id": "vid-0a472fab",
+            "youtubeVideoId": "JrTFXCWmaaA",
+            "title": "12 Wild Things Hulk Hogan Put in His Body Before His Heart Gave Out",
+            "views": 214,
+            "likes": 10,
+            "comments": 2,
+            "publishedAt": "2026-10-03"
+          }
+        ],
+        "adsenseAccount": "",
+        "monthlyRevenue": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "totalYearlyRevenue": 0,
+        "ownerUserId": "",
+        "ownerEmail": ""
+      },
+      {
+        "id": "ch-4a6e6a97",
+        "name": "1970s Show",
+        "handle": "@1970sShow",
+        "channelUrl": "https://www.youtube.com/@1970sShow",
+        "subscribers": 52,
+        "totalVideos": 14,
+        "firstVideoDate": "2026-09-29",
+        "category": "Giải trí & Nội dung số",
+        "manager": "",
+        "managerEmail": "",
+        "status": "active",
+        "monetization": "pending",
+        "strikeCount": 0,
+        "statusNote": "Kênh mới khởi tạo trên hệ thống.",
+        "updatedAt": "2026-10-18T03:53:21.460Z",
+        "totalViews": 36176,
+        "watchHours": 2200,
+        "group": "NGƯỜI NỔI TIẾNG",
+        "realtimeViews48h": 0,
+        "ctrPercent": 0,
+        "avgViewDuration": "",
+        "estimatedRevenue": "",
+        "topVideos": [
+          {
+            "id": "vid-42078c14",
+            "youtubeVideoId": "UEQ5XifO7L8",
+            "title": "How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked",
+            "views": 24762,
+            "likes": 1008,
+            "comments": 8,
+            "publishedAt": "2026-09-29"
+          },
+          {
+            "id": "vid-3dfb07a0",
+            "youtubeVideoId": "LGu_sMQ-ANo",
+            "title": "Stephen Fry, Brian Cox & 13 More British TV Stars You Underestimated",
+            "views": 4065,
+            "likes": 168,
+            "comments": 2,
+            "publishedAt": "2026-10-04"
+          },
+          {
+            "id": "vid-790f40ec",
+            "youtubeVideoId": "IJ79UvSykBE",
+            "title": "12 OLD HOLLYWOOD GIANTS: #12 STOOD ABOUT 7'7\" TALL",
+            "views": 3249,
+            "likes": 134,
+            "comments": 2,
+            "publishedAt": "2026-09-30"
+          }
+        ],
+        "adsenseAccount": "",
+        "monthlyRevenue": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "totalYearlyRevenue": 0,
+        "ownerUserId": "",
+        "ownerEmail": ""
+      }
+    ],
+    "deals": [
+      {
+        "id": "deal-01",
+        "clientName": "Nguyễn Minh Quân",
+        "company": "ASUS ROG Vietnam",
+        "contactEmail": "quan.nguyen@asus-partner.vn",
+        "contactPhone": "0903112233",
+        "value": 85000000,
+        "stage": "won",
+        "owner": "Lan Anh",
+        "expectedCloseDate": "2026-10-10",
+        "projectId": "proj-01",
+        "notes": "Gói tài trợ Dedicated Video + Ghim bình luận 30 ngày cho dòng Laptop Gaming AI 2026.",
+        "createdAt": "2026-10-02T09:00:00.000Z"
+      },
+      {
+        "id": "deal-02",
+        "clientName": "Trần Thu Hà",
+        "company": "FinCloud ERP",
+        "contactEmail": "hatran@fincloud.vn",
+        "contactPhone": "0918223344",
+        "value": 62000000,
+        "stage": "won",
+        "owner": "Minh Đức",
+        "expectedCloseDate": "2026-10-12",
+        "projectId": "proj-02",
+        "notes": "Tích hợp 90s Mid-roll giới thiệu giải pháp quản lý dòng tiền + Link tải Ebook.",
+        "createdAt": "2026-10-05T10:15:00.000Z"
+      },
+      {
+        "id": "deal-03",
+        "clientName": "Lê Hoàng Nam",
+        "company": "Smarthome EcoVibe",
+        "contactEmail": "nam.le@ecovibe.vn",
+        "contactPhone": "0987654321",
+        "value": 54000000,
+        "stage": "negotiation",
+        "owner": "Lan Anh",
+        "expectedCloseDate": "2026-10-20",
+        "projectId": null,
+        "notes": "Đang chốt điều khoản KPI cam kết tối thiểu 50.000 lượt xem trong 14 ngày đầu.",
+        "createdAt": "2026-10-11T14:20:00.000Z"
+      },
+      {
+        "id": "deal-04",
+        "clientName": "Phạm Bảo Ngọc",
+        "company": "ClickAI Workspace",
+        "contactEmail": "ngoc@clickai.io",
+        "contactPhone": "0933445566",
+        "value": 40000000,
+        "stage": "contacted",
+        "owner": "Quốc Bảo",
+        "expectedCloseDate": "2026-10-25",
+        "projectId": null,
+        "notes": "Khách quan tâm combo 1 video dài trên YouTube + 2 YouTube Shorts cắt ngắn.",
+        "createdAt": "2026-10-14T08:30:00.000Z"
+      },
+      {
+        "id": "deal-05",
+        "clientName": "Đỗ Tuấn Kiệt",
+        "company": "HyperAudio Gear",
+        "contactEmail": "kiet@hyperaudio.vn",
+        "contactPhone": "0977889900",
+        "value": 35000000,
+        "stage": "lead",
+        "owner": "Minh Đức",
+        "expectedCloseDate": "2026-10-28",
+        "projectId": null,
+        "notes": "Lead từ form đăng ký hợp tác truyền thông chiến dịch Black Friday.",
+        "createdAt": "2026-10-15T16:00:00.000Z"
+      }
+    ],
+    "projects": [
+      {
+        "id": "proj-01",
+        "title": "Đánh Giá Laptop Gaming AI 2026: Hiệu Năng Thực Tế Sau 30 Ngày",
+        "status": "published",
+        "priority": "high",
+        "owner": "Minh Đức",
+        "clientName": "ASUS ROG Vietnam",
+        "dealId": "deal-01",
+        "channelId": "ch-techstudio",
+        "budget": 85000000,
+        "dueDate": "2026-10-12",
+        "description": "Video đánh giá chuyên sâu hiệu năng render 4K, nhiệt độ và thời lượng pin thực tế.",
+        "tasks": [
+          {
+            "id": "t-101",
+            "title": "Lên dàn ý & Phê duyệt kịch bản với nhãn hàng",
+            "assignee": "Lan Anh",
+            "stage": "scripting",
+            "completed": true
+          },
+          {
+            "id": "t-102",
+            "title": "Quay A-roll tại Studio & B-roll test game thực tế",
+            "assignee": "Quốc Bảo",
+            "stage": "production",
+            "completed": true
+          },
+          {
+            "id": "t-103",
+            "title": "Dựng hậu kỳ, chỉnh màu & Thiết kế 2 phương án Thumbnail",
+            "assignee": "Hoàng Nam",
+            "stage": "production",
+            "completed": true
+          },
+          {
+            "id": "t-104",
+            "title": "Xuất bản lên kênh & Gắn link tracking ở mô tả/bình luận",
+            "assignee": "Minh Đức",
+            "stage": "published",
+            "completed": true
+          }
+        ],
+        "progress": 100
+      },
+      {
+        "id": "proj-02",
+        "title": "Cách Xây Dựng Hệ Thống CRM & Quản Lý Dự Án Cho Team Sáng Tạo",
+        "status": "published",
+        "priority": "high",
+        "owner": "Lan Anh",
+        "clientName": "FinCloud ERP",
+        "dealId": "deal-02",
+        "channelId": "ch-bizcreator",
+        "budget": 62000000,
+        "dueDate": "2026-10-14",
+        "description": "Hướng dẫn quy trình vận hành khép kín từ chốt sale đến sản xuất video YouTube.",
+        "tasks": [
+          {
+            "id": "t-201",
+            "title": "Hoàn thiện kịch bản chi tiết & lồng ghép 90s tài trợ tự nhiên",
+            "assignee": "Lan Anh",
+            "stage": "scripting",
+            "completed": true
+          },
+          {
+            "id": "t-202",
+            "title": "Quay màn hình demo hệ thống & thu âm giọng đọc",
+            "assignee": "Minh Đức",
+            "stage": "production",
+            "completed": true
+          },
+          {
+            "id": "t-203",
+            "title": "Duyệt bản dựng nháp với đại diện FinCloud ERP",
+            "assignee": "Lan Anh",
+            "stage": "review",
+            "completed": true
+          },
+          {
+            "id": "t-204",
+            "title": "Đăng tải công khai & theo dõi chỉ số lượt xem 7 ngày đầu",
+            "assignee": "Minh Đức",
+            "stage": "published",
+            "completed": true
+          }
+        ],
+        "progress": 100
+      },
+      {
+        "id": "proj-03",
+        "title": "Top 5 Thiết Bị Smarthome Đáng Đầu Tư Nhất Cho Căn Hộ Hiện Đại",
+        "status": "production",
+        "priority": "urgent",
+        "owner": "Quốc Bảo",
+        "clientName": "Smarthome EcoVibe",
+        "dealId": "deal-03",
+        "channelId": "ch-techstudio",
+        "budget": 54000000,
+        "dueDate": "2026-10-21",
+        "description": "Video tổng hợp thực tế lắp đặt cảm biến thông minh, khóa vân tay và kịch bản tự động hóa.",
+        "tasks": [
+          {
+            "id": "t-301",
+            "title": "Chốt danh sách 5 thiết bị & kịch bản phân cảnh",
+            "assignee": "Lan Anh",
+            "stage": "scripting",
+            "completed": true
+          },
+          {
+            "id": "t-302",
+            "title": "Quay ngoại cảnh tại căn hộ mẫu",
+            "assignee": "Quốc Bảo",
+            "stage": "production",
+            "completed": true
+          },
+          {
+            "id": "t-303",
+            "title": "Dựng bản Rough Cut & lồng nhạc nền bản quyền",
+            "assignee": "Hoàng Nam",
+            "stage": "production",
+            "completed": false
+          },
+          {
+            "id": "t-304",
+            "title": "Thiết kế bộ 3 Thumbnail A/B test",
+            "assignee": "Hoàng Nam",
+            "stage": "review",
+            "completed": false
+          }
+        ],
+        "progress": 50
+      },
+      {
+        "id": "proj-04",
+        "title": "Tối Ưu SEO YouTube 2026: Tăng Tỷ Lệ Nhấp (CTR) Và Giữ Chân Khán Giả",
+        "status": "scripting",
+        "priority": "medium",
+        "owner": "Lan Anh",
+        "clientName": "Nội bộ Studio",
+        "dealId": null,
+        "channelId": "ch-bizcreator",
+        "budget": 18000000,
+        "dueDate": "2026-10-24",
+        "description": "Phân tích số liệu thực tế từ 50 video đã đăng để rút ra công thức đặt tiêu đề & mở đầu 30 giây.",
+        "tasks": [
+          {
+            "id": "t-401",
+            "title": "Tổng hợp dữ liệu CTR & Retention từ kênh",
+            "assignee": "Minh Đức",
+            "stage": "ideation",
+            "completed": true
+          },
+          {
+            "id": "t-402",
+            "title": "Viết kịch bản chi tiết (2.200 từ)",
+            "assignee": "Lan Anh",
+            "stage": "scripting",
+            "completed": false
+          },
+          {
+            "id": "t-403",
+            "title": "Chuẩn bị slide minh họa & biểu đồ động",
+            "assignee": "Hoàng Nam",
+            "stage": "production",
+            "completed": false
+          }
+        ],
+        "progress": 33
+      }
+    ],
+    "contents": [
+      {
+        "id": "cnt-e61006d1",
+        "title": "[Key Nổ View] How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked",
+        "type": "outline",
+        "projectId": null,
+        "status": "approved",
+        "author": "1970s Show",
+        "assetUrl": "https://www.youtube.com/watch?v=UEQ5XifO7L8",
+        "notionUrl": "",
+        "notionPageId": "",
+        "lastNotionSyncAt": null,
+        "tags": [
+          "Key nổ view",
+          "1970s Show",
+          "x9.5 TB kênh"
+        ],
+        "body": "🔥 KEY VIDEO NỔ VIEW TRÊN DÀN KÊNH\n- Tiêu đề gốc: How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked\n- Kênh: 1970s Show\n- Lượt xem thực tế: 23.607 views (Độ nổ: gấp x9.5 lần trung bình kênh)\n- Link video gốc: https://www.youtube.com/watch?v=UEQ5XifO7L8\n\n💡 Gợi ý triển khai:\n1. Phân tích Hook 30s đầu và cấu trúc tiêu đề/thumbnail của video này.\n2. Nhân bản chủ đề (Clone Key) hoặc cắt Shorts cho các kênh cùng ngách.",
+        "wordCount": 80,
+        "updatedAt": "2026-10-16T19:15:27.306Z"
+      },
+      {
+        "id": "cnt-01",
+        "title": "Kịch bản hoàn chỉnh: Đánh Giá Laptop Gaming AI 2026 (Bản quay chính thức)",
+        "type": "script",
+        "projectId": "proj-01",
+        "status": "approved",
+        "author": "Lan Anh",
+        "assetUrl": "https://drive.google.com/drive/folders/rog-script-2026",
+        "tags": [
+          "Kịch bản",
+          "Laptop AI",
+          "ASUS ROG",
+          "Đã duyệt"
+        ],
+        "body": "[00:00 - 00:35] HOOK MỞ ĐẦU\n\"Nếu bạn đang định bỏ ra hơn 50 triệu đồng cho một chiếc laptop vừa dựng phim 4K vừa chơi mượt mọi tựa game AAA trong năm 2026, đừng xuống tiền trước khi xem hết bài kiểm tra khắc nghiệt suốt 30 ngày qua của bọn mình!\"\n\n[00:35 - 03:20] PHẦN 1: THIẾT KẾ & TRẢI NGHIỆM THỰC TẾ\n- Kiểm tra độ cứng cáp của khung hợp kim nhôm CNC.\n- Bàn phím hành trình 1.7mm và màn hình OLED 240Hz chuẩn màu 100% DCI-P3.\n\n[03:20 - 06:45] PHẦN 2: BENCHMARK HIỆU NĂNG DỰNG VIDEO & AI LOCAL\n- Xuất project Premiere Pro 4K dài 15 phút: chỉ mất 4 phút 12 giây.\n- Chạy mô hình LLM cục bộ trên NPU 50 TOPS.\n\n[06:45 - 08:15] THÔNG ĐIỆP NHÃN HÀNG & TỔNG KẾT\n- Link ưu đãi độc quyền giảm ngay 3.000.000đ đặt tại dòng đầu tiên phần mô tả và bình luận ghim.",
+        "wordCount": 162,
+        "updatedAt": "2026-10-16T14:13:32.435Z"
+      },
+      {
+        "id": "cnt-02",
+        "title": "Kịch bản & Khung chương trình: Xây Dựng Hệ Thống CRM & Quản Lý Kênh YouTube",
+        "type": "script",
+        "projectId": "proj-02",
+        "status": "approved",
+        "author": "Lan Anh",
+        "assetUrl": "https://drive.google.com/drive/folders/crm-script-02",
+        "tags": [
+          "Kịch bản",
+          "CRM",
+          "YouTube Workflow",
+          "FinCloud"
+        ],
+        "body": "[00:00 - 00:40] ĐẶT VẤN ĐỀ\nKhi kênh YouTube của bạn bắt đầu có từ 5-10 nhãn hàng liên hệ booking mỗi tháng, việc quản lý qua tin nhắn rời rạc sẽ khiến bạn bỏ sót hợp đồng và trễ hạn giao video.\n\n[00:40 - 04:00] BƯỚC 1: QUẢN TRỊ PHỄU SALES (CRM)\n- Phân tách rõ 4 trạng thái: Lead mới -> Đang tư vấn -> Đàm phán -> Đã chốt.\n- Tự động chuyển đổi hợp đồng đã chốt sang dự án sản xuất chỉ với 1 thao tác.\n\n[04:00 - 07:30] BƯỚC 2: KHO LƯU TRỮ NỘI DUNG & THEO DÕI LƯỢT XEM HẰNG NGÀY\n- Lưu toàn bộ kịch bản, từ khóa SEO và link Footage ở một nơi duy nhất.\n- Theo dõi chỉ số lượt xem cập nhật hằng ngày để báo cáo nghiệm thu với nhãn hàng.",
+        "wordCount": 141,
+        "updatedAt": "2026-10-13T11:20:00.000Z"
+      },
+      {
+        "id": "cnt-03",
+        "title": "Bộ Từ Khóa SEO, Mô Tả Chuẩn & Timestamp: Top 5 Thiết Bị Smarthome",
+        "type": "seo",
+        "projectId": "proj-03",
+        "status": "review",
+        "author": "Minh Đức",
+        "assetUrl": "https://drive.google.com/drive/folders/smarthome-seo-pack",
+        "tags": [
+          "SEO YouTube",
+          "Từ khóa",
+          "Description",
+          "Smarthome"
+        ],
+        "body": "TIÊU ĐỀ ĐỀ XUẤT (CTR MỤC TIÊU > 8.5%):\n1. Top 5 Thiết Bị Smarthome Đáng Tiền Nhất 2026 (Tránh Mua Nhầm!)\n2. Biến Căn Hộ Thường Thành Nhà Thông Minh Chỉ Với 15 Triệu Đồng\n\nTỪ KHÓA CHÍNH (TAGS):\nnhà thông minh 2026, smarthome việt nam, khóa vân tay, cảm biến hiện diện, tự động hóa nhà ở, ecovibe smarthome\n\nMẪU MÔ TẢ VIDEO:\n00:00 Mở đầu & Sai lầm khi lắp Smarthome\n01:45 1. Cảm biến hiện diện mmWave thế hệ mới\n04:10 2. Công tắc thông minh không cần dây nguội\n07:00 3. Khóa cửa nhận diện khuôn mặt 3D",
+        "wordCount": 112,
+        "updatedAt": "2026-10-15T17:10:00.000Z"
+      },
+      {
+        "id": "cnt-04",
+        "title": "Kho Raw Footage 4K Sony FX3 & Bộ Thumbnail A/B Testing (Smarthome)",
+        "type": "footage",
+        "projectId": "proj-03",
+        "status": "draft",
+        "author": "Hoàng Nam",
+        "assetUrl": "https://drive.google.com/drive/folders/smarthome-4k-footage",
+        "tags": [
+          "Footage 4K",
+          "Sony FX3",
+          "Thumbnail PSD",
+          "B-Roll"
+        ],
+        "body": "Danh sách thư mục lưu trữ Media:\n- /01_A_Roll_Studio (14 clips, 4K 60fps 10-bit 4:2:2)\n- /02_B_Roll_CanHoMau (28 clips cận cảnh thiết bị hoạt động)\n- /03_Audio_Voiceover (File WAV 48kHz đã khử ồn)\n- /04_Thumbnails (3 phiên bản PSD + PNG xuất sẵn cho A/B Testing trên YouTube Studio)",
+        "wordCount": 54,
+        "updatedAt": "2026-10-16T09:45:00.000Z"
+      }
+    ],
+    "videos": [
+      {
+        "id": "vid-14f8d389",
+        "title": "14 Classic TV Stars Who Walked Out, Held Out, or Got Replaced",
+        "youtubeVideoId": "yvLcLUmkBGg",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-16",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 1,
+            "likes": 0,
+            "comments": 2,
+            "dailyViewsDelta": 0
+          },
+          {
+            "date": "2026-10-17",
+            "views": 138,
+            "likes": 10,
+            "comments": 2,
+            "dailyViewsDelta": 137
+          },
+          {
+            "date": "2026-10-18",
+            "views": 223,
+            "likes": 10,
+            "comments": 2,
+            "dailyViewsDelta": 85
+          }
+        ],
+        "currentViews": 223,
+        "currentLikes": 10,
+        "currentComments": 2,
+        "dailyViewsDelta": 85,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-73bed26b",
+        "title": "6 Tables Randy 'Macho Man' Savage Sat At Until His Heart Gave Out",
+        "youtubeVideoId": "d_Ft0bFYLxg",
+        "channelId": "ch-5579872d",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-05",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 442,
+            "likes": 2,
+            "comments": 2,
+            "dailyViewsDelta": 442
+          },
+          {
+            "date": "2026-10-17",
+            "views": 450,
+            "likes": 19,
+            "comments": 2,
+            "dailyViewsDelta": 8
+          },
+          {
+            "date": "2026-10-18",
+            "views": 453,
+            "likes": 19,
+            "comments": 2,
+            "dailyViewsDelta": 3
+          }
+        ],
+        "currentViews": 453,
+        "currentLikes": 19,
+        "currentComments": 2,
+        "dailyViewsDelta": 3,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-0a472fab",
+        "title": "12 Wild Things Hulk Hogan Put in His Body Before His Heart Gave Out",
+        "youtubeVideoId": "JrTFXCWmaaA",
+        "channelId": "ch-5579872d",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-03",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 191,
+            "likes": 6,
+            "comments": 2,
+            "dailyViewsDelta": 191
+          },
+          {
+            "date": "2026-10-17",
+            "views": 205,
+            "likes": 10,
+            "comments": 2,
+            "dailyViewsDelta": 14
+          },
+          {
+            "date": "2026-10-18",
+            "views": 214,
+            "likes": 10,
+            "comments": 2,
+            "dailyViewsDelta": 9
+          }
+        ],
+        "currentViews": 214,
+        "currentLikes": 10,
+        "currentComments": 2,
+        "dailyViewsDelta": 9,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-6c66a438",
+        "title": "10 Wild Foods and Drinks Andre the Giant Used to Hide His Pain",
+        "youtubeVideoId": "d5giUxqaVy8",
+        "channelId": "ch-5579872d",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-01",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 293,
+            "likes": 0,
+            "comments": 2,
+            "dailyViewsDelta": 293
+          },
+          {
+            "date": "2026-10-17",
+            "views": 297,
+            "likes": 12,
+            "comments": 2,
+            "dailyViewsDelta": 4
+          },
+          {
+            "date": "2026-10-18",
+            "views": 305,
+            "likes": 13,
+            "comments": 2,
+            "dailyViewsDelta": 8
+          }
+        ],
+        "currentViews": 305,
+        "currentLikes": 13,
+        "currentComments": 2,
+        "dailyViewsDelta": 8,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-73c6d55c",
+        "title": "15 Classic TV Stars and the Court Files Behind the Smile",
+        "youtubeVideoId": "KRFyZSyi-dU",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-03",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 256,
+            "likes": 0,
+            "comments": 2,
+            "dailyViewsDelta": 256
+          },
+          {
+            "date": "2026-10-17",
+            "views": 268,
+            "likes": 11,
+            "comments": 2,
+            "dailyViewsDelta": 12
+          },
+          {
+            "date": "2026-10-18",
+            "views": 269,
+            "likes": 11,
+            "comments": 2,
+            "dailyViewsDelta": 1
+          }
+        ],
+        "currentViews": 269,
+        "currentLikes": 11,
+        "currentComments": 2,
+        "dailyViewsDelta": 1,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-8ca5a9f6",
+        "title": "From Backstage Grudges to Jury Verdicts: 15 Classic TV Legends",
+        "youtubeVideoId": "ErEKBLjQ3HE",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-02",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 253,
+            "likes": 4,
+            "comments": 2,
+            "dailyViewsDelta": 253
+          },
+          {
+            "date": "2026-10-17",
+            "views": 254,
+            "likes": 11,
+            "comments": 2,
+            "dailyViewsDelta": 1
+          },
+          {
+            "date": "2026-10-18",
+            "views": 256,
+            "likes": 11,
+            "comments": 2,
+            "dailyViewsDelta": 2
+          }
+        ],
+        "currentViews": 256,
+        "currentLikes": 11,
+        "currentComments": 2,
+        "dailyViewsDelta": 2,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-093e62f1",
+        "title": "15 Classic TV Co-Stars Who Were Trapped By Their Contracts",
+        "youtubeVideoId": "qYx5HI-gUIM",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-01",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 500,
+            "likes": 0,
+            "comments": 2,
+            "dailyViewsDelta": 500
+          },
+          {
+            "date": "2026-10-17",
+            "views": 505,
+            "likes": 21,
+            "comments": 2,
+            "dailyViewsDelta": 5
+          },
+          {
+            "date": "2026-10-18",
+            "views": 507,
+            "likes": 21,
+            "comments": 2,
+            "dailyViewsDelta": 2
+          }
+        ],
+        "currentViews": 507,
+        "currentLikes": 21,
+        "currentComments": 2,
+        "dailyViewsDelta": 2,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-790f40ec",
+        "title": "12 OLD HOLLYWOOD GIANTS: #12 STOOD ABOUT 7'7\" TALL",
+        "youtubeVideoId": "IJ79UvSykBE",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-09-30",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 3200,
+            "likes": 17,
+            "comments": 2,
+            "dailyViewsDelta": 3237
+          },
+          {
+            "date": "2026-10-17",
+            "views": 3200,
+            "likes": 134,
+            "comments": 2,
+            "dailyViewsDelta": 0
+          },
+          {
+            "date": "2026-10-18",
+            "views": 3249,
+            "likes": 134,
+            "comments": 2,
+            "dailyViewsDelta": 49
+          }
+        ],
+        "currentViews": 3249,
+        "currentLikes": 134,
+        "currentComments": 2,
+        "dailyViewsDelta": 49,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-42078c14",
+        "title": "How Tall Was John Wayne, Really? 25 Hollywood Giants Ranked",
+        "youtubeVideoId": "UEQ5XifO7L8",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-09-29",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 23524,
+            "likes": 99,
+            "comments": 8,
+            "dailyViewsDelta": 23524
+          },
+          {
+            "date": "2026-10-17",
+            "views": 24000,
+            "likes": 1008,
+            "comments": 8,
+            "dailyViewsDelta": 476
+          },
+          {
+            "date": "2026-10-18",
+            "views": 24762,
+            "likes": 1008,
+            "comments": 8,
+            "dailyViewsDelta": 762
+          }
+        ],
+        "currentViews": 24762,
+        "currentLikes": 1008,
+        "currentComments": 8,
+        "dailyViewsDelta": 762,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-0301ac4b",
+        "title": "12 Classic TV Stars Who Chose a Second Life Over Fame",
+        "youtubeVideoId": "_qSbTXWcpI4",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-13",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 520,
+            "likes": 7,
+            "comments": 2,
+            "dailyViewsDelta": 519
+          },
+          {
+            "date": "2026-10-17",
+            "views": 596,
+            "likes": 25,
+            "comments": 2,
+            "dailyViewsDelta": 76
+          },
+          {
+            "date": "2026-10-18",
+            "views": 604,
+            "likes": 25,
+            "comments": 2,
+            "dailyViewsDelta": 8
+          }
+        ],
+        "currentViews": 604,
+        "currentLikes": 25,
+        "currentComments": 2,
+        "dailyViewsDelta": 8,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-0119e280",
+        "title": "Nobody Was Waiting for These 15 Child Stars When the Show Ended",
+        "youtubeVideoId": "sPyOtuSj40I",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-10",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 450,
+            "likes": 2,
+            "comments": 2,
+            "dailyViewsDelta": 450
+          },
+          {
+            "date": "2026-10-17",
+            "views": 466,
+            "likes": 20,
+            "comments": 2,
+            "dailyViewsDelta": 16
+          },
+          {
+            "date": "2026-10-18",
+            "views": 472,
+            "likes": 20,
+            "comments": 2,
+            "dailyViewsDelta": 6
+          }
+        ],
+        "currentViews": 472,
+        "currentLikes": 20,
+        "currentComments": 2,
+        "dailyViewsDelta": 6,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-4613e635",
+        "title": "12 Sitcom Stars Who Got Rich and Changed Almost Nothing",
+        "youtubeVideoId": "zU2xyWauITM",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-09",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 290,
+            "likes": 0,
+            "comments": 2,
+            "dailyViewsDelta": 290
+          },
+          {
+            "date": "2026-10-17",
+            "views": 298,
+            "likes": 13,
+            "comments": 2,
+            "dailyViewsDelta": 8
+          },
+          {
+            "date": "2026-10-18",
+            "views": 298,
+            "likes": 13,
+            "comments": 2,
+            "dailyViewsDelta": 0
+          }
+        ],
+        "currentViews": 298,
+        "currentLikes": 13,
+        "currentComments": 2,
+        "dailyViewsDelta": 0,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-61de147b",
+        "title": "11 Sitcom Stars Who Were Hard to Work With Off Camera",
+        "youtubeVideoId": "JNcxB9LOsvE",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-08",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 318,
+            "likes": 0,
+            "comments": 2,
+            "dailyViewsDelta": 318
+          },
+          {
+            "date": "2026-10-17",
+            "views": 326,
+            "likes": 14,
+            "comments": 2,
+            "dailyViewsDelta": 8
+          },
+          {
+            "date": "2026-10-18",
+            "views": 327,
+            "likes": 14,
+            "comments": 2,
+            "dailyViewsDelta": 1
+          }
+        ],
+        "currentViews": 327,
+        "currentLikes": 14,
+        "currentComments": 2,
+        "dailyViewsDelta": 1,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-2397a972",
+        "title": "11 Classic Sitcom Stars Who Died of Silent Diseases",
+        "youtubeVideoId": "S3dXTAuK4Ng",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-07",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 216,
+            "likes": 3,
+            "comments": 2,
+            "dailyViewsDelta": 216
+          },
+          {
+            "date": "2026-10-17",
+            "views": 234,
+            "likes": 10,
+            "comments": 2,
+            "dailyViewsDelta": 18
+          },
+          {
+            "date": "2026-10-18",
+            "views": 237,
+            "likes": 10,
+            "comments": 2,
+            "dailyViewsDelta": 3
+          }
+        ],
+        "currentViews": 237,
+        "currentLikes": 10,
+        "currentComments": 2,
+        "dailyViewsDelta": 3,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-79a2cd6c",
+        "title": "12 Sitcom Stars Called Arrogant: Who Was Right, Who Was Wrong?",
+        "youtubeVideoId": "ShpxdtrSNQc",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-06",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 442,
+            "likes": 1,
+            "comments": 2,
+            "dailyViewsDelta": 442
+          },
+          {
+            "date": "2026-10-17",
+            "views": 454,
+            "likes": 19,
+            "comments": 2,
+            "dailyViewsDelta": 12
+          },
+          {
+            "date": "2026-10-18",
+            "views": 454,
+            "likes": 19,
+            "comments": 2,
+            "dailyViewsDelta": 0
+          }
+        ],
+        "currentViews": 454,
+        "currentLikes": 19,
+        "currentComments": 2,
+        "dailyViewsDelta": 0,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-6ba8f7ce",
+        "title": "15 Hollywood Deaths Everyone Got Wrong",
+        "youtubeVideoId": "_jAJuwYEiv0",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-05",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 447,
+            "likes": 1,
+            "comments": 2,
+            "dailyViewsDelta": 447
+          },
+          {
+            "date": "2026-10-17",
+            "views": 452,
+            "likes": 19,
+            "comments": 2,
+            "dailyViewsDelta": 5
+          },
+          {
+            "date": "2026-10-18",
+            "views": 453,
+            "likes": 19,
+            "comments": 2,
+            "dailyViewsDelta": 1
+          }
+        ],
+        "currentViews": 453,
+        "currentLikes": 19,
+        "currentComments": 2,
+        "dailyViewsDelta": 1,
+        "lastUpdatedDate": "2026-10-18"
+      },
+      {
+        "id": "vid-3dfb07a0",
+        "title": "Stephen Fry, Brian Cox & 13 More British TV Stars You Underestimated",
+        "youtubeVideoId": "LGu_sMQ-ANo",
+        "channelId": "ch-4a6e6a97",
+        "projectId": null,
+        "contentId": null,
+        "publishedAt": "2026-10-04",
+        "status": "public",
+        "metricsHistory": [
+          {
+            "date": "2026-10-16",
+            "views": 4000,
+            "likes": 4,
+            "comments": 2,
+            "dailyViewsDelta": 4063
+          },
+          {
+            "date": "2026-10-17",
+            "views": 4000,
+            "likes": 168,
+            "comments": 2,
+            "dailyViewsDelta": 0
+          },
+          {
+            "date": "2026-10-18",
+            "views": 4065,
+            "likes": 168,
+            "comments": 2,
+            "dailyViewsDelta": 65
+          }
+        ],
+        "currentViews": 4065,
+        "currentLikes": 168,
+        "currentComments": 2,
+        "dailyViewsDelta": 65,
+        "lastUpdatedDate": "2026-10-18"
+      }
+    ]
+  }
+}

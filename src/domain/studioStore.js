@@ -3,6 +3,14 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fetchYouTubeChannelProfile, inferChannelCategory } from './youtubeFetcher.js';
 import { extractNotionId, syncContentToNotion } from './notionSync.js';
+import {
+  ensureBotCenterState,
+  appendBotLog,
+  scanViralAndChannelHealth,
+  buildBackupPayload,
+  createImmortalSnapshot,
+  notifyTelegramNewUser,
+} from './botEngine.js';
 
 const VALID_DEAL_STAGES = ['lead', 'contacted', 'negotiation', 'won', 'lost'];
 const VALID_PROJECT_STATUSES = ['ideation', 'scripting', 'production', 'review', 'published'];
@@ -640,6 +648,7 @@ export class StudioStore {
             parsed.meta.customGroups.push(g);
           }
         }
+        ensureBotCenterState(parsed.meta);
         (parsed.videos || []).forEach(recalculateVideoHistory);
         (parsed.projects || []).forEach(recalculateProjectProgress);
         return parsed;
@@ -668,6 +677,7 @@ export class StudioStore {
           videos: [],
         };
 
+    ensureBotCenterState(initial.meta);
     this.#save(initial);
     return initial;
   }
@@ -677,6 +687,10 @@ export class StudioStore {
     const dir = path.dirname(this.filePath);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(this.filePath, JSON.stringify(this.state, null, 2), 'utf8');
+  }
+
+  saveState() {
+    this.#save();
   }
 
   // ===========================================================================
@@ -1306,6 +1320,14 @@ export class StudioStore {
 
     this.state.users.unshift(newUser);
     this.#save();
+
+    if (!autoApprove) {
+      notifyTelegramNewUser(this, newUser)
+        .then(() => {
+          this.#save();
+        })
+        .catch(() => {});
+    }
 
     return {
       ok: true,
@@ -2903,6 +2925,204 @@ export class StudioStore {
         labelStats,
         topVideosLeaderboard,
       },
+    };
+  }
+
+  // ===========================================================================
+  // 6. BOT CENTER (BOT 1: TELEGRAM ADMIN + BOT 2: VIRAL WATCHDOG + BOT 4: IMMORTAL BACKUP)
+  // ===========================================================================
+
+  getBotCenterStatus() {
+    if (!this.state.meta) this.state.meta = {};
+    const center = ensureBotCenterState(this.state.meta);
+    const watchdog = scanViralAndChannelHealth(this);
+    const snapshots = (center.snapshots || []).map((snap) => ({
+      id: snap.id,
+      label: snap.label,
+      createdAt: snap.createdAt,
+      sizeBytes: snap.sizeBytes,
+      counts: snap.counts || {},
+    }));
+    const rawToken = String(center.config.telegramBotToken || '').trim();
+    const maskedToken = rawToken
+      ? rawToken.length > 14
+        ? `${rawToken.slice(0, 8)}...${rawToken.slice(-4)}`
+        : 'Đã cấu hình Token'
+      : '';
+
+    return {
+      config: {
+        ...center.config,
+        hasTelegramToken: Boolean(rawToken),
+        maskedTelegramToken: maskedToken,
+      },
+      watchdog,
+      snapshots,
+      activityLogs: (center.activityLogs || []).slice(0, 30),
+    };
+  }
+
+  updateBotConfig(patch = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const center = ensureBotCenterState(this.state.meta);
+    const prev = center.config;
+
+    if (patch.telegramEnabled !== undefined) prev.telegramEnabled = Boolean(patch.telegramEnabled);
+    if (patch.telegramBotToken !== undefined) {
+      const nextTok = String(patch.telegramBotToken).trim();
+      if (nextTok && !nextTok.includes('...')) {
+        prev.telegramBotToken = nextTok;
+      } else if (patch.clearTelegramToken) {
+        prev.telegramBotToken = '';
+      }
+    }
+    if (patch.telegramChatId !== undefined) {
+      prev.telegramChatId = String(patch.telegramChatId).trim();
+    }
+    if (patch.notifyOnNewUser !== undefined) prev.notifyOnNewUser = Boolean(patch.notifyOnNewUser);
+    if (patch.notifyOnViralVideo !== undefined) prev.notifyOnViralVideo = Boolean(patch.notifyOnViralVideo);
+    if (patch.autoTelegramBackupDaily !== undefined) {
+      prev.autoTelegramBackupDaily = Boolean(patch.autoTelegramBackupDaily);
+    }
+
+    if (patch.watchdogEnabled !== undefined) prev.watchdogEnabled = Boolean(patch.watchdogEnabled);
+    if (patch.outlierThreshold !== undefined) {
+      prev.outlierThreshold = Math.max(1.1, Number(patch.outlierThreshold) || 1.5);
+    }
+    if (patch.minViralViews !== undefined) {
+      prev.minViralViews = Math.max(0, Number(patch.minViralViews) || 100);
+    }
+    if (patch.staleDaysThreshold !== undefined) {
+      prev.staleDaysThreshold = Math.max(1, Number(patch.staleDaysThreshold) || 5);
+    }
+
+    if (patch.autoBackupEnabled !== undefined) prev.autoBackupEnabled = Boolean(patch.autoBackupEnabled);
+    if (patch.cloudBackupWebhookUrl !== undefined) {
+      prev.cloudBackupWebhookUrl = String(patch.cloudBackupWebhookUrl).trim();
+    }
+
+    appendBotLog(
+      this.state.meta,
+      'Bot Center',
+      'Đã lưu cấu hình Trung tâm Bot (Bot 1 Telegram + Bot 2 Canh nổ view + Bot 4 Sao lưu bất tử).',
+      'success'
+    );
+    this.#save();
+    return this.getBotCenterStatus();
+  }
+
+  runWatchdogScan(customOptions = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const result = scanViralAndChannelHealth(this, customOptions);
+    appendBotLog(
+      this.state.meta,
+      'Bot 2 (Canh nổ view)',
+      `Quét xong ${result.summary.totalChannelsScanned} kênh: Phát hiện ${result.summary.viralCount} video nổ đề xuất (>= x${result.outlierThreshold}) và ${result.summary.healthAlertCount} cảnh báo kênh.`,
+      result.summary.viralCount > 0 ? 'success' : 'info'
+    );
+    this.#save();
+    return result;
+  }
+
+  async createBackupSnapshot(options = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const res = await createImmortalSnapshot(this, options);
+    this.#save();
+    return {
+      ...res,
+      status: this.getBotCenterStatus(),
+    };
+  }
+
+  exportFullBackup(label = 'Bản sao lưu đầy đủ ACB9x StudioFlow') {
+    return buildBackupPayload(this, label);
+  }
+
+  restoreFromBackup(input = {}) {
+    if (!this.state.meta) this.state.meta = {};
+    const center = ensureBotCenterState(this.state.meta);
+    let sourceData = null;
+    let sourceLabel = '';
+
+    if (input.snapshotId) {
+      const foundSnap = (center.snapshots || []).find((s) => s.id === input.snapshotId);
+      if (!foundSnap || !foundSnap.data) {
+        throw new Error('Không tìm thấy bản Snapshot cần khôi phục!');
+      }
+      sourceData = foundSnap.data;
+      sourceLabel = `Snapshot "${foundSnap.label}" (${foundSnap.id})`;
+    } else if (input.backupData && typeof input.backupData === 'object') {
+      sourceData = input.backupData.data && typeof input.backupData.data === 'object'
+        ? input.backupData.data
+        : input.backupData;
+      sourceLabel = String(input.backupData.label || 'File Backup JSON tải lên');
+    } else {
+      throw new Error('Dữ liệu khôi phục không hợp lệ! Vui lòng chọn Snapshot hoặc tải file .json hợp lệ.');
+    }
+
+    if (!Array.isArray(sourceData.channels) && !Array.isArray(sourceData.videos)) {
+      throw new Error('File Backup không đúng định dạng dữ liệu StudioFlow (thiếu danh sách channels/videos)!');
+    }
+
+    // Giữ lại cấu hình Bot Center và danh sách Snapshots hiện hành để không bị mất kết nối Telegram
+    const preservedBotCenter = JSON.parse(JSON.stringify(center));
+    const nextMeta = {
+      ...(this.state.meta || {}),
+      ...(sourceData.meta || {}),
+      botCenter: preservedBotCenter,
+    };
+
+    const nextChannels = Array.isArray(sourceData.channels)
+      ? sourceData.channels.map(normalizeChannel)
+      : this.state.channels;
+    const nextVideos = Array.isArray(sourceData.videos)
+      ? JSON.parse(JSON.stringify(sourceData.videos))
+      : this.state.videos;
+    nextVideos.forEach(recalculateVideoHistory);
+
+    const nextProjects = Array.isArray(sourceData.projects)
+      ? JSON.parse(JSON.stringify(sourceData.projects))
+      : this.state.projects;
+    nextProjects.forEach(recalculateProjectProgress);
+
+    const nextUsers = Array.isArray(sourceData.users)
+      ? JSON.parse(JSON.stringify(sourceData.users))
+      : this.state.users;
+    const nextContents = Array.isArray(sourceData.contents)
+      ? JSON.parse(JSON.stringify(sourceData.contents))
+      : this.state.contents;
+    const nextDeals = Array.isArray(sourceData.deals)
+      ? JSON.parse(JSON.stringify(sourceData.deals))
+      : this.state.deals;
+
+    this.state = {
+      meta: nextMeta,
+      users: nextUsers,
+      channels: nextChannels,
+      videos: nextVideos,
+      contents: nextContents,
+      deals: nextDeals,
+      projects: nextProjects,
+    };
+
+    appendBotLog(
+      this.state.meta,
+      'Bot 4 (Khôi phục bất tử)',
+      `Đã khôi phục toàn bộ dữ liệu thành công từ ${sourceLabel}: ${nextChannels.length} kênh, ${nextVideos.length} video, ${nextUsers.length} user.`,
+      'success'
+    );
+    this.#save();
+
+    return {
+      ok: true,
+      restoredFrom: sourceLabel,
+      counts: {
+        channels: nextChannels.length,
+        videos: nextVideos.length,
+        users: nextUsers.length,
+        contents: nextContents.length,
+      },
+      status: this.getBotCenterStatus(),
     };
   }
 }

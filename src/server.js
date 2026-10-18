@@ -3,6 +3,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { StudioStore, safeCompareStrings } from './domain/studioStore.js';
+import {
+  callTelegramApi,
+  detectTelegramChatId,
+  sendTelegramBackupDocument,
+  formatTelegramSystemReport,
+  pollTelegramBotUpdates,
+  appendBotLog,
+} from './domain/botEngine.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +38,7 @@ const SECURITY_HEADERS = {
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
 };
 
-const MAX_BODY_BYTES = 2 * 1024 * 1024; // Giới hạn gói tin tối đa 2MB chống tấn công tràn bộ nhớ (DoS)
+const MAX_BODY_BYTES = 10 * 1024 * 1024; // Giới hạn gói tin tối đa 10MB hỗ trợ khôi phục Backup JSON & chống DoS
 
 function getClientIp(req) {
   const forwarded = req.headers['x-forwarded-for'];
@@ -148,6 +156,9 @@ export function createAppServer({
         if (isNewDay || elapsedMs >= HOURLY_INTERVAL_MS) {
           isSyncing = true;
           await store.syncAllVideosDailyMetrics({ date: today });
+          if (isNewDay && store.state?.meta?.botCenter?.config?.autoBackupEnabled !== false) {
+            await store.createBackupSnapshot({ label: `Tự động Sao lưu ngày ${today} (Bot 4)` });
+          }
         }
       } catch {
         // Bỏ qua lỗi mạng tạm thời trong tiến trình nền
@@ -160,6 +171,12 @@ export function createAppServer({
     dailyTimer = setInterval(checkAndRunHourlySync, 60 * 1000);
     dailyTimer.unref?.();
 
+    // Bot 1: Tự động lắng nghe nút bấm [✅ Duyệt ngay] và lệnh (/report, /top, /users, /backup) từ Telegram mỗi 15 giây
+    const telegramPollTimer = setInterval(() => {
+      pollTelegramBotUpdates(store).catch(() => {});
+    }, 15 * 1000);
+    telegramPollTimer.unref?.();
+
     // Tự động quét bổ sung ngay khi khởi động cho các kênh đang có 0 video (do lần quét trước bị YouTube đổi cấu trúc)
     const bootRepairTimer = setTimeout(async () => {
       if (isSyncing) return;
@@ -171,6 +188,11 @@ export function createAppServer({
           if (chVidCount === 0 && (ch.handle || ch.channelUrl)) {
             await store.syncChannelFromYouTube(ch.id);
           }
+        }
+        // Tạo bản Snapshot khởi động đầu tiên nếu chưa có bản nào trong Bot 4
+        const existingSnaps = store.state?.meta?.botCenter?.snapshots || [];
+        if (existingSnaps.length === 0) {
+          await store.createBackupSnapshot({ label: 'Snapshot Khởi tạo Hệ thống (Bot 4)' });
         }
       } catch {
         // Bỏ qua lỗi mạng tạm thời khi khởi động
@@ -331,6 +353,7 @@ export function createAppServer({
         return sendJson(res, 200, {
           currentUser,
           users: isAdmin ? store.listUsers() : [],
+          botCenter: isAdmin ? store.getBotCenterStatus() : null,
           summary: store.getDashboardSummary(undefined, currentUser),
           channels: store.listChannels(currentUser),
           groups: store.listGroups(currentUser),
@@ -641,6 +664,168 @@ export function createAppServer({
         const body = await readJsonBody(req);
         const result = await store.syncAllVideosDailyMetrics({ date: body.date });
         return sendJson(res, 200, result);
+      }
+
+      // =======================================================================
+      // 5. BOT CENTER ROUTES (BOT 1: TELEGRAM + BOT 2: VIRAL WATCHDOG + BOT 4: IMMORTAL BACKUP)
+      // =======================================================================
+      if (pathname.startsWith('/api/bots/')) {
+        if (currentUser && currentUser.role !== 'admin') {
+          return sendJson(res, 403, { error: 'Chỉ Admin mới có quyền điều khiển Trung tâm Bot!' });
+        }
+
+        if (pathname === '/api/bots/status' && method === 'GET') {
+          return sendJson(res, 200, store.getBotCenterStatus());
+        }
+
+        if (pathname === '/api/bots/config' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const updated = store.updateBotConfig(body);
+          return sendJson(res, 200, { ok: true, status: updated });
+        }
+
+        if (pathname === '/api/bots/watchdog/scan' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const watchdog = store.runWatchdogScan(body);
+          // Nếu bật thông báo Telegram cho Video nổ view và có cấu hình Telegram
+          const cfg = store.state?.meta?.botCenter?.config || {};
+          if (
+            body.notifyTelegram &&
+            cfg.telegramBotToken &&
+            cfg.telegramChatId &&
+            watchdog.viralVideos?.length > 0
+          ) {
+            const topList = watchdog.viralVideos.slice(0, 6);
+            const msgLines = [
+              `🔥 <b>CẢNH BÁO VIDEO NỔ VIEW (BOT 2 WATCHDOG)</b>`,
+              `Hệ thống vừa phát hiện <b>${watchdog.viralVideos.length}</b> video vượt ngưỡng đề xuất (≥ x${watchdog.outlierThreshold}):`,
+              ``,
+              ...topList.map(
+                (v, i) =>
+                  `${i + 1}. <b>${v.title}</b>\n   📺 ${v.channelName} (${v.group}) — <b>${Number(
+                    v.views
+                  ).toLocaleString('vi-VN')} views</b> (<b>x${v.outlierMultiplier}</b> TB kênh)`
+              ),
+            ];
+            await callTelegramApi(cfg.telegramBotToken, 'sendMessage', {
+              chat_id: cfg.telegramChatId,
+              text: msgLines.join('\n'),
+              parse_mode: 'HTML',
+            }).catch(() => {});
+          }
+          return sendJson(res, 200, { ok: true, watchdog, status: store.getBotCenterStatus() });
+        }
+
+        if (pathname === '/api/bots/backup/create' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const created = await store.createBackupSnapshot({
+            label: body.label || 'Bản sao lưu thủ công (Bot 4)',
+          });
+          return sendJson(res, 201, { ok: true, ...created });
+        }
+
+        if (pathname === '/api/bots/backup/export' && method === 'GET') {
+          const payload = store.exportFullBackup('Bản sao lưu đầy đủ ACB9x StudioFlow');
+          const dateTag = new Date().toISOString().slice(0, 10);
+          return sendJson(res, 200, payload, {
+            'Content-Disposition': `attachment; filename="studioflow-backup-${dateTag}.json"`,
+          });
+        }
+
+        if (pathname === '/api/bots/backup/restore' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const restored = store.restoreFromBackup(body);
+          return sendJson(res, 200, restored);
+        }
+
+        if (pathname === '/api/bots/telegram/detect-chat' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const token = String(
+            body.telegramBotToken && !String(body.telegramBotToken).includes('...')
+              ? body.telegramBotToken
+              : store.state?.meta?.botCenter?.config?.telegramBotToken || ''
+          ).trim();
+          const detected = await detectTelegramChatId(token);
+          store.updateBotConfig({
+            telegramEnabled: true,
+            telegramBotToken: token,
+            telegramChatId: detected.chatId,
+          });
+          appendBotLog(
+            store.state.meta,
+            'Bot 1 (Telegram)',
+            `Đã tự động dò thấy Chat ID: ${detected.chatId} (${detected.chatTitle}) cho Bot @${detected.botUsername}.`,
+            'success'
+          );
+          store.saveState();
+          return sendJson(res, 200, {
+            ok: true,
+            ...detected,
+            status: store.getBotCenterStatus(),
+          });
+        }
+
+        if (pathname === '/api/bots/telegram/test-report' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const cfg = store.state?.meta?.botCenter?.config || {};
+          const token = String(
+            body.telegramBotToken && !String(body.telegramBotToken).includes('...')
+              ? body.telegramBotToken
+              : cfg.telegramBotToken || ''
+          ).trim();
+          const chatId = String(body.telegramChatId || cfg.telegramChatId || '').trim();
+          if (!token || !chatId) {
+            throw new Error('Vui lòng nhập Bot Token và Chat ID (hoặc bấm "🔍 Tự dò Chat ID") trước khi gửi báo cáo!');
+          }
+          const reportHtml = formatTelegramSystemReport(store);
+          await callTelegramApi(token, 'sendMessage', {
+            chat_id: chatId,
+            text: reportHtml,
+            parse_mode: 'HTML',
+          });
+          if (store.state?.meta?.botCenter?.config) {
+            store.state.meta.botCenter.config.lastTelegramReportAt = new Date().toISOString();
+          }
+          appendBotLog(
+            store.state.meta,
+            'Bot 1 (Telegram)',
+            `Đã bắn Báo cáo tổng hợp Hệ thống về Telegram (Chat ID: ${chatId}).`,
+            'success'
+          );
+          store.saveState();
+          return sendJson(res, 200, {
+            ok: true,
+            message: 'Đã gửi Báo cáo tổng hợp về Telegram thành công!',
+            status: store.getBotCenterStatus(),
+          });
+        }
+
+        if (pathname === '/api/bots/telegram/send-backup' && method === 'POST') {
+          const body = await readJsonBody(req);
+          const cfg = store.state?.meta?.botCenter?.config || {};
+          const token = String(
+            body.telegramBotToken && !String(body.telegramBotToken).includes('...')
+              ? body.telegramBotToken
+              : cfg.telegramBotToken || ''
+          ).trim();
+          const chatId = String(body.telegramChatId || cfg.telegramChatId || '').trim();
+          if (!token || !chatId) {
+            throw new Error('Vui lòng cấu hình Bot Token và Chat ID trước khi gửi file Sao lưu sang Telegram!');
+          }
+          await sendTelegramBackupDocument(store, token, chatId);
+          appendBotLog(
+            store.state.meta,
+            'Bot 4 -> Telegram',
+            `Đã bắn file Sao lưu dữ liệu bất tử (.json) sang Telegram (Chat ID: ${chatId}).`,
+            'success'
+          );
+          store.saveState();
+          return sendJson(res, 200, {
+            ok: true,
+            message: 'Đã gửi file Sao lưu (.json) sang Telegram thành công!',
+            status: store.getBotCenterStatus(),
+          });
+        }
       }
 
       // =======================================================================
